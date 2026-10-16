@@ -1,0 +1,124 @@
+plugins {
+    id 'idea'
+    id 'maven-publish'
+    // Fabric Loom。26.x 线用命名空间 id；Minecraft 26.3 起客户端不再混淆，
+    // 因此**不声明 mappings**、也不用 modImplementation（无 remap 需求）。
+    id 'net.fabricmc.fabric-loom' version '1.17.21'
+}
+
+group = mod_group_id
+version = mod_version
+
+base {
+    archivesName = "${mod_id}-fabric-${mc_range_label}"
+}
+
+// 产物名固定为 <mod_id>-<version>-<loader>-<MC>（见 AGENTS.md §5）。
+// 用 matching 而不是直接 named()，任务不存在时不至于让配置阶段失败。
+tasks.matching { it.name == 'jar' }.configureEach {
+    archiveFileName.set("${mod_id}-${mod_version}-fabric-${mc_range_label}-dev.jar")
+}
+tasks.matching { it.name == 'remapJar' }.configureEach {
+    archiveFileName.set("${mod_id}-${mod_version}-fabric-${mc_range_label}.jar")
+}
+
+repositories {
+    mavenLocal()
+    // 国内镜像在前，官方源兜底
+    maven { name = 'Aliyun Public'; url = 'https://maven.aliyun.com/repository/public' }
+    mavenCentral()
+    maven { name = 'Fabric'; url = 'https://maven.fabricmc.net' }          // Fabric API / Loader
+    maven { name = 'Shedaniel'; url = 'https://maven.shedaniel.me' }       // Cloth Config / REI
+    maven { name = 'TerraformersMC'; url = 'https://maven.terraformersmc.com/releases' } // Mod Menu
+    maven { name = 'Modmaven'; url = 'https://modmaven.dev' }              // JEI
+    maven { name = 'Jared'; url = 'https://maven.blamejared.com' }         // JEI fallback
+    maven { name = 'Ladysnake'; url = 'https://maven.ladysnake.org/releases' }
+    maven { name = 'Cursemaven'; url = 'https://www.cursemaven.com' }      // Jade / Litematica / …
+}
+
+dependencies {
+    minecraft("com.mojang:minecraft:${minecraft_version}")
+    implementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
+    implementation("net.fabricmc.fabric-api:fabric-api:${fabric_version}")
+
+    // 必选前置：配置界面（同时写进 fabric.mod.json 的 depends）
+    compileOnly("me.shedaniel.cloth:cloth-config-fabric:${cloth_config_version}") { transitive = false }
+    // 可选：配置入口（Mod Menu）
+    compileOnly("com.terraformersmc:modmenu:${modmenu_version}") { transitive = false }
+
+    // 可选兼容（编译期，不打包、不设必装依赖）。26.3 无 Fabric 版的见 gradle.properties 注释。
+        compileOnly("mezz.jei:jei-${minecraft_version}-fabric-api:${jei_version}") { transitive = false }
+    compileOnly("me.shedaniel:RoughlyEnoughItems-api-fabric:${rei_version}") { transitive = false }
+    compileOnly("me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:${rei_version}") { transitive = false }
+    compileOnly("curse.maven:jade-324717:${jade_version}") { transitive = false }
+    compileOnly("curse.maven:litematica-308892:${litematica_version}") { transitive = false }
+    compileOnly("curse.maven:malilib-303119:${malilib_version}") { transitive = false }
+    compileOnly("curse.maven:craftingtweaks-502516:${crafting_tweaks_version}") { transitive = false }
+    compileOnly("curse.maven:balm-500525:${balm_version}") { transitive = false }
+    compileOnly("maven.modrinth:toms-storage:${toms_storage_version}") { transitive = false }
+    compileOnly("maven.modrinth:sodium:${sodium_version}") { transitive = false }
+    // 26.3 无 Fabric 版，暂不引用：EMI / Chipped / ModernKeyBinding / Quark
+}
+
+processResources {
+    var replaceProperties = [
+            mod_id               : project.mod_id,
+            mod_name             : project.mod_name,
+            mod_license          : project.mod_license,
+            mod_version          : project.mod_version,
+            mod_authors          : project.mod_authors,
+            mod_description      : project.mod_description,
+            mod_display_url      : project.mod_display_url,
+            mod_issue_tracker_url: project.mod_issue_tracker_url,
+            mod_sources_url      : project.mod_sources_url,
+            mod_logo_file        : project.mod_logo_file,
+            minecraft_version    : project.minecraft_version,
+            fabric_minecraft_range: project.fabric_minecraft_range,
+            fabric_loader_version: project.fabric_loader_version,
+            java_version         : project.java_version
+    ]
+    inputs.properties replaceProperties
+    filesMatching(['fabric.mod.json']) {
+        expand replaceProperties
+    }
+}
+
+loom {
+    accessWidenerPath = file("src/main/resources/${mod_id}.accesswidener")
+
+    runs {
+        client {
+            client()
+            configName = "Fabric Client ${project.minecraft_version}"
+            runDir "run/client"
+        }
+        server {
+            server()
+            configName = "Fabric Server ${project.minecraft_version}"
+            runDir "run/server"
+        }
+    }
+}
+
+fabricApi {
+    configureDataGeneration {
+        setModId(project.mod_id)
+        setOutputDirectory(getProject().file("src/generated/resources"))
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.encoding = 'UTF-8'
+    it.options.release = project.java_version as int
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+    from('/') {
+        include 'LICENSE'
+    }
+}

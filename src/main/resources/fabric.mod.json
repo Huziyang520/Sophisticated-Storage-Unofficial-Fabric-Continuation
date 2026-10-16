@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": [
+    "P3pp3rF1y",
+    "Salandora",
+    "Huziyang520"
+  ],
+  "license": "${mod_license}",
+  "icon": "${mod_logo_file}",
+  "contact": {
+    "homepage": "${mod_display_url}",
+    "issues": "${mod_issue_tracker_url}",
+    "sources": "${mod_sources_url}"
+  },
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "net.p3pp3rf1y.sophisticatedstorage.SophisticatedStorage"
+    ],
+    "client": [
+      "net.p3pp3rf1y.sophisticatedstorage.client.SophisticatedStorageClient"
+    ],
+    "fabric-datagen": [
+      "net.p3pp3rf1y.sophisticatedstorage.data.DataGenerators"
+    ],
+    "jade": [
+      "net.p3pp3rf1y.sophisticatedstorage.compat.jade.StorageJadePlugin"
+    ],
+    "jei_mod_plugin": [
+      "net.p3pp3rf1y.sophisticatedstorage.compat.jei.StoragePlugin"
+    ],
+    "rei_common": [
+      "net.p3pp3rf1y.sophisticatedstorage.compat.rei.REIServerCompat"
+    ],
+    "rei_client": [
+      "net.p3pp3rf1y.sophisticatedstorage.compat.rei.REIClientCompat"
+    ]
+  },
+  "accessWidener": "${mod_id}.accesswidener",
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${fabric_minecraft_range}",
+    "java": ">=${java_version}",
+    "cloth-config": ">=${cloth_config_version}",
+    "sophisticatedcore": ">=1.5.13.2406"
+  },
+  "recommends": {
+    "modmenu": "*"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.feedback": "${mod_issue_tracker_url}"
+      },
+      "badges": []
+    }
+  }
+}

@@ -1,0 +1,28 @@
+# Gradle
+.gradle/
+build/
+out/
+bin/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# 运行目录（loom runs）
+run/
+runs/
+
+# 本地化的编译期依赖（compileOnly files(...)），不入库
+libs/
+
+# 生成的缓存
+src/generated/resources/.cache/
+
+# 日志 / 崩溃
+*.log
+hs_err_pid*.log

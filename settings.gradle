@@ -1,0 +1,17 @@
+pluginManagement {
+    repositories {
+        // 国内镜像放官方源之前（阿里云），官方源兜底
+        maven { name = 'Aliyun Public'; url = 'https://maven.aliyun.com/repository/public' }
+        maven { name = 'Aliyun Gradle Plugin'; url = 'https://maven.aliyun.com/repository/gradle-plugin' }
+        gradlePluginPortal()
+        mavenCentral()
+        exclusiveContent {
+            forRepository {
+                maven { name = 'Fabric'; url = 'https://maven.fabricmc.net' }
+            }
+            filter { includeGroupAndSubgroups('net.fabricmc') }
+        }
+    }
+}
+
+rootProject.name = 'sophisticatedstorage-fabric-26.3'
