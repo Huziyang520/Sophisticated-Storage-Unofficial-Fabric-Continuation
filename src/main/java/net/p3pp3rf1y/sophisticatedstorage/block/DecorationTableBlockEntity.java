@@ -324,29 +324,29 @@ public class DecorationTableBlockEntity extends BlockEntity {
 	@Override
 	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
 		super.loadAdditional(tag, registries);
-		decorativeBlocks.deserializeNBT(registries, tag.getCompound("decorativeBlocks"));
-		dyes.deserializeNBT(registries, tag.getCompound("dyes"));
-		storageBlock.deserializeNBT(registries, tag.getCompound("storageBlock"));
-		result = ItemStack.parse(registries, tag.getCompound("result")).orElse(ItemStack.EMPTY);
+		decorativeBlocks.deserializeNBT(registries, tag.getCompoundOrEmpty("decorativeBlocks"));
+		dyes.deserializeNBT(registries, tag.getCompoundOrEmpty("dyes"));
+		storageBlock.deserializeNBT(registries, tag.getCompoundOrEmpty("storageBlock"));
+		result = ItemStack.parse(registries, tag.getCompoundOrEmpty("result")).orElse(ItemStack.EMPTY);
 		slotMaterialInheritance.clear();
-		ListTag inheritance = tag.getList("slotMaterialInheritance", Tag.TAG_COMPOUND);
+		ListTag inheritance = tag.getListOrEmpty("slotMaterialInheritance");
 		for (int i = 0; i < inheritance.size(); i++) {
 			CompoundTag slotTag = inheritance.getCompound(i);
-			slotMaterialInheritance.put(slotTag.getInt("slot"), slotTag.getBoolean("value"));
+			slotMaterialInheritance.put(slotTag.getIntOr("slot", 0), slotTag.getBooleanOr("value", false));
 		}
 		remainingParts.clear();
-		ListTag remainingPartsTag = tag.getList("remainingParts", Tag.TAG_COMPOUND);
+		ListTag remainingPartsTag = tag.getListOrEmpty("remainingParts");
 		for (int i = 0; i < remainingPartsTag.size(); i++) {
 			CompoundTag partTag = remainingPartsTag.getCompound(i);
-			Identifier key = Identifier.tryParse(partTag.getString("key"));
+			Identifier key = Identifier.tryParse(partTag.getStringOr("key", ""));
 			if (key == null) {
 				continue;
 			}
-			remainingParts.put(key, partTag.getInt("value"));
+			remainingParts.put(key, partTag.getIntOr("value", 0));
 		}
 
-		mainColor = tag.getInt("mainColor");
-		accentColor = tag.getInt("accentColor");
+		mainColor = tag.getIntOr("mainColor", 0);
+		accentColor = tag.getIntOr("accentColor", 0);
 	}
 
 	@Override

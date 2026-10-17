@@ -130,7 +130,7 @@ public class CommonEventHandler {
 		if (WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class)
 				.map(storageBlockEntity -> storageBlockEntity.getStorageWrapper().getUpgradeHandler().getTypeWrappers(InfinityUpgradeItem.TYPE).stream().anyMatch(w -> !player.hasPermissions(w.getPermissionLevel())))
 				.orElse(false)) {
-			player.displayClientMessage(StorageTranslationHelper.INSTANCE.translStatusMessage("infinity_upgrade_only_admin_break").withStyle(ChatFormatting.RED), true);
+			player.sendOverlayMessage(StorageTranslationHelper.INSTANCE.translStatusMessage("infinity_upgrade_only_admin_break").withStyle(ChatFormatting.RED));
 			return false;
 		}
 

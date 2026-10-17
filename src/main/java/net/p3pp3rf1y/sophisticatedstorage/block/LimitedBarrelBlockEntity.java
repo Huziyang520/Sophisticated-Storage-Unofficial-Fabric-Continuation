@@ -280,7 +280,7 @@ public class LimitedBarrelBlockEntity extends BarrelBlockEntity implements ICoun
 		}
 		showCounts = NBTHelper.getBoolean(tag, "showCounts").orElse(true);
 		showFillLevels = NBTHelper.getBoolean(tag, "showFillLevels").orElse(false);
-		slotColors = NBTHelper.getMap(tag, "slotColors", Integer::valueOf, (tagName, t) -> Optional.of(DyeColor.byId(((IntTag) t).getAsInt()))).orElseGet(HashMap::new);
+		slotColors = NBTHelper.getMap(tag, "slotColors", Integer::valueOf, (tagName, t) -> Optional.of(DyeColor.byId(((IntTag) t).intValue()))).orElseGet(HashMap::new);
 	}
 
 	@Override

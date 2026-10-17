@@ -215,7 +215,7 @@ public abstract class WoodStorageBlockBase extends StorageBlockBase implements I
 	protected boolean tryItemInteraction(Player player, InteractionHand hand, WoodStorageBlockEntity b, ItemStack stackInHand, Direction facing, BlockHitResult hitResult) {
 		if (stackInHand.getItem() == ModItems.PACKING_TAPE.get()) {
 			if (Boolean.TRUE.equals(Config.COMMON.dropPacked.get())) {
-				player.displayClientMessage(Component.translatable("gui.sophisticatedstorage.status.packing_tape_disabled"), true);
+				player.sendOverlayMessage(Component.translatable("gui.sophisticatedstorage.status.packing_tape_disabled"));
 			} else {
 				packStorage(player, hand, b, stackInHand);
 			}

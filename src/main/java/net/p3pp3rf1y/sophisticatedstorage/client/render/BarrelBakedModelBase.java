@@ -159,7 +159,7 @@ public abstract class BarrelBakedModelBase implements BakedModel, CustomParticle
 		int hash = calculateMoveBackToSideHash(state, dir, distFromCenter, displayItemIndex, displayItemCount);
 		RenderContext.QuadTransform transform = DIRECTION_MOVE_BACK_TO_SIDE.getIfPresent(hash);
 		if (transform == null) {
-			Vec3i normal = dir.getNormal();
+			Vec3i normal = dir.getStep();
 			Vector3f offset = new Vector3f(distFromCenter, distFromCenter, distFromCenter);
 			offset.mul(normal.getX(), normal.getY(), normal.getZ());
 			Vector3f frontOffset = DisplayItemRenderer.getDisplayItemIndexFrontOffset(displayItemIndex, displayItemCount);

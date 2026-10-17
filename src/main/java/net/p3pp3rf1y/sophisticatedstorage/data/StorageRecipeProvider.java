@@ -16,7 +16,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.properties.WoodType;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.p3pp3rf1y.sophisticatedbackpacks.SophisticatedBackpacks;
 import net.p3pp3rf1y.sophisticatedcore.compat.CompatModIds;
@@ -46,7 +46,7 @@ public class StorageRecipeProvider extends FabricRecipeProvider {
 	public static final String HAS_BASE_TIER_WOODEN_STORAGE_CRITERION_NAME = "has_base_tier_wooden_storage";
 	private static final String PLANK_SUFFIX = "_plank";
 
-	public StorageRecipeProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registries) {
+	public StorageRecipeProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
 		super(output, registries);
 	}
 

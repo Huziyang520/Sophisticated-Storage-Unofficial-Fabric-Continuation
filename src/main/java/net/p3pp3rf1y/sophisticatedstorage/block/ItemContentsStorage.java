@@ -51,7 +51,7 @@ public class ItemContentsStorage extends SavedData {
 		for (Tag n : storageContents) {
 			CompoundTag uuidContentsPair = (CompoundTag) n;
 			UUID uuid = NbtUtils.loadUUID(Objects.requireNonNull(uuidContentsPair.get("uuid")));
-			CompoundTag contents = uuidContentsPair.getCompound("contents");
+			CompoundTag contents = uuidContentsPair.getCompoundOrEmpty("contents");
 			storage.storageContents.put(uuid, contents);
 		}
 	}

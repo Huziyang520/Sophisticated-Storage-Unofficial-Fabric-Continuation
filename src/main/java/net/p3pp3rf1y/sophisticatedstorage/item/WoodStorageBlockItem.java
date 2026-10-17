@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.item;
 
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
@@ -53,7 +54,7 @@ public class WoodStorageBlockItem extends StorageBlockItem {
                     StackStorageWrapper.fromStack(registries, stack).getContentsUuid().ifPresent(uuid -> tooltip.add(Component.literal("UUID: " + uuid).withStyle(ChatFormatting.DARK_GRAY)));
                 }
             }
-            if (!Screen.hasShiftDown()) {
+            if (!GuiHelper.isShiftDown()) {
                 tooltip.add(Component.translatable(
                         TranslationHelper.INSTANCE.translItemTooltip("storage") + ".press_for_contents",
                         Component.translatable(TranslationHelper.INSTANCE.translItemTooltip("storage") + ".shift").withStyle(ChatFormatting.AQUA)

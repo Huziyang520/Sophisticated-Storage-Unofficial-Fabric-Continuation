@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.data;
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.LootTableProvider;
@@ -19,7 +19,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public class StorageBlockLootProvider extends LootTableProvider {
-	StorageBlockLootProvider(FabricDataOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
+	StorageBlockLootProvider(FabricPackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
 		super(packOutput, Set.of(),
 				List.of(
 						new SubProviderEntry((output) -> new SubProvider(packOutput, registries), LootContextParamSets.BLOCK)
@@ -29,7 +29,7 @@ public class StorageBlockLootProvider extends LootTableProvider {
 	}
 
 	private static class SubProvider extends FabricBlockLootTableProvider {
-		protected SubProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registries) {
+		protected SubProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
 			super(output, registries);
 		}
 

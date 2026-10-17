@@ -64,9 +64,9 @@ public class ControllerRenderer implements BlockEntityRenderer<ControllerBlockEn
 		for (BlockPos position : controller.getStoragePositions()) {
 			BlockPos controllerPos = controller.getBlockPos();
 
-			double translateX = position.getX() + 0.5 - controllerPos.getX() + 0.501 * (playerLookDirection.getNormal().getX());
-			double translateY = position.getY() + 0.5 - controllerPos.getY() + 0.501 * (playerLookDirection.getNormal().getY());
-			double translateZ = position.getZ() + 0.5 - controllerPos.getZ() + 0.501 * (playerLookDirection.getNormal().getZ());
+			double translateX = position.getX() + 0.5 - controllerPos.getX() + 0.501 * (playerLookDirection.getStep().getX());
+			double translateY = position.getY() + 0.5 - controllerPos.getY() + 0.501 * (playerLookDirection.getStep().getY());
+			double translateZ = position.getZ() + 0.5 - controllerPos.getZ() + 0.501 * (playerLookDirection.getStep().getZ());
 
 			poseStack.pushPose();
 			poseStack.translate(translateX, translateY, translateZ);

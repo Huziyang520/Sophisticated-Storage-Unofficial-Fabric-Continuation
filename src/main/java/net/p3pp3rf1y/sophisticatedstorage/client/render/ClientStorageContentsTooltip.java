@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedstorage.client.render;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.client.render.ClientStorageContentsTooltipBase;
@@ -24,7 +24,7 @@ public class ClientStorageContentsTooltip extends ClientStorageContentsTooltipBa
 	}
 
 	@Override
-	public void renderImage(Font font, int leftX, int topY, GuiGraphics guiGraphics) {
+	public void renderImage(Font font, int leftX, int topY, GuiGraphicsExtractor guiGraphics) {
 		//noinspection DataFlowIssue - level definitely exists here
 		renderTooltip(StackStorageWrapper.fromStack(Minecraft.getInstance().level.registryAccess(), storageItem), font, leftX, topY, guiGraphics);
 	}

@@ -243,7 +243,7 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 		if (level == null || !(state.getBlock() instanceof StorageBlockBase storageBlock)) {
 			return;
 		}
-		Vec3i vec3i = storageBlock.getFacing(state).getNormal();
+		Vec3i vec3i = storageBlock.getFacing(state).getStep();
 		double d0 = worldPosition.getX() + 0.5D + vec3i.getX() / 2.0D;
 		double d1 = worldPosition.getY() + 0.5D + vec3i.getY() / 2.0D;
 		double d2 = worldPosition.getZ() + 0.5D + vec3i.getZ() / 2.0D;
@@ -282,7 +282,7 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 		showTier = NBTHelper.getBoolean(tag, "showTier").orElse(true);
 		showUpgrades = NBTHelper.getBoolean(tag, "showUpgrades").orElse(false);
 		if (level != null && level.isClientSide) {
-			if (tag.getBoolean("updateBlockRender")) {
+			if (tag.getBooleanOr("updateBlockRender", false)) {
 				WorldHelper.notifyBlockUpdate(this);
 			}
 		} else {
@@ -591,7 +591,7 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 		int normalY = Integer.signum(neighborPos.getY() - worldPosition.getY());
 		int normalZ = Integer.signum(neighborPos.getZ() - worldPosition.getZ());
 		for (Direction value : Direction.values()) {
-			Vec3i normal = value.getNormal();
+			Vec3i normal = value.getStep();
 			if (normal.getX() == normalX && normal.getY() == normalY && normal.getZ() == normalZ) {
 				direction = value;
 				break;

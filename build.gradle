@@ -110,6 +110,8 @@ fabricApi {
 tasks.withType(JavaCompile).configureEach {
     it.options.encoding = 'UTF-8'
     it.options.release = project.java_version as int
+    // javac 默认只报前 100 条错误，改这个移植量下不够用；一次看全，减少迭代轮次。
+    it.options.compilerArgs << '-Xmaxerrs' << '10000'
 }
 
 java {
