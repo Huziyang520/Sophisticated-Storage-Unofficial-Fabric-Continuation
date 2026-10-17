@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.client.render;
 
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -337,7 +338,7 @@ public abstract class BarrelBakedModelBase implements BakedModel, CustomParticle
 			BarrelMaterial barrelMaterial = entry.getKey();
 			Identifier blockName = entry.getValue();
 			TextureAtlasSprite sprite = RenderHelper.getSprite(blockName, spriteSide, rand);
-			Either<Material, String> material = Either.left(new Material(InventoryMenu.BLOCK_ATLAS, sprite.contents().name()));
+			Either<Material, String> material = Either.left(new Material(TextureAtlas.LOCATION_BLOCKS, sprite.contents().name()));
 
 			for (BarrelMaterial childMaterial : barrelMaterial.getChildren()) {
 				materials.put(childMaterial.getSerializedName(), material);

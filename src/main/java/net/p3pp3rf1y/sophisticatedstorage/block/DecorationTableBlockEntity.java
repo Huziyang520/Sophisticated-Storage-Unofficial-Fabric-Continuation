@@ -331,13 +331,13 @@ public class DecorationTableBlockEntity extends BlockEntity {
 		slotMaterialInheritance.clear();
 		ListTag inheritance = tag.getListOrEmpty("slotMaterialInheritance");
 		for (int i = 0; i < inheritance.size(); i++) {
-			CompoundTag slotTag = inheritance.getCompound(i);
+			CompoundTag slotTag = inheritance.getCompoundOrEmpty(i);
 			slotMaterialInheritance.put(slotTag.getIntOr("slot", 0), slotTag.getBooleanOr("value", false));
 		}
 		remainingParts.clear();
 		ListTag remainingPartsTag = tag.getListOrEmpty("remainingParts");
 		for (int i = 0; i < remainingPartsTag.size(); i++) {
-			CompoundTag partTag = remainingPartsTag.getCompound(i);
+			CompoundTag partTag = remainingPartsTag.getCompoundOrEmpty(i);
 			Identifier key = Identifier.tryParse(partTag.getStringOr("key", ""));
 			if (key == null) {
 				continue;

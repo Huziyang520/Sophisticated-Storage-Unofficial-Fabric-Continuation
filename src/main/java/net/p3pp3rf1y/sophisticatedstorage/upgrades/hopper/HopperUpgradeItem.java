@@ -34,18 +34,18 @@ public class HopperUpgradeItem extends UpgradeItemBase<HopperUpgradeWrapper> {
 	}
 
 	public int getInputFilterSlotCount() {
-		return inputFilterSlotCount.intValue();
+		return inputFilterSlotCount.getAsInt();
 	}
 
 	public int getOutputFilterSlotCount() {
-		return outputFilterSlotCount.intValue();
+		return outputFilterSlotCount.getAsInt();
 	}
 
 	public long getTransferSpeedTicks() {
-		return transferSpeedTicks.intValue();
+		return transferSpeedTicks.getAsInt();
 	}
 
 	public int getMaxTransferStackSize() {
-		return maxTransferStackSize.intValue();
+		return maxTransferStackSize.getAsInt();
 	}
 }

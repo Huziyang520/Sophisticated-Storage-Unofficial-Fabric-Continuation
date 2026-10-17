@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.client.render;
 
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
@@ -28,7 +29,7 @@ import static net.minecraft.client.Minecraft.UNIFORM_FONT;
 
 public class LimitedBarrelRenderer extends BarrelRenderer<LimitedBarrelBlockEntity> {
 
-	public static final Material FILL_INDICATORS_TEXTURE = new Material(InventoryMenu.BLOCK_ATLAS, SophisticatedStorage.getRL("block/fill_indicators"));
+	public static final Material FILL_INDICATORS_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, SophisticatedStorage.getRL("block/fill_indicators"));
 	private static final float MULTIPLE_ITEMS_FONT_SCALE = 1 / 96f;
 	private static final float SINGLE_ITEM_FONT_SCALE = 1 / 48f;
 	public static final Style INFINITE_COUNT_DISPLAY_STYLE = Style.EMPTY.withFont(UNIFORM_FONT);

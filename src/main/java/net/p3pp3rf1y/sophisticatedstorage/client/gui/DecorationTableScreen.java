@@ -205,7 +205,7 @@ public class DecorationTableScreen extends AbstractContainerScreen<DecorationTab
 		if (colorPicker != null) {
 			Matrix3x2fStack pose = guiGraphics.pose();
 			pose.pushMatrix();
-			pose.translate(0, 0, 500);
+			pose.translate(0, 0);
 			colorPicker.renderBg(guiGraphics, minecraft, i, i1);
 			pose.popMatrix();
 		}
@@ -214,7 +214,7 @@ public class DecorationTableScreen extends AbstractContainerScreen<DecorationTab
 	private void renderDyeSlotsOverlays(GuiGraphicsExtractor guiGraphics) {
 		Matrix3x2fStack pose = guiGraphics.pose();
 		pose.pushMatrix();
-		pose.translate(leftPos, topPos, 0);
+		pose.translate(leftPos, topPos);
 		Slot redSlot = getMenu().getSlot(getMenu().getDyeSlotRange().firstSlot());
 		renderSlotOverlay(guiGraphics, redSlot, 0x33_FF0000);
 		Slot greenSlot = getMenu().getSlot(getMenu().getDyeSlotRange().firstSlot() + 1);
@@ -242,7 +242,7 @@ public class DecorationTableScreen extends AbstractContainerScreen<DecorationTab
 			renderTransparentBackground(guiGraphics);
 			Matrix3x2fStack pose = guiGraphics.pose();
 			pose.pushMatrix();
-			pose.translate(0, 0, 500);
+			pose.translate(0, 0);
 			colorPicker.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
 			colorPicker.setTooltipForNextFrame(this, guiGraphics, mouseX, mouseY);
 			pose.popMatrix();
@@ -436,7 +436,7 @@ public class DecorationTableScreen extends AbstractContainerScreen<DecorationTab
 		}
 
 		@Override
-		public void renderTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+		public void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
 			if (isMouseOver(mouseX, mouseY)) {
 				guiGraphics.setTooltipForNextFrame(screen.font, tooltip, mouseX, mouseY);
 			}
@@ -471,7 +471,7 @@ public class DecorationTableScreen extends AbstractContainerScreen<DecorationTab
 		}
 
 		@Override
-		public void renderTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+		public void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
 			if (hasNoPartsToShow()) {
 				return;
 			}
@@ -622,7 +622,7 @@ public class DecorationTableScreen extends AbstractContainerScreen<DecorationTab
 			pose.mulPose(Axis.YP.rotationDegrees(yAxisRotation));
 			int scale = 48;
 			pose.scale(scale, -scale, scale);
-			pose.translate(-0.5, -0.5, -0.5);
+			pose.translate(-0.5, -0.5);
 			ItemRenderer itemRenderer = minecraft.getItemRenderer();
 			BakedModel bakedModel = itemRenderer.getModel(previewStack, null, null, 0);
 			int combinedLight = 15728880;

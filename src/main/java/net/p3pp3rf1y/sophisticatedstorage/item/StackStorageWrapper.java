@@ -70,11 +70,11 @@ public class StackStorageWrapper extends StorageWrapper {
 
 	@Override
 	protected CompoundTag getContentsNbt() {
-		return StorageBlockItem.getEntityWrapperTagFromStack(storageStack).map(wrapperTag -> wrapperTag.getCompound(CONTENTS_TAG)).orElseGet(() -> {
+		return StorageBlockItem.getEntityWrapperTagFromStack(storageStack).map(wrapperTag -> wrapperTag.getCompoundOrEmpty(CONTENTS_TAG)).orElseGet(() -> {
 			if (contentsUuid == null) {
 				contentsUuid = getNewUuid();
 			}
-			return ItemContentsStorage.get().getOrCreateStorageContents(contentsUuid).getCompound(StorageBlockEntity.STORAGE_WRAPPER_TAG).getCompound(CONTENTS_TAG);
+			return ItemContentsStorage.get().getOrCreateStorageContents(contentsUuid).getCompound(StorageBlockEntity.STORAGE_WRAPPER_TAG).getCompoundOrEmpty(CONTENTS_TAG);
 		});
 	}
 

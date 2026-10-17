@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.client.render;
 
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonDeserializationContext;
@@ -451,7 +452,7 @@ public abstract class BarrelDynamicModelBase<T extends BarrelDynamicModelBase<T>
 					if (textureName.startsWith("#")) {
 						textureName = REFERENCE_PREFIX + textureName.substring(1);
 					}
-					textures.put(entry.getKey(), new Material(InventoryMenu.BLOCK_ATLAS, Identifier.parse(textureName)));
+					textures.put(entry.getKey(), new Material(TextureAtlas.LOCATION_BLOCKS, Identifier.parse(textureName)));
 				}
 			}
 			return new BarrelModelPartDefinition(modelLocation, textures);

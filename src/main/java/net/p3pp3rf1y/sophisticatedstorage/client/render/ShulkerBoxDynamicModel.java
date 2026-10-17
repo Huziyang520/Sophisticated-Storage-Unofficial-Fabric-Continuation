@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.client.render;
 
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import io.github.fabricators_of_create.porting_lib.models.geometry.IGeometryBakingContext;
@@ -102,7 +103,7 @@ public class ShulkerBoxDynamicModel implements IUnbakedGeometry<ShulkerBoxDynami
 			if (Boolean.FALSE.equals(data.get(HAS_MAIN_COLOR))) {
 				texture = MAIN_BREAK_TEXTURE;
 			}
-			return Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(texture);
+			return Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(texture);
 		}
 
 		@Override

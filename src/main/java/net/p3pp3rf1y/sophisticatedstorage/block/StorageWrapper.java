@@ -206,9 +206,9 @@ public abstract class StorageWrapper implements IStorageWrapper {
 	}
 
 	private void loadData(CompoundTag tag) {
-		settingsNbt = tag.getCompound(SETTINGS_TAG);
+		settingsNbt = tag.getCompoundOrEmpty(SETTINGS_TAG);
 		settingsHandler.reloadFrom(settingsNbt);
-		renderInfoNbt = tag.getCompound(RENDER_INFO_TAG);
+		renderInfoNbt = tag.getCompoundOrEmpty(RENDER_INFO_TAG);
 		renderInfo.deserializeFrom(renderInfoNbt);
 		contentsUuid = NBTHelper.getTagValue(tag, UUID_TAG, CompoundTag::get).map(NbtUtils::loadUUID).orElse(null);
 		openTabId = NBTHelper.getInt(tag, OPEN_TAB_ID_TAG).orElse(-1);
@@ -226,7 +226,7 @@ public abstract class StorageWrapper implements IStorageWrapper {
 
 	private void loadContents(CompoundTag tag) {
 		if (tag.contains(CONTENTS_TAG)) {
-			contentsNbt = tag.getCompound(CONTENTS_TAG);
+			contentsNbt = tag.getCompoundOrEmpty(CONTENTS_TAG);
 			onContentsNbtUpdated();
 		}
 	}

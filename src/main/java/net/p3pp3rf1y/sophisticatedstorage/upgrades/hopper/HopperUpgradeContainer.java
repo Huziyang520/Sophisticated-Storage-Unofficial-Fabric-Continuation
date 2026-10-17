@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.upgrades.hopper;
 
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -21,8 +22,8 @@ import net.p3pp3rf1y.sophisticatedstorage.upgrades.IOMode;
 import org.jetbrains.annotations.Nullable;
 
 public class HopperUpgradeContainer extends UpgradeContainerBase<HopperUpgradeWrapper, HopperUpgradeContainer> {
-	public static final Pair<Identifier, Identifier> EMPTY_INPUT_FILTER_SLOT_BACKGROUND = new Pair<>(InventoryMenu.BLOCK_ATLAS, SophisticatedStorage.getRL("item/empty_input_filter_slot"));
-	public static final Pair<Identifier, Identifier> EMPTY_OUTPUT_FILTER_SLOT_BACKGROUND = new Pair<>(InventoryMenu.BLOCK_ATLAS, SophisticatedStorage.getRL("item/empty_output_filter_slot"));
+	public static final Pair<Identifier, Identifier> EMPTY_INPUT_FILTER_SLOT_BACKGROUND = new Pair<>(TextureAtlas.LOCATION_BLOCKS, SophisticatedStorage.getRL("item/empty_input_filter_slot"));
+	public static final Pair<Identifier, Identifier> EMPTY_OUTPUT_FILTER_SLOT_BACKGROUND = new Pair<>(TextureAtlas.LOCATION_BLOCKS, SophisticatedStorage.getRL("item/empty_output_filter_slot"));
 	private final ContentsFilterLogicContainer inputFilterLogicContainer;
 
 	private final ContentsFilterLogicContainer outputFilterLogicContainer;

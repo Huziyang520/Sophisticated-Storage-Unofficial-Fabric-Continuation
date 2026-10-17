@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.client.render;
 
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -8,7 +9,7 @@ import net.minecraft.world.inventory.InventoryMenu;
 import java.util.function.BiFunction;
 
 public class TranslucentVertexConsumer implements VertexConsumer {
-	public static final RenderType TRANSLUCENT = RenderType.entityTranslucent(InventoryMenu.BLOCK_ATLAS);
+	public static final RenderType TRANSLUCENT = RenderType.entityTranslucent(TextureAtlas.LOCATION_BLOCKS);
 	private final VertexConsumer delegate;
 
 	private static BiFunction<MultiBufferSource, Integer, VertexConsumer> factory = TranslucentVertexConsumer::new;

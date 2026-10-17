@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.client.render;
 
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Either;
@@ -89,7 +90,7 @@ public class CompositeElementsModel extends BlockModel {
 
 			if (visitedTextureReferences.contains(textureName)) {
 				SophisticatedStorage.LOGGER.warn("Unable to resolve texture due to reference chain {}->{} in {}", Joiner.on("->").join(visitedTextureReferences), textureName, name);
-				return new Material(InventoryMenu.BLOCK_ATLAS, MissingTextureAtlasSprite.getLocation());
+				return new Material(TextureAtlas.LOCATION_BLOCKS, MissingTextureAtlasSprite.getLocation());
 			}
 
 			visitedTextureReferences.add(textureName);
@@ -104,6 +105,6 @@ public class CompositeElementsModel extends BlockModel {
 			}
 		}
 
-		return Either.left(new Material(InventoryMenu.BLOCK_ATLAS, MissingTextureAtlasSprite.getLocation()));
+		return Either.left(new Material(TextureAtlas.LOCATION_BLOCKS, MissingTextureAtlasSprite.getLocation()));
 	}
 }

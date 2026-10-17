@@ -27,7 +27,7 @@ public class StorageBlockItem extends BlockItemBase implements ITintableBlockIte
 		if (customData == null) {
 			return Optional.empty();
 		}
-		return Optional.of(customData.copyTag().getCompound(STORAGE_WRAPPER_TAG));
+		return Optional.of(customData.copyTag().getCompoundOrEmpty(STORAGE_WRAPPER_TAG));
 	}
 
 	public static Optional<Integer> getMainColorFromComponentHolder(SophisticatedDataComponentHolder componentHolder) {
