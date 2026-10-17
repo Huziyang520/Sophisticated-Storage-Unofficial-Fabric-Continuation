@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedstorage;
 
 import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeModConfigEvents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
@@ -348,7 +348,7 @@ public class Config {
 				disallowedItemsSet = new HashSet<>();
 
 				for (String disallowedItemName : disallowedItemsList.get()) {
-					ResourceLocation registryName = ResourceLocation.parse(disallowedItemName);
+					Identifier registryName = Identifier.parse(disallowedItemName);
 					BuiltInRegistries.ITEM.getOptional(registryName).ifPresent(disallowedItemsSet::add);
 				}
 			}
@@ -379,7 +379,7 @@ public class Config {
 			}
 
 			@Override
-			public int getMaxUpgradesPerStorage(String storageType, @Nullable ResourceLocation upgradeRegistryName) {
+			public int getMaxUpgradesPerStorage(String storageType, @Nullable Identifier upgradeRegistryName) {
 				if (maxUpgradesPerStorage == null) {
 					initMaxUpgradesPerStorage();
 				}

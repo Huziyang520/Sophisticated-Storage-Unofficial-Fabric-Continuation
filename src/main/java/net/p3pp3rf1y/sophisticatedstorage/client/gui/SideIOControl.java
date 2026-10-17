@@ -16,7 +16,7 @@ import net.p3pp3rf1y.sophisticatedstorage.common.gui.BlockSide;
 import net.p3pp3rf1y.sophisticatedstorage.common.gui.SideIOContainer;
 import net.p3pp3rf1y.sophisticatedstorage.upgrades.IOMode;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;

@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorage;
 
 import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeConfigRegistry;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.fabricmc.api.ModInitializer;
 import net.p3pp3rf1y.sophisticatedcore.compat.CompatRegistry;
 import net.p3pp3rf1y.sophisticatedstorage.common.CommonEventHandler;
@@ -43,8 +43,8 @@ public class SophisticatedStorage implements ModInitializer {
 		ModBlocks.registerCauldronInteractions();
 	}
 
-	public static ResourceLocation getRL(String regName) {
-		return ResourceLocation.parse(getRegistryName(regName));
+	public static Identifier getRL(String regName) {
+		return Identifier.parse(getRegistryName(regName));
 	}
 
 	public static String getRegistryName(String regName) {

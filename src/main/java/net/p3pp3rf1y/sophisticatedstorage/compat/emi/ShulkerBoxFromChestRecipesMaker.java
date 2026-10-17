@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorage.compat.emi;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -62,7 +62,7 @@ public class ShulkerBoxFromChestRecipesMaker {
 					i++;
 				}
 				ItemStack result = ClientRecipeHelper.assemble(originalRecipe, craftinginventory.asCraftInput());
-				ResourceLocation newId = ResourceLocation.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "shulker_from_"
+				Identifier newId = Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "shulker_from_"
 						+ getSubtypeInterpreter.apply(chestItem).map(interpreter -> interpreter.getRegistrySanitizedItemString(chestItem)).orElse(""));
 				ShapedRecipePattern pattern = new ShapedRecipePattern(originalRecipe.getWidth(), originalRecipe.getHeight(), ingredientsCopy, Optional.empty());
 

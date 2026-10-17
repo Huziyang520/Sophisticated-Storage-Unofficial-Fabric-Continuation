@@ -6,7 +6,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.BlockFamily;
 import net.minecraft.data.recipes.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
@@ -1133,7 +1133,7 @@ public class StorageRecipeProvider extends FabricRecipeProvider {
 				.define('P', ItemTags.PLANKS)
 				.define('U', backpackUpgrade)
 				.unlockedBy("has_backpack_upgrade", has(backpackUpgrade))
-				.save(sbChippedRecipeOutput, ResourceLocation.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "storage_" + getChippedItemPath(upgrade) + "_from_backpack_" + getChippedItemPath(backpackUpgrade)));
+				.save(sbChippedRecipeOutput, Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "storage_" + getChippedItemPath(upgrade) + "_from_backpack_" + getChippedItemPath(backpackUpgrade)));
 
 		//backpack from storage upgrade
 		ShapeBasedRecipeBuilder.shaped(backpackUpgrade)
@@ -1144,7 +1144,7 @@ public class StorageRecipeProvider extends FabricRecipeProvider {
 				.define('L', ConventionalItemTags.LEATHERS)
 				.define('U', upgrade)
 				.unlockedBy("has_storage_upgrade", has(upgrade))
-				.save(sbChippedRecipeOutput, ResourceLocation.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "backpack_" + getChippedItemPath(backpackUpgrade) + "_from_storage_" + getChippedItemPath(upgrade)));
+				.save(sbChippedRecipeOutput, Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "backpack_" + getChippedItemPath(backpackUpgrade) + "_from_storage_" + getChippedItemPath(upgrade)));
 	}
 
 	private static String getChippedItemPath(BlockTransformationUpgradeItem upgrade) {
@@ -1190,7 +1190,7 @@ public class StorageRecipeProvider extends FabricRecipeProvider {
 	}
 
 	private Block getBlock(String registryName) {
-		return BuiltInRegistries.BLOCK.get(ResourceLocation.parse(registryName));
+		return BuiltInRegistries.BLOCK.get(Identifier.parse(registryName));
 	}*/
 
 	private void addBarrelRecipes(RecipeOutput recipeOutput) {

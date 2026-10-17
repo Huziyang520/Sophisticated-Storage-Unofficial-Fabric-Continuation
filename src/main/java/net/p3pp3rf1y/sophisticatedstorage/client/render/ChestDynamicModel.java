@@ -17,7 +17,7 @@ import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.BlockAndTintGetter;
@@ -31,15 +31,15 @@ import net.p3pp3rf1y.sophisticatedstorage.SophisticatedStorage;
 import net.p3pp3rf1y.sophisticatedstorage.block.WoodStorageBlockBase;
 import net.p3pp3rf1y.sophisticatedstorage.block.WoodStorageBlockEntity;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Function;
 
 public class ChestDynamicModel implements IUnbakedGeometry<ChestDynamicModel> {
 	private static final String BLOCK_BREAK_FOLDER = "block/break/";
-	private static final Map<String, ResourceLocation> WOOD_BREAK_TEXTURES = new HashMap<>();
-	public static final ResourceLocation TINTABLE_BREAK_TEXTURE = SophisticatedStorage.getRL(BLOCK_BREAK_FOLDER + "tintable_chest");
+	private static final Map<String, Identifier> WOOD_BREAK_TEXTURES = new HashMap<>();
+	public static final Identifier TINTABLE_BREAK_TEXTURE = SophisticatedStorage.getRL(BLOCK_BREAK_FOLDER + "tintable_chest");
 
 	static {
 		WoodStorageBlockBase.CUSTOM_TEXTURE_WOOD_TYPES.keySet().forEach(woodType -> WOOD_BREAK_TEXTURES.put(woodType.name(), SophisticatedStorage.getRL(BLOCK_BREAK_FOLDER + woodType.name() + "_chest")));
@@ -92,7 +92,7 @@ public class ChestDynamicModel implements IUnbakedGeometry<ChestDynamicModel> {
 			return model.getParticleIcon();
 		}
 
-		@Nonnull
+		@NotNull
 		public ModelData getModelData(BlockAndTintGetter level, BlockPos pos, BlockState state, ModelData modelData) {
 			return WorldHelper.getBlockEntity(level, pos, WoodStorageBlockEntity.class)
 					.map(be -> {
@@ -105,7 +105,7 @@ public class ChestDynamicModel implements IUnbakedGeometry<ChestDynamicModel> {
 
 		@Override
 		public TextureAtlasSprite getParticleIcon(ModelData data) {
-			ResourceLocation texture = TINTABLE_BREAK_TEXTURE;
+			Identifier texture = TINTABLE_BREAK_TEXTURE;
 			if (Boolean.FALSE.equals(data.get(HAS_MAIN_COLOR)) && data.has(WOOD_NAME) && WOOD_BREAK_TEXTURES.containsKey(data.get(WOOD_NAME))) {
 				texture = WOOD_BREAK_TEXTURES.get(data.get(WOOD_NAME));
 			}

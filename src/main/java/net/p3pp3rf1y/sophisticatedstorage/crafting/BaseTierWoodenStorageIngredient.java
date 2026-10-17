@@ -6,7 +6,7 @@ import net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredient;
 import net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredientSerializer;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.util.BlockItemBase;
 import net.p3pp3rf1y.sophisticatedcore.util.StreamCodecHelper;
@@ -56,7 +56,7 @@ public class BaseTierWoodenStorageIngredient implements CustomIngredient {
 		public static final StreamCodec<RegistryFriendlyByteBuf, BaseTierWoodenStorageIngredient> PACKET_CODEC = StreamCodecHelper.singleton(BaseTierWoodenStorageIngredient::new);
 
 		@Override
-		public ResourceLocation getIdentifier() {
+		public Identifier getIdentifier() {
 			return SophisticatedStorage.getRL("base_tier_wooden_storage");
 		}
 

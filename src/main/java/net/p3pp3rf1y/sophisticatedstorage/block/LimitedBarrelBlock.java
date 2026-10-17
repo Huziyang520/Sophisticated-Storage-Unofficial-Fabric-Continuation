@@ -40,7 +40,7 @@ import net.p3pp3rf1y.sophisticatedstorage.item.BarrelBlockItem;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;

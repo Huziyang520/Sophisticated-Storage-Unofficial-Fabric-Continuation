@@ -10,18 +10,18 @@ import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.p3pp3rf1y.sophisticatedstorage.SophisticatedStorage;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Function;
 
 public class CompositeElementsModel extends BlockModel {
 	private final List<BlockElement> elements;
 
-	public CompositeElementsModel(@Nullable ResourceLocation parentLocation, Map<String, Either<Material, String>> textureMap) {
+	public CompositeElementsModel(@Nullable Identifier parentLocation, Map<String, Either<Material, String>> textureMap) {
 		super(parentLocation, Collections.emptyList(), textureMap, true, null, ItemTransforms.NO_TRANSFORMS, Collections.emptyList());
 		elements = new ArrayList<>();
 	}
@@ -44,7 +44,7 @@ public class CompositeElementsModel extends BlockModel {
 	}
 
 	@Override
-	public void resolveParents(Function<ResourceLocation, UnbakedModel> modelGetter) {
+	public void resolveParents(Function<Identifier, UnbakedModel> modelGetter) {
 		super.resolveParents(modelGetter);
 
 		copyElementsFromAllIncludedModels();

@@ -18,7 +18,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.extensions.component.SophisticatedDataComponentHolder;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModDataComponents;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;

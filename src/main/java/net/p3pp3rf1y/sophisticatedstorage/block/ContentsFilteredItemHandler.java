@@ -10,7 +10,7 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -32,15 +32,15 @@ public class ContentsFilteredItemHandler implements ITrackedContentsItemHandler 
 		return itemHandlerGetter.get().getSlotCount();
 	}
 
-	@Nonnull
+	@NotNull
 	@Override
 	public ItemStack getStackInSlot(int slot) {
 		return itemHandlerGetter.get().getStackInSlot(slot);
 	}
 
-	@Nonnull
+	@NotNull
 	@Override
-	public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
+	public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
 		if (matchesContents(stack)) {
 			return itemHandlerGetter.get().insertItem(slot, stack, simulate);
 		}
@@ -60,7 +60,7 @@ public class ContentsFilteredItemHandler implements ITrackedContentsItemHandler 
 		return 0;
 	}
 
-	@Nonnull
+	@NotNull
 	@Override
 	public ItemStack extractItem(int slot, int amount, boolean simulate) {
 		return itemHandlerGetter.get().extractItem(slot, amount, simulate);
@@ -77,7 +77,7 @@ public class ContentsFilteredItemHandler implements ITrackedContentsItemHandler 
 	}
 
 	@Override
-	public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
+	public boolean isItemValid(int slot, @NotNull ItemStack stack) {
 		return matchesContents(stack) && itemHandlerGetter.get().isItemValid(slot, stack);
 	}
 
@@ -137,7 +137,7 @@ public class ContentsFilteredItemHandler implements ITrackedContentsItemHandler 
 	}
 
 	@Override
-	public void setStackInSlot(int slot, @Nonnull ItemStack stack) {
+	public void setStackInSlot(int slot, @NotNull ItemStack stack) {
 		itemHandlerGetter.get().setStackInSlot(slot, stack);
 	}
 }

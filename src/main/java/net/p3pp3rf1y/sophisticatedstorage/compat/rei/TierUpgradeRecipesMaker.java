@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorage.compat.rei;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -85,7 +85,7 @@ public class TierUpgradeRecipesMaker {
 					i++;
 				}
 				ItemStack result = ClientRecipeHelper.assemble(recipe, craftinginventory.asCraftInput());
-				ResourceLocation id = ResourceLocation.fromNamespaceAndPath(SophisticatedStorage.MOD_ID,
+				Identifier id = Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID,
 						"tier_upgrade_"
 								+ getSubtypeInterpreter.apply(storageItem).map(interpreter -> interpreter.getRegistrySanitizedItemString(storageItem)).orElse("")
 								+ "_to_"

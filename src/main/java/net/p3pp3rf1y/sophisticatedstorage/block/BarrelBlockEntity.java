@@ -4,7 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.StringTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -23,7 +23,7 @@ import java.util.Optional;
 public class BarrelBlockEntity extends WoodStorageBlockEntity implements IMaterialHolder {
 	private static final String MATERIALS_TAG = "materials";
 	public static final String STORAGE_TYPE = "barrel";
-	private Map<BarrelMaterial, ResourceLocation> materials = new EnumMap<>(BarrelMaterial.class);
+	private Map<BarrelMaterial, Identifier> materials = new EnumMap<>(BarrelMaterial.class);
 	private final ContainerOpenersCounter openersCounter = new ContainerOpenersCounter() {
 		protected void onOpen(Level level, BlockPos pos, BlockState state) {
 			playSound(state, SoundEvents.BARREL_OPEN);
@@ -114,17 +114,17 @@ public class BarrelBlockEntity extends WoodStorageBlockEntity implements IMateri
 	@Override
 	public void loadSynchronizedData(CompoundTag tag, HolderLookup.Provider registries) {
 		super.loadSynchronizedData(tag, registries);
-		materials = NBTHelper.getMap(tag, MATERIALS_TAG, BarrelMaterial::fromName, (bm, t) -> Optional.of(ResourceLocation.parse(t.getAsString()))).orElse(Map.of());
+		materials = NBTHelper.getMap(tag, MATERIALS_TAG, BarrelMaterial::fromName, (bm, t) -> Optional.of(Identifier.parse(t.getAsString()))).orElse(Map.of());
 	}
 
 	@Override
-	public void setMaterials(Map<BarrelMaterial, ResourceLocation> materials) {
+	public void setMaterials(Map<BarrelMaterial, Identifier> materials) {
 		this.materials = materials;
 		setChanged();
 	}
 
 	@Override
-	public Map<BarrelMaterial, ResourceLocation> getMaterials() {
+	public Map<BarrelMaterial, Identifier> getMaterials() {
 		return materials;
 	}
 

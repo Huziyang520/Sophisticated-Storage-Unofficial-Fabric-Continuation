@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.compat.sb;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedbackpacks.backpack.BackpackItem;
 import net.p3pp3rf1y.sophisticatedbackpacks.backpack.wrapper.BackpackWrapper;
@@ -32,7 +32,7 @@ public class SBCompat implements ICompat {
 			}
 
 			@Override
-			public ItemStack decorateWithMaterials(ItemStack input, Map<BarrelMaterial, ResourceLocation> materialsToApply) {
+			public ItemStack decorateWithMaterials(ItemStack input, Map<BarrelMaterial, Identifier> materialsToApply) {
 				return ItemStack.EMPTY;
 			}
 

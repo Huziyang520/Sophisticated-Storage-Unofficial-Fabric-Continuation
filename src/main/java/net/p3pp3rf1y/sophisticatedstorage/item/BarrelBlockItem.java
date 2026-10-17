@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -26,12 +26,12 @@ public class BarrelBlockItem extends WoodStorageBlockItem {
 		super(block, properties);
 	}
 
-	public static final Codec<Map<BarrelMaterial, ResourceLocation>> MATERIALS_CODEC =
-			Codec.simpleMap(BarrelMaterial.CODEC, ResourceLocation.CODEC, StringRepresentable.keys(BarrelMaterial.values())).codec();
+	public static final Codec<Map<BarrelMaterial, Identifier>> MATERIALS_CODEC =
+			Codec.simpleMap(BarrelMaterial.CODEC, Identifier.CODEC, StringRepresentable.keys(BarrelMaterial.values())).codec();
 
-	public static final StreamCodec<FriendlyByteBuf, Map<BarrelMaterial, ResourceLocation>> MATERIALS_STREAM_CODEC =
-			StreamCodec.of((buf, map) -> buf.writeMap(map, BarrelMaterial.STREAM_CODEC, ResourceLocation.STREAM_CODEC),
-					buf -> buf.readMap(BarrelMaterial.STREAM_CODEC, ResourceLocation.STREAM_CODEC));
+	public static final StreamCodec<FriendlyByteBuf, Map<BarrelMaterial, Identifier>> MATERIALS_STREAM_CODEC =
+			StreamCodec.of((buf, map) -> buf.writeMap(map, BarrelMaterial.STREAM_CODEC, Identifier.STREAM_CODEC),
+					buf -> buf.readMap(BarrelMaterial.STREAM_CODEC, Identifier.STREAM_CODEC));
 
 	public static void toggleFlatTop(ItemStack stack) {
 		boolean flatTop = isFlatTop(stack);
@@ -50,11 +50,11 @@ public class BarrelBlockItem extends WoodStorageBlockItem {
 		return componentHolder.sophisticatedCore_getOrDefault(ModDataComponents.FLAT_TOP, false);
 	}
 
-	public static void setMaterials(ItemStack barrel, Map<BarrelMaterial, ResourceLocation> materials) {
+	public static void setMaterials(ItemStack barrel, Map<BarrelMaterial, Identifier> materials) {
 		barrel.sophisticatedCore_set(ModDataComponents.BARREL_MATERIALS, Map.copyOf(materials));
 	}
 
-	public static Map<BarrelMaterial, ResourceLocation> getMaterials(ItemStack barrel) {
+	public static Map<BarrelMaterial, Identifier> getMaterials(ItemStack barrel) {
 		return barrel.sophisticatedCore_getOrDefault(ModDataComponents.BARREL_MATERIALS, Map.of());
 	}
 
@@ -62,12 +62,12 @@ public class BarrelBlockItem extends WoodStorageBlockItem {
 		stack.sophisticatedCore_remove(ModDataComponents.BARREL_MATERIALS);
 	}
 
-	public static void uncompactMaterials(Map<BarrelMaterial, ResourceLocation> materials) {
+	public static void uncompactMaterials(Map<BarrelMaterial, Identifier> materials) {
 		if (materials.isEmpty()) {
 			return;
 		}
 
-		Map<BarrelMaterial, ResourceLocation> uncompactedMaterials = new EnumMap<>(BarrelMaterial.class);
+		Map<BarrelMaterial, Identifier> uncompactedMaterials = new EnumMap<>(BarrelMaterial.class);
 		materials.forEach((mat, texture) -> {
 			for (BarrelMaterial child : mat.getChildren()) {
 				uncompactedMaterials.put(child, texture);
@@ -78,14 +78,14 @@ public class BarrelBlockItem extends WoodStorageBlockItem {
 		materials.putAll(uncompactedMaterials);
 	}
 
-	public static void compactMaterials(Map<BarrelMaterial, ResourceLocation> materials) {
+	public static void compactMaterials(Map<BarrelMaterial, Identifier> materials) {
 		for (BarrelMaterial material : BarrelMaterial.values()) {
 			if (!material.isLeaf()) {
 				//if all children have the same texture remove them and convert to the parent
-				ResourceLocation firstChildTexture = null;
+				Identifier firstChildTexture = null;
 				boolean allChildrenHaveSameTexture = true;
 				for (BarrelMaterial child : material.getChildren()) {
-					ResourceLocation texture = materials.get(child);
+					Identifier texture = materials.get(child);
 					if (texture == null || (firstChildTexture != null && !firstChildTexture.equals(texture))) {
 						allChildrenHaveSameTexture = false;
 						break;
@@ -104,7 +104,7 @@ public class BarrelBlockItem extends WoodStorageBlockItem {
 		}
 	}
 
-	public static void removeCoveredTints(ItemStack barrelStackCopy, Map<BarrelMaterial, ResourceLocation> materials) {
+	public static void removeCoveredTints(ItemStack barrelStackCopy, Map<BarrelMaterial, Identifier> materials) {
 		if (barrelStackCopy.getItem() instanceof ITintableBlockItem tintableBlockItem) {
 			boolean hasMainTint = tintableBlockItem.getMainColor(barrelStackCopy).isPresent();
 			boolean hasAccentTint = tintableBlockItem.getAccentColor(barrelStackCopy).isPresent();
@@ -120,8 +120,8 @@ public class BarrelBlockItem extends WoodStorageBlockItem {
 		}
 	}
 
-	public static Map<BarrelMaterial, ResourceLocation> getUncompactedMaterials(ItemStack storageStack) {
-		Map<BarrelMaterial, ResourceLocation> materials = new EnumMap<>(BarrelMaterial.class);
+	public static Map<BarrelMaterial, Identifier> getUncompactedMaterials(ItemStack storageStack) {
+		Map<BarrelMaterial, Identifier> materials = new EnumMap<>(BarrelMaterial.class);
 		materials.putAll(getMaterials(storageStack));
 		uncompactMaterials(materials);
 		return materials;

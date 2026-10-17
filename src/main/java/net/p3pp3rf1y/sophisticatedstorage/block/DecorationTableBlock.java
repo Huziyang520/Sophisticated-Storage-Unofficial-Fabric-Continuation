@@ -23,7 +23,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.BlockBase;
 import net.p3pp3rf1y.sophisticatedstorage.common.gui.DecorationTableMenu;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class DecorationTableBlock extends BlockBase implements EntityBlock {
 	public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;

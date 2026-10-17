@@ -11,7 +11,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.p3pp3rf1y.sophisticatedstorage.block.BarrelBlock;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 
 @Environment(EnvType.CLIENT)

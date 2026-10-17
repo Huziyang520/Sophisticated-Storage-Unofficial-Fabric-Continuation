@@ -1,15 +1,15 @@
 package net.p3pp3rf1y.sophisticatedstorage.upgrades.compression;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +36,7 @@ public class CompressionUpgradeConfig {
 		builder.pop();
 	}
 
-	@Nonnull
+	@NotNull
 	private static List<String> getDecompressibleItemsDefault() {
 		return List.of(
 				getDecompressibleEntry(Items.GLOWSTONE, 4, Items.GLOWSTONE_DUST),
@@ -55,9 +55,9 @@ public class CompressionUpgradeConfig {
 			additionalDecompressibleItems.get().forEach(decompressibleItem -> {
 				Matcher matcher = pattern.matcher(decompressibleItem);
 				if (matcher.find()) {
-					Item fromItem = BuiltInRegistries.ITEM.get(ResourceLocation.parse(matcher.group(1)));
+					Item fromItem = BuiltInRegistries.ITEM.get(Identifier.parse(matcher.group(1)));
 					int count = Integer.parseInt(matcher.group(2));
-					Item toItem = BuiltInRegistries.ITEM.get(ResourceLocation.parse(matcher.group(3)));
+					Item toItem = BuiltInRegistries.ITEM.get(Identifier.parse(matcher.group(3)));
 					if (fromItem != Items.AIR && toItem != Items.AIR && (count == 4 || count == 9)) {
 						additionalDecompressibleItemsMap.put(fromItem, new RecipeHelper.UncompactingResult(new ItemStack(toItem), count == 4 ? RecipeHelper.CompactingShape.TWO_BY_TWO_UNCRAFTABLE : RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE));
 					}

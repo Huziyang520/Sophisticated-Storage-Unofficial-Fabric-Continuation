@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedstorage.upgrades.hopper;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
@@ -18,11 +18,11 @@ import net.p3pp3rf1y.sophisticatedstorage.block.VerticalFacing;
 import net.p3pp3rf1y.sophisticatedstorage.common.gui.SideIOContainer;
 import net.p3pp3rf1y.sophisticatedstorage.upgrades.IOMode;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class HopperUpgradeContainer extends UpgradeContainerBase<HopperUpgradeWrapper, HopperUpgradeContainer> {
-	public static final Pair<ResourceLocation, ResourceLocation> EMPTY_INPUT_FILTER_SLOT_BACKGROUND = new Pair<>(InventoryMenu.BLOCK_ATLAS, SophisticatedStorage.getRL("item/empty_input_filter_slot"));
-	public static final Pair<ResourceLocation, ResourceLocation> EMPTY_OUTPUT_FILTER_SLOT_BACKGROUND = new Pair<>(InventoryMenu.BLOCK_ATLAS, SophisticatedStorage.getRL("item/empty_output_filter_slot"));
+	public static final Pair<Identifier, Identifier> EMPTY_INPUT_FILTER_SLOT_BACKGROUND = new Pair<>(InventoryMenu.BLOCK_ATLAS, SophisticatedStorage.getRL("item/empty_input_filter_slot"));
+	public static final Pair<Identifier, Identifier> EMPTY_OUTPUT_FILTER_SLOT_BACKGROUND = new Pair<>(InventoryMenu.BLOCK_ATLAS, SophisticatedStorage.getRL("item/empty_output_filter_slot"));
 	private final ContentsFilterLogicContainer inputFilterLogicContainer;
 
 	private final ContentsFilterLogicContainer outputFilterLogicContainer;

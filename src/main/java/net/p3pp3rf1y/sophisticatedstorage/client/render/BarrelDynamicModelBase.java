@@ -14,13 +14,13 @@ import net.minecraft.client.renderer.block.model.BlockModel;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.p3pp3rf1y.sophisticatedstorage.SophisticatedStorage;
 import net.p3pp3rf1y.sophisticatedstorage.block.WoodStorageBlockBase;
 import net.p3pp3rf1y.sophisticatedstorage.client.util.QuaternionHelper;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -36,18 +36,18 @@ public abstract class BarrelDynamicModelBase<T extends BarrelDynamicModelBase<T>
 	private final Map<String, Map<BarrelModelPart, BarrelModelPartDefinition>> woodModelPartDefinitions;
 
 	@Nullable
-	private final ResourceLocation parentLocation;
+	private final Identifier parentLocation;
 
 	@Nullable
 	private BarrelDynamicModelBase<?> parent;
 
 	@Nullable
-	private final ResourceLocation flatTopModelName;
-	private final Map<DynamicBarrelBakingData.DynamicPart, ResourceLocation> dynamicPartModels;
+	private final Identifier flatTopModelName;
+	private final Map<DynamicBarrelBakingData.DynamicPart, Identifier> dynamicPartModels;
 	private final Map<String, Map<BarrelModelPart, BarrelModelPartDefinition>> woodPartitionedModelPartDefinitions;
 
-	protected BarrelDynamicModelBase(@Nullable ResourceLocation parentLocation, Map<String, Map<BarrelModelPart, BarrelModelPartDefinition>> woodModelPartDefinitions,
-									 @Nullable ResourceLocation flatTopModelName, Map<DynamicBarrelBakingData.DynamicPart, ResourceLocation> dynamicPartModels, Map<String, Map<BarrelModelPart, BarrelModelPartDefinition>> woodPartitionedModelPartDefinitions) {
+	protected BarrelDynamicModelBase(@Nullable Identifier parentLocation, Map<String, Map<BarrelModelPart, BarrelModelPartDefinition>> woodModelPartDefinitions,
+									 @Nullable Identifier flatTopModelName, Map<DynamicBarrelBakingData.DynamicPart, Identifier> dynamicPartModels, Map<String, Map<BarrelModelPart, BarrelModelPartDefinition>> woodPartitionedModelPartDefinitions) {
 		this.parentLocation = parentLocation;
 		this.woodModelPartDefinitions = woodModelPartDefinitions;
 		this.flatTopModelName = flatTopModelName;
@@ -153,7 +153,7 @@ public abstract class BarrelDynamicModelBase<T extends BarrelDynamicModelBase<T>
 		return woodDynamicBakingData;
 	}
 
-	private Optional<ResourceLocation> getFlatTopModelName() {
+	private Optional<Identifier> getFlatTopModelName() {
 		for (BarrelDynamicModelBase<?> model = this; model != null; model = model.parent) {
 			if (model.flatTopModelName != null) {
 				return Optional.of(model.flatTopModelName);
@@ -166,7 +166,7 @@ public abstract class BarrelDynamicModelBase<T extends BarrelDynamicModelBase<T>
 	@SuppressWarnings("java:S5803") //need to use textureMap to calculate hash based on it as well
 	private int getBakedModelHash(UnbakedModel model, ModelState modelTransform, BarrelModelPart part) {
 		int hash = part.hashCode();
-		for (ResourceLocation dependency : model.getDependencies()) {
+		for (Identifier dependency : model.getDependencies()) {
 			hash = 31 * hash + dependency.hashCode();
 		}
 
@@ -201,7 +201,7 @@ public abstract class BarrelDynamicModelBase<T extends BarrelDynamicModelBase<T>
 																  Map<String, Map<DynamicBarrelBakingData.DynamicPart, DynamicBarrelBakingData>> woodDynamicBakingData, Map<String, Map<BarrelModelPart, BakedModel>> woodPartitionedModelParts);
 
 	@Override
-	public void resolveParents(Function<ResourceLocation, UnbakedModel> modelGetter, IGeometryBakingContext context) {
+	public void resolveParents(Function<Identifier, UnbakedModel> modelGetter, IGeometryBakingContext context) {
 		visitAndUpdateParents(modelGetter);
 
 		updatePartDefinitionsFromParents();
@@ -267,7 +267,7 @@ public abstract class BarrelDynamicModelBase<T extends BarrelDynamicModelBase<T>
 		});
 	}
 
-	private void visitAndUpdateParents(Function<ResourceLocation, UnbakedModel> modelGetter) {
+	private void visitAndUpdateParents(Function<Identifier, UnbakedModel> modelGetter) {
 		Set<BarrelDynamicModelBase<?>> visitedModels = Sets.newLinkedHashSet();
 
 		for (BarrelDynamicModelBase<?> currentModel = this; currentModel.parentLocation != null && currentModel.parent == null; currentModel = currentModel.parent) {
@@ -278,7 +278,7 @@ public abstract class BarrelDynamicModelBase<T extends BarrelDynamicModelBase<T>
 		}
 	}
 
-	private boolean updateModelParent(Function<ResourceLocation, UnbakedModel> modelGetter, Set<BarrelDynamicModelBase<?>> visitedModels, BarrelDynamicModelBase<?> currentModel) {
+	private boolean updateModelParent(Function<Identifier, UnbakedModel> modelGetter, Set<BarrelDynamicModelBase<?>> visitedModels, BarrelDynamicModelBase<?> currentModel) {
 		if (!(modelGetter.apply(currentModel.parentLocation) instanceof BlockModel parentBlockModel)) {
 			SophisticatedStorage.LOGGER.warn("Parent '{}' doesn't hold a block model while loading '{}'", currentModel.parentLocation, currentModel);
 			return false;
@@ -303,14 +303,14 @@ public abstract class BarrelDynamicModelBase<T extends BarrelDynamicModelBase<T>
 	public abstract static class Loader<T extends BarrelDynamicModelBase<T>> implements IGeometryLoader<T> {
 		@Override
 		public T read(JsonObject modelContents, JsonDeserializationContext deserializationContext) {
-			ResourceLocation parentLocation = null;
+			Identifier parentLocation = null;
 			if (modelContents.has("parent")) {
-				parentLocation = ResourceLocation.parse(modelContents.get("parent").getAsString());
+				parentLocation = Identifier.parse(modelContents.get("parent").getAsString());
 			}
 
 			Map<BarrelModelPart, BarrelModelPartDefinition> modelParts = readModelParts(modelContents, "model_parts");
 			Map<BarrelModelPart, BarrelModelPartDefinition> partitionedModelParts = readModelParts(modelContents, "partitioned_model_parts");
-			Map<DynamicBarrelBakingData.DynamicPart, ResourceLocation> dynamicPartModels = readDynamicPartModels(modelContents);
+			Map<DynamicBarrelBakingData.DynamicPart, Identifier> dynamicPartModels = readDynamicPartModels(modelContents);
 			Map<String, Map<BarrelModelPart, BarrelModelPartDefinition>> woodOverrides = readWoodOverrides(modelContents);
 
 			if (parentLocation == null && modelParts.isEmpty() && woodOverrides.isEmpty() && dynamicPartModels.isEmpty()) {
@@ -322,16 +322,16 @@ public abstract class BarrelDynamicModelBase<T extends BarrelDynamicModelBase<T>
 			Map<String, Map<BarrelModelPart, BarrelModelPartDefinition>> woodPartitionedModelPartDefinitions = readWoodOverrides(modelContents, Set.of(BarrelModelPart.BASE, BarrelModelPart.BASE_OPEN));
 			mergeModelPartDefinitionsIntoWoodOnes(partitionedModelParts, woodPartitionedModelPartDefinitions);
 
-			ResourceLocation flatTopModelName = readFlatTopModel(modelContents);
+			Identifier flatTopModelName = readFlatTopModel(modelContents);
 
 			return instantiateModel(parentLocation, woodOverrides, flatTopModelName, dynamicPartModels, woodPartitionedModelPartDefinitions);
 		}
 
 		@Nullable
-		private static ResourceLocation readFlatTopModel(JsonObject modelContents) {
-			ResourceLocation flatTopModelName = null;
+		private static Identifier readFlatTopModel(JsonObject modelContents) {
+			Identifier flatTopModelName = null;
 			if (modelContents.has("flat_top_model")) {
-				flatTopModelName = ResourceLocation.parse(modelContents.get("flat_top_model").getAsString());
+				flatTopModelName = Identifier.parse(modelContents.get("flat_top_model").getAsString());
 			}
 			return flatTopModelName;
 		}
@@ -363,13 +363,13 @@ public abstract class BarrelDynamicModelBase<T extends BarrelDynamicModelBase<T>
 			return woodOverrides;
 		}
 
-		private static Map<DynamicBarrelBakingData.DynamicPart, ResourceLocation> readDynamicPartModels(JsonObject modelContents) {
-			Map<DynamicBarrelBakingData.DynamicPart, ResourceLocation> dynamicPartModels = new EnumMap<>(DynamicBarrelBakingData.DynamicPart.class);
+		private static Map<DynamicBarrelBakingData.DynamicPart, Identifier> readDynamicPartModels(JsonObject modelContents) {
+			Map<DynamicBarrelBakingData.DynamicPart, Identifier> dynamicPartModels = new EnumMap<>(DynamicBarrelBakingData.DynamicPart.class);
 			if (modelContents.has("dynamic_part_models")) {
 				JsonObject dynamicPartsJson = modelContents.getAsJsonObject("dynamic_part_models");
 				for (Map.Entry<String, JsonElement> entry : dynamicPartsJson.entrySet()) {
 					DynamicBarrelBakingData.DynamicPart.getByNameOptional(entry.getKey()).ifPresent(part ->
-							dynamicPartModels.put(part, ResourceLocation.parse(entry.getValue().getAsString())));
+							dynamicPartModels.put(part, Identifier.parse(entry.getValue().getAsString())));
 				}
 			}
 			return dynamicPartModels;
@@ -408,16 +408,16 @@ public abstract class BarrelDynamicModelBase<T extends BarrelDynamicModelBase<T>
 			}
 		}
 
-		protected abstract T instantiateModel(@Nullable ResourceLocation parentLocation, Map<String, Map<BarrelModelPart, BarrelModelPartDefinition>> woodOverrides,
-											  @Nullable ResourceLocation flatTopModelName, Map<DynamicBarrelBakingData.DynamicPart, ResourceLocation> dynamicPartModels, Map<String, Map<BarrelModelPart, BarrelModelPartDefinition>> partitionedWoodOverrides);
+		protected abstract T instantiateModel(@Nullable Identifier parentLocation, Map<String, Map<BarrelModelPart, BarrelModelPartDefinition>> woodOverrides,
+											  @Nullable Identifier flatTopModelName, Map<DynamicBarrelBakingData.DynamicPart, Identifier> dynamicPartModels, Map<String, Map<BarrelModelPart, BarrelModelPartDefinition>> partitionedWoodOverrides);
 	}
 
 	public static final class BarrelModelPartDefinition {
 		@Nullable
-		private ResourceLocation modelLocation;
+		private Identifier modelLocation;
 		private final Map<String, Material> textures;
 
-		private BarrelModelPartDefinition(@Nullable ResourceLocation modelLocation, Map<String, Material> textures) {
+		private BarrelModelPartDefinition(@Nullable Identifier modelLocation, Map<String, Material> textures) {
 			this.modelLocation = modelLocation;
 			this.textures = textures;
 		}
@@ -439,9 +439,9 @@ public abstract class BarrelDynamicModelBase<T extends BarrelDynamicModelBase<T>
 		}
 
 		public static BarrelModelPartDefinition deserialize(JsonObject json) {
-			ResourceLocation modelLocation = null;
+			Identifier modelLocation = null;
 			if (json.has("model")) {
-				modelLocation = ResourceLocation.parse(json.get("model").getAsString());
+				modelLocation = Identifier.parse(json.get("model").getAsString());
 			}
 			Map<String, Material> textures = new HashMap<>();
 			if (json.has("textures")) {
@@ -451,13 +451,13 @@ public abstract class BarrelDynamicModelBase<T extends BarrelDynamicModelBase<T>
 					if (textureName.startsWith("#")) {
 						textureName = REFERENCE_PREFIX + textureName.substring(1);
 					}
-					textures.put(entry.getKey(), new Material(InventoryMenu.BLOCK_ATLAS, ResourceLocation.parse(textureName)));
+					textures.put(entry.getKey(), new Material(InventoryMenu.BLOCK_ATLAS, Identifier.parse(textureName)));
 				}
 			}
 			return new BarrelModelPartDefinition(modelLocation, textures);
 		}
 
-		public Optional<ResourceLocation> modelLocation() {
+		public Optional<Identifier> modelLocation() {
 			return Optional.ofNullable(modelLocation);
 		}
 

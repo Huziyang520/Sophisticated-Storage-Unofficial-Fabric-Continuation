@@ -9,7 +9,7 @@ import net.fabricmc.fabric.api.transfer.v1.storage.base.FilteringStorage;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class StorageOutputBlockEntity extends StorageIOBlockEntity {
 	@Nullable

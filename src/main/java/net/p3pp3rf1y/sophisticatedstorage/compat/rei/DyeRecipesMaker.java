@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedstorage.compat.rei;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
@@ -99,7 +99,7 @@ public class DyeRecipesMaker {
 				tintableBlockItem.setMainColor(result, DyeColor.YELLOW.getTextureDiffuseColor());
 				tintableBlockItem.setAccentColor(result, DyeColor.LIME.getTextureDiffuseColor());
 			}
-			ResourceLocation id = ResourceLocation.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, getSubtypeInterpreter.apply(result).map(i -> i.getRegistrySanitizedItemString(result)).orElse("multiple_color"));
+			Identifier id = Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, getSubtypeInterpreter.apply(result).map(i -> i.getRegistrySanitizedItemString(result)).orElse("multiple_color"));
 			ShapedRecipePattern pattern = new ShapedRecipePattern(3, 1, ingredients, Optional.empty());
 			recipes.add(new RecipeHolder<>(id, new ShapedRecipe("", CraftingBookCategory.MISC, pattern, result)));
 		});
@@ -110,13 +110,13 @@ public class DyeRecipesMaker {
 			items.forEach((block, stacks) -> {
 				NonNullList<Ingredient> ingredients = NonNullList.create();
 				ingredients.add(Ingredient.of(stacks));
-				ingredients.add(Ingredient.of(TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "dyes/" + color.getName()))));
+				ingredients.add(Ingredient.of(TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "dyes/" + color.getName()))));
 				ItemStack result = new ItemStack(block);
 				if (result.getItem() instanceof ITintableBlockItem tintableBlockItem) {
 					tintableBlockItem.setMainColor(result, color.getTextureDiffuseColor());
 					tintableBlockItem.setAccentColor(result, color.getTextureDiffuseColor());
 				}
-				ResourceLocation id = ResourceLocation.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, getSubtypeInterpreter.apply(result).map(i -> i.getRegistrySanitizedItemString(result)).orElse("single_color_" + color.getSerializedName()));
+				Identifier id = Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, getSubtypeInterpreter.apply(result).map(i -> i.getRegistrySanitizedItemString(result)).orElse("single_color_" + color.getSerializedName()));
 				ShapedRecipePattern pattern = new ShapedRecipePattern(1, 2, ingredients, Optional.empty());
 				recipes.add(new RecipeHolder<>(id, new ShapedRecipe("", CraftingBookCategory.MISC, pattern, result)));
 			});

@@ -16,7 +16,7 @@ import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -117,7 +117,7 @@ public class EmiCompat implements EmiPlugin {
 		return Optional.ofNullable(subtypeInterpreters.get(blockItem));
 	}
 
-	public record WorkstationEntry(ResourceLocation id, Block icon, Item workstation) {}
+	public record WorkstationEntry(Identifier id, Block icon, Item workstation) {}
 
 	public interface WorkstationCallback {
 		void additionalWorkstations(Consumer<WorkstationEntry> consumer);
@@ -231,7 +231,7 @@ public class EmiCompat implements EmiPlugin {
 			registry.addRecipe(new EmiCraftingRecipe(
 							ingredientsCopy,
 							EmiStack.of(r.getResultItem(null)),
-							ResourceLocation.fromNamespaceAndPath(holder.id().getNamespace(), "/" + holder.id().getPath())
+							Identifier.fromNamespaceAndPath(holder.id().getNamespace(), "/" + holder.id().getPath())
 					)
 			);
 		});

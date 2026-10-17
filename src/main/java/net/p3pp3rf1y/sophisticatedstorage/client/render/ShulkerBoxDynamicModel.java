@@ -17,7 +17,7 @@ import net.minecraft.client.resources.model.ModelBaker;
 import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.BlockAndTintGetter;
@@ -30,16 +30,16 @@ import net.p3pp3rf1y.sophisticatedcore.util.model.ModelProperty;
 import net.p3pp3rf1y.sophisticatedstorage.SophisticatedStorage;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageBlockEntity;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
 public class ShulkerBoxDynamicModel implements IUnbakedGeometry<ShulkerBoxDynamicModel> {
 	private static final String BLOCK_BREAK_FOLDER = "block/break/";
-	public static final ResourceLocation TINTABLE_BREAK_TEXTURE = SophisticatedStorage.getRL(BLOCK_BREAK_FOLDER + "tintable_shulker_box");
-	public static final ResourceLocation MAIN_BREAK_TEXTURE = SophisticatedStorage.getRL(BLOCK_BREAK_FOLDER + "shulker_box");
+	public static final Identifier TINTABLE_BREAK_TEXTURE = SophisticatedStorage.getRL(BLOCK_BREAK_FOLDER + "tintable_shulker_box");
+	public static final Identifier MAIN_BREAK_TEXTURE = SophisticatedStorage.getRL(BLOCK_BREAK_FOLDER + "shulker_box");
 
 	@Override
 	public BakedModel bake(IGeometryBakingContext context, ModelBaker baker, Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelTransform, ItemOverrides overrides) {
@@ -86,7 +86,7 @@ public class ShulkerBoxDynamicModel implements IUnbakedGeometry<ShulkerBoxDynami
 			return model.getParticleIcon();
 		}
 
-		@Nonnull
+		@NotNull
 		public ModelData getModelData(BlockAndTintGetter level, BlockPos pos, BlockState state, ModelData modelData) {
 			return WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class)
 					.map(be -> {
@@ -98,7 +98,7 @@ public class ShulkerBoxDynamicModel implements IUnbakedGeometry<ShulkerBoxDynami
 
 		@Override
 		public TextureAtlasSprite getParticleIcon(ModelData data) {
-			ResourceLocation texture = TINTABLE_BREAK_TEXTURE;
+			Identifier texture = TINTABLE_BREAK_TEXTURE;
 			if (Boolean.FALSE.equals(data.get(HAS_MAIN_COLOR))) {
 				texture = MAIN_BREAK_TEXTURE;
 			}

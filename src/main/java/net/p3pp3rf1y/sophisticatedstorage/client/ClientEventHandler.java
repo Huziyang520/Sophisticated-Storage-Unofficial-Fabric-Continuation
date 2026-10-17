@@ -30,7 +30,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -75,7 +75,7 @@ import net.p3pp3rf1y.sophisticatedstorage.item.StorageContentsTooltip;
 import net.p3pp3rf1y.sophisticatedstorage.network.RequestPlayerSettingsPayload;
 import net.p3pp3rf1y.sophisticatedstorage.network.ScrolledToolPayload;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -120,9 +120,9 @@ public class ClientEventHandler {
 		}
 	}*/
 
-	private static final ResourceLocation CHEST_RL = ResourceLocation.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "chest");
-	private static final ResourceLocation CHEST_LEFT_RL = ResourceLocation.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "chest_left");
-	private static final ResourceLocation CHEST_RIGHT_RL = ResourceLocation.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "chest_right");
+	private static final Identifier CHEST_RL = Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "chest");
+	private static final Identifier CHEST_LEFT_RL = Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "chest_left");
+	private static final Identifier CHEST_RIGHT_RL = Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "chest_right");
 	public static final ModelLayerLocation CHEST_LAYER = new ModelLayerLocation(CHEST_RL, "main");
 	public static final ModelLayerLocation CHEST_LEFT_LAYER = new ModelLayerLocation(CHEST_LEFT_RL, "main");
 	public static final ModelLayerLocation CHEST_RIGHT_LAYER = new ModelLayerLocation(CHEST_RIGHT_RL, "main");
@@ -205,15 +205,15 @@ public class ClientEventHandler {
 		return true;
 	}
 
-	private static void onRegisterAdditionalModels(ResourceManager manager, Consumer<ResourceLocation> out) {
+	private static void onRegisterAdditionalModels(ResourceManager manager, Consumer<Identifier> out) {
 		addBarrelPartModelsToBake(manager, out);
 	}
 
-	private static void addBarrelPartModelsToBake(ResourceManager manager, Consumer<ResourceLocation> out) {
-		Map<ResourceLocation, Resource> models = manager.listResources("models/block/barrel_part", fileName -> fileName.getPath().endsWith(".json"));
+	private static void addBarrelPartModelsToBake(ResourceManager manager, Consumer<Identifier> out) {
+		Map<Identifier, Resource> models = manager.listResources("models/block/barrel_part", fileName -> fileName.getPath().endsWith(".json"));
 		models.forEach((modelName, resource) -> {
 			if (modelName.getNamespace().equals(SophisticatedStorage.MOD_ID)) {
-				out.accept(ResourceLocation.fromNamespaceAndPath(modelName.getNamespace(), modelName.getPath().substring("models/".length()).replace(".json", "")));
+				out.accept(Identifier.fromNamespaceAndPath(modelName.getNamespace(), modelName.getPath().substring("models/".length()).replace(".json", "")));
 			}
 		});
 	}
@@ -282,12 +282,12 @@ public class ClientEventHandler {
 		return false;
 	}
 
-	private static void onModelRegistry(Map<ResourceLocation, IGeometryLoader<?>> loaders) {
-		loaders.put(ResourceLocation.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "barrel"), BarrelDynamicModel.Loader.INSTANCE);
-		loaders.put(ResourceLocation.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "limited_barrel"), LimitedBarrelDynamicModel.Loader.INSTANCE);
-		loaders.put(ResourceLocation.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "chest"), ChestDynamicModel.Loader.INSTANCE);
-		loaders.put(ResourceLocation.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "shulker_box"), ShulkerBoxDynamicModel.Loader.INSTANCE);
-		loaders.put(ResourceLocation.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "simple_composite"), SimpleCompositeModel.Loader.INSTANCE);
+	private static void onModelRegistry(Map<Identifier, IGeometryLoader<?>> loaders) {
+		loaders.put(Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "barrel"), BarrelDynamicModel.Loader.INSTANCE);
+		loaders.put(Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "limited_barrel"), LimitedBarrelDynamicModel.Loader.INSTANCE);
+		loaders.put(Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "chest"), ChestDynamicModel.Loader.INSTANCE);
+		loaders.put(Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "shulker_box"), ShulkerBoxDynamicModel.Loader.INSTANCE);
+		loaders.put(Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "simple_composite"), SimpleCompositeModel.Loader.INSTANCE);
 	}
 
 	private static void onRegisterReloadListeners() {
@@ -327,8 +327,8 @@ public class ClientEventHandler {
 	}
 
 	private static void registerOverlay() {
-//		event.registerAbove(VanillaGuiLayers.HOTBAR, ResourceLocation.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "paintbrush_info"), PaintbrushOverlay.HUD_PAINTBRUSH_INFO);
-//		event.registerAbove(VanillaGuiLayers.HOTBAR, ResourceLocation.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "storage_tool_info"), ToolInfoOverlay.HUD_TOOL_INFO);
+//		event.registerAbove(VanillaGuiLayers.HOTBAR, Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "paintbrush_info"), PaintbrushOverlay.HUD_PAINTBRUSH_INFO);
+//		event.registerAbove(VanillaGuiLayers.HOTBAR, Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "storage_tool_info"), ToolInfoOverlay.HUD_TOOL_INFO);
 
 		HudRenderCallback.EVENT.register(PaintbrushOverlay.HUD_PAINTBRUSH_INFO);
 		HudRenderCallback.EVENT.register(ToolInfoOverlay.HUD_TOOL_INFO);

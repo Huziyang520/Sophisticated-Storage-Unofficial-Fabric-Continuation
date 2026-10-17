@@ -8,7 +8,7 @@ import mezz.jei.api.helpers.IStackHelper;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandlerHelper;
 import mezz.jei.api.registration.*;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
@@ -111,8 +111,8 @@ public class StoragePlugin implements IModPlugin {
 	}
 
 	@Override
-	public ResourceLocation getPluginUid() {
-		return ResourceLocation.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "default");
+	public Identifier getPluginUid() {
+		return Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "default");
 	}
 
 	@Override

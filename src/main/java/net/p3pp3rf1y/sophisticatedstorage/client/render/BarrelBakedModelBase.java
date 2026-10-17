@@ -22,7 +22,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -52,7 +52,7 @@ import net.p3pp3rf1y.sophisticatedstorage.item.WoodStorageBlockItem;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -89,7 +89,7 @@ public abstract class BarrelBakedModelBase implements BakedModel, CustomParticle
 	private static final ModelProperty<Boolean> HAS_ACCENT_COLOR = new ModelProperty<>();
 	private static final ModelProperty<List<RenderInfo.DisplayItem>> DISPLAY_ITEMS = new ModelProperty<>();
 	private static final ModelProperty<List<Integer>> INACCESSIBLE_SLOTS = new ModelProperty<>();
-	private static final ModelProperty<Map<BarrelMaterial, ResourceLocation>> MATERIALS = new ModelProperty<>();
+	private static final ModelProperty<Map<BarrelMaterial, Identifier>> MATERIALS = new ModelProperty<>();
 	public static final Cache<Integer, List<BakedQuad>> BAKED_QUADS_CACHE = CacheBuilder.newBuilder().expireAfterAccess(15L, TimeUnit.MINUTES).build();
 	private static final Map<Integer, RenderContext.QuadTransform> DISPLAY_ROTATIONS = new HashMap<>();
 	private static final ItemTransforms ITEM_TRANSFORMS = createItemTransforms();
@@ -134,7 +134,7 @@ public abstract class BarrelBakedModelBase implements BakedModel, CustomParticle
 	private boolean barrelHasAccentColor = false;
 	private boolean barrelIsPacked = false;
 	private boolean barrelShowsTier = true;
-	private Map<BarrelMaterial, ResourceLocation> barrelMaterials = new EnumMap<>(BarrelMaterial.class);
+	private Map<BarrelMaterial, Identifier> barrelMaterials = new EnumMap<>(BarrelMaterial.class);
 
 	private boolean flatTop = false;
 	private final Map<String, Map<DynamicBarrelBakingData.DynamicPart, DynamicBarrelBakingData>> woodDynamicBakingData;
@@ -233,7 +233,7 @@ public abstract class BarrelBakedModelBase implements BakedModel, CustomParticle
 		boolean hasAccentColor;
 		boolean isPacked;
 		boolean showsTier;
-		Map<BarrelMaterial, ResourceLocation> materials;
+		Map<BarrelMaterial, Identifier> materials;
 		if (state != null) {
 			hasMainColor = Boolean.TRUE.equals(extraData.get(HAS_MAIN_COLOR));
 			hasAccentColor = Boolean.TRUE.equals(extraData.get(HAS_ACCENT_COLOR));
@@ -328,14 +328,14 @@ public abstract class BarrelBakedModelBase implements BakedModel, CustomParticle
 	}
 
 	private List<BakedModel> bakeAndAddDynamicQuads(@Nullable Direction spriteSide, RandomSource rand, @Nullable String woodName,
-													Map<BarrelMaterial, ResourceLocation> barrelMaterials, boolean rendersUsingSplitModel, boolean renderCore, boolean renderTrim) {
+													Map<BarrelMaterial, Identifier> barrelMaterials, boolean rendersUsingSplitModel, boolean renderCore, boolean renderTrim) {
 
 		Map<DynamicBarrelBakingData.DynamicPart, DynamicBarrelBakingData> bakingData = woodDynamicBakingData.get(woodName != null ? woodName : WoodType.ACACIA.name());
 
 		Map<String, Either<Material, String>> materials = new HashMap<>();
-		for (Map.Entry<BarrelMaterial, ResourceLocation> entry : barrelMaterials.entrySet()) {
+		for (Map.Entry<BarrelMaterial, Identifier> entry : barrelMaterials.entrySet()) {
 			BarrelMaterial barrelMaterial = entry.getKey();
-			ResourceLocation blockName = entry.getValue();
+			Identifier blockName = entry.getValue();
 			TextureAtlasSprite sprite = RenderHelper.getSprite(blockName, spriteSide, rand);
 			Either<Material, String> material = Either.left(new Material(InventoryMenu.BLOCK_ATLAS, sprite.contents().name()));
 
@@ -370,11 +370,11 @@ public abstract class BarrelBakedModelBase implements BakedModel, CustomParticle
 		return bakedModel;
 	}
 
-	private BlockState getDefaultBlockState(ResourceLocation blockName) {
+	private BlockState getDefaultBlockState(Identifier blockName) {
 		return BuiltInRegistries.BLOCK.get(blockName).defaultBlockState();
 	}
 
-	private Map<BarrelMaterial, ResourceLocation> getMaterials(ModelData extraData) {
+	private Map<BarrelMaterial, Identifier> getMaterials(ModelData extraData) {
 		return extraData.has(MATERIALS) ? Objects.requireNonNull(extraData.get(MATERIALS)) : Collections.emptyMap();
 	}
 
@@ -727,7 +727,7 @@ public abstract class BarrelBakedModelBase implements BakedModel, CustomParticle
 		}
 
 		if (data.has(MATERIALS)) {
-			Map<BarrelMaterial, ResourceLocation> materials = data.get(MATERIALS);
+			Map<BarrelMaterial, Identifier> materials = data.get(MATERIALS);
 			if (materials != null) {
 				for (BarrelMaterial barrelMaterial : PARTICLE_ICON_MATERIAL_PRIORITY) {
 					if (materials.containsKey(barrelMaterial)) {
@@ -775,7 +775,7 @@ public abstract class BarrelBakedModelBase implements BakedModel, CustomParticle
 			builder.with(WOOD_NAME, woodType.orElse(WoodType.ACACIA).name());
 		}
 
-		Map<BarrelMaterial, ResourceLocation> materials = be.getMaterials();
+		Map<BarrelMaterial, Identifier> materials = be.getMaterials();
 		if (!materials.isEmpty()) {
 			builder.with(MATERIALS, materials);
 		}
@@ -819,7 +819,7 @@ public abstract class BarrelBakedModelBase implements BakedModel, CustomParticle
 
 			boolean hasMainColor = StorageBlockItem.getMainColorFromComponentHolder(stack).isPresent();
 			boolean hasAccentColor = StorageBlockItem.getAccentColorFromComponentHolder(stack).isPresent();
-			Map<BarrelMaterial, ResourceLocation> materials = BarrelBlockItem.getMaterials(stack);
+			Map<BarrelMaterial, Identifier> materials = BarrelBlockItem.getMaterials(stack);
 			String woodName = WoodStorageBlockItem.getWoodType(stack).map(WoodType::name)
 					.orElse(barrelBakedModel.barrelHasAccentColor && barrelBakedModel.barrelHasMainColor && materials.isEmpty() ? null : WoodType.ACACIA.name());
 			boolean packed = WoodStorageBlockItem.isPacked(stack);
@@ -844,11 +844,11 @@ public abstract class BarrelBakedModelBase implements BakedModel, CustomParticle
 			private final String woodName;
 			private final boolean packed;
 			private final boolean barrelShowsTier;
-			private final Map<BarrelMaterial, ResourceLocation> materials;
+			private final Map<BarrelMaterial, Identifier> materials;
 			private final boolean flatTop;
 			private final Item item;
 
-			public ResolvedModel(boolean hasMainColor, boolean hasAccentColor, @Nullable String woodName, boolean packed, boolean barrelShowsTier, Map<BarrelMaterial, ResourceLocation> materials, boolean flatTop, Item item) {
+			public ResolvedModel(boolean hasMainColor, boolean hasAccentColor, @Nullable String woodName, boolean packed, boolean barrelShowsTier, Map<BarrelMaterial, Identifier> materials, boolean flatTop, Item item) {
 				this.wrapped = BarrelItemOverrides.this.barrelBakedModel;
 				this.hasMainColor = hasMainColor;
 				this.hasAccentColor = hasAccentColor;
