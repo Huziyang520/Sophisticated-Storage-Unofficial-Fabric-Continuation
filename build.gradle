@@ -57,6 +57,8 @@ dependencies {
 }
 
 processResources {
+    // 模板里有中文描述，必须显式按 UTF-8 读，否则会被按平台字符集解码成乱码
+    filteringCharset = 'UTF-8'
     var replaceProperties = [
             mod_id               : project.mod_id,
             mod_name             : project.mod_name,
