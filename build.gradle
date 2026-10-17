@@ -54,6 +54,9 @@ dependencies {
     compileOnly files("libs/jei-26.3-fabric-api.jar")
     compileOnly files("libs/RoughlyEnoughItems-fabric-26.3.824.jar")
     compileOnly files("libs/basic-math-0.6.1.jar")
+
+    // ModMenu 配置入口 + Cloth Config 屏幕（本地 jar，离线可编译）
+    compileOnly files("libs/modmenu-api.jar", "libs/cloth-config-api.jar")
 }
 
 processResources {

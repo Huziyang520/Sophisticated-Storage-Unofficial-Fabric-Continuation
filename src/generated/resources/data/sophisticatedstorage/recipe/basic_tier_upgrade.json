@@ -8,12 +8,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "R": {
-      "item": "minecraft:redstone_torch"
-    },
-    "S": {
-      "item": "minecraft:stick"
-    }
+    "R": "minecraft:redstone_torch",
+    "S": "minecraft:stick"
   },
   "pattern": [
     " S ",

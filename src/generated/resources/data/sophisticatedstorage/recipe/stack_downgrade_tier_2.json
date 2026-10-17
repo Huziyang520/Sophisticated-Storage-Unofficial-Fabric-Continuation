@@ -8,15 +8,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "B": {
-      "item": "sophisticatedstorage:upgrade_base"
-    },
-    "F": {
-      "item": "minecraft:flint"
-    },
-    "S": {
-      "item": "minecraft:stick"
-    }
+    "B": "sophisticatedstorage:upgrade_base",
+    "F": "minecraft:flint",
+    "S": "minecraft:stick"
   },
   "pattern": [
     "FSF",

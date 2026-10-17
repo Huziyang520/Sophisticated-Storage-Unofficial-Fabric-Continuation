@@ -19,7 +19,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:storage_output_from_input"
+        "recipes": "sophisticatedstorage:storage_output_from_input"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -32,7 +32,7 @@
   ],
   "rewards": {
     "recipes": [
-      "minecraft:storage_output_from_input"
+      "sophisticatedstorage:storage_output_from_input"
     ]
   }
 }
