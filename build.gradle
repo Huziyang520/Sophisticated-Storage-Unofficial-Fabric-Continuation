@@ -15,8 +15,9 @@ base {
 
 // 产物名固定为 <mod_id>-<version>-<loader>-<MC>（见 AGENTS.md §5）。
 // 用 matching 而不是直接 named()，任务不存在时不至于让配置阶段失败。
+// 26.3 的 Fabric 线官方名即运行时名，不需要 remap，jar 就是最终产物
 tasks.matching { it.name == 'jar' }.configureEach {
-    archiveFileName.set("${mod_id}-${mod_version}-fabric-${mc_range_label}-dev.jar")
+    archiveFileName.set("${mod_id}-${mod_version}-fabric-${mc_range_label}.jar")
 }
 tasks.matching { it.name == 'remapJar' }.configureEach {
     archiveFileName.set("${mod_id}-${mod_version}-fabric-${mc_range_label}.jar")
@@ -46,18 +47,13 @@ dependencies {
     // 可选：配置入口（Mod Menu）
     compileOnly("com.terraformersmc:modmenu:${modmenu_version}") { transitive = false }
 
-    // 可选兼容（编译期，不打包、不设必装依赖）。26.3 无 Fabric 版的见 gradle.properties 注释。
-        compileOnly("mezz.jei:jei-${minecraft_version}-fabric-api:${jei_version}") { transitive = false }
-    compileOnly("me.shedaniel:RoughlyEnoughItems-api-fabric:${rei_version}") { transitive = false }
-    compileOnly("me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:${rei_version}") { transitive = false }
-    compileOnly("curse.maven:jade-324717:${jade_version}") { transitive = false }
-    compileOnly("curse.maven:litematica-308892:${litematica_version}") { transitive = false }
-    compileOnly("curse.maven:malilib-303119:${malilib_version}") { transitive = false }
-    compileOnly("curse.maven:craftingtweaks-502516:${crafting_tweaks_version}") { transitive = false }
-    compileOnly("curse.maven:balm-500525:${balm_version}") { transitive = false }
-    compileOnly("maven.modrinth:toms-storage:${toms_storage_version}") { transitive = false }
-    compileOnly("maven.modrinth:sodium:${sodium_version}") { transitive = false }
-    // 26.3 无 Fabric 版，暂不引用：EMI / Chipped / ModernKeyBinding / Quark
+    // 前置核心模组：26.3 没有可用的 maven 坐标，直接用本地产物（libs/ 不入库）
+    compileOnly files("libs/sophisticatedcore.jar")
+
+    // 兼容 API（JEI / REI）：对应 maven 在本机不可达，同样走 libs/
+    compileOnly files("libs/jei-26.3-fabric-api.jar")
+    compileOnly files("libs/RoughlyEnoughItems-fabric-26.3.824.jar")
+    compileOnly files("libs/basic-math-0.6.1.jar")
 }
 
 processResources {
@@ -75,6 +71,8 @@ processResources {
             minecraft_version    : project.minecraft_version,
             fabric_minecraft_range: project.fabric_minecraft_range,
             fabric_loader_version: project.fabric_loader_version,
+            cloth_config_version : project.cloth_config_version,
+            modmenu_version      : project.modmenu_version,
             java_version         : project.java_version
     ]
     inputs.properties replaceProperties
