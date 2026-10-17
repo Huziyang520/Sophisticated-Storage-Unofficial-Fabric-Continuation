@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.crafting;
 
-import io.github.fabricators_of_create.porting_lib.transfer.item.ItemItemStorages;
+import net.p3pp3rf1y.sophisticatedcore.platform.item.ItemItemStorages;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;

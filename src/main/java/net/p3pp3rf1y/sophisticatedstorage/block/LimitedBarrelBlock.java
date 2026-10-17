@@ -106,10 +106,10 @@ public class LimitedBarrelBlock extends BarrelBlock {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flat) {
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag flat) {
 		int numberOfInventorySlots = getNumberOfInventorySlots();
 		String translationKey = numberOfInventorySlots == 1 ? "limited_barrel_singular" : "limited_barrel_plural";
-		tooltip.add(Component.translatable(StorageTranslationHelper.INSTANCE.translBlockTooltipKey(translationKey), String.valueOf(numberOfInventorySlots), String.valueOf(getBaseStackSizeMultiplier())).withStyle(ChatFormatting.DARK_GRAY));
+		tooltip.accept(Component.translatable(StorageTranslationHelper.INSTANCE.translBlockTooltipKey(translationKey), String.valueOf(numberOfInventorySlots), String.valueOf(getBaseStackSizeMultiplier())).withStyle(ChatFormatting.DARK_GRAY));
 	}
 
 	@Nullable

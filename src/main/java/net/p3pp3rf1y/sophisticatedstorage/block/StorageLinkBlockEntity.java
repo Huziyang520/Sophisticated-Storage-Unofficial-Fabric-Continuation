@@ -28,14 +28,17 @@ public class StorageLinkBlockEntity extends BlockEntity implements ILinkable {
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.saveAdditional(tag, registries);
+	protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput output) {
+		CompoundTag tag = new CompoundTag();
+		super.saveAdditional(output);
 		saveControllerPos(tag);
+			output.store("sophisticatedstorage_data", CompoundTag.CODEC, tag);
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.loadAdditional(tag, registries);
+	public void loadAdditional(net.minecraft.world.level.storage.ValueInput input) {
+		CompoundTag tag = input.read("sophisticatedstorage_data", CompoundTag.CODEC).orElseGet(CompoundTag::new);
+		super.loadAdditional(input);
 		loadControllerPos(tag);
 	}
 

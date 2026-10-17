@@ -86,7 +86,7 @@ public class BarrelBlockEntity extends WoodStorageBlockEntity implements IMateri
 	@Override
 	public void setLevel(Level level) {
 		super.setLevel(level);
-		if (level.isClientSide) {
+		if (level.isClientSide()) {
 			dynamicRenderTracker = new DynamicRenderTracker(this);
 		}
 	}

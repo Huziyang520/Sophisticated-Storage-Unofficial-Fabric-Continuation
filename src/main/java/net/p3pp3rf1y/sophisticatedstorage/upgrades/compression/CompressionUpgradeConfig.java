@@ -5,7 +5,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.p3pp3rf1y.sophisticatedcore.platform.config.ConfigSpec;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import org.jetbrains.annotations.NotNull;
@@ -19,13 +19,13 @@ import java.util.regex.Pattern;
 
 public class CompressionUpgradeConfig {
 	private static final String DECOMPRESSIBLE_MATCHER = "([a-z0-9_.-]+:[a-z0-9_/.-]+)=(\\d+)x([a-z0-9_.-]+:[a-z0-9_/.-]+)";
-	public final ModConfigSpec.IntValue maxNumberOfSlots;
-	public final ModConfigSpec.ConfigValue<List<String>> additionalDecompressibleItems;
+	public final ConfigSpec.IntValue maxNumberOfSlots;
+	public final ConfigSpec.ConfigValue<List<String>> additionalDecompressibleItems;
 
 	@Nullable
 	private Map<Item, RecipeHelper.UncompactingResult> additionalDecompressibleItemsMap = null;
 
-	public CompressionUpgradeConfig(ModConfigSpec.Builder builder) {
+	public CompressionUpgradeConfig(ConfigSpec.Builder builder) {
 		builder.comment("Compression Upgrade Settings").push("compressionUpgrade");
 		maxNumberOfSlots = builder.comment("Defines how many slots at a maximum compression upgrade is able to use").defineInRange("maxNumberOfSlots", 5, 3, 9);
 		additionalDecompressibleItems = builder.comment("List of items that can be decompressed by compression upgrade and their results. "

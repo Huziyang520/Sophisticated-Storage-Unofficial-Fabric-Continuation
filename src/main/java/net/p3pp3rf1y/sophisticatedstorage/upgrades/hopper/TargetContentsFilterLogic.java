@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedstorage.upgrades.hopper;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import io.github.fabricators_of_create.porting_lib.util.DeferredHolder;
+import net.p3pp3rf1y.sophisticatedcore.platform.DeferredHolder;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.component.DataComponentType;

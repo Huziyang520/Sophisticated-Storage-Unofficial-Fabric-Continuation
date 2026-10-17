@@ -41,12 +41,12 @@ public class ShulkerBoxItem extends StorageBlockItem implements IStashStorageIte
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag tooltipFlag) {
-		super.appendHoverText(stack, context, tooltip, tooltipFlag);
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag tooltipFlag) {
+		super.appendHoverText(stack, context, display, tooltip, tooltipFlag);
 		if (tooltipFlag.isAdvanced()) {
 			HolderLookup.Provider registries = context.registries();
 			if (registries != null) {
-				StackStorageWrapper.fromStack(registries, stack).getContentsUuid().ifPresent(uuid -> tooltip.add(Component.literal("UUID: " + uuid).withStyle(ChatFormatting.DARK_GRAY)));
+				StackStorageWrapper.fromStack(registries, stack).getContentsUuid().ifPresent(uuid -> tooltip.accept(Component.literal("UUID: " + uuid).withStyle(ChatFormatting.DARK_GRAY)));
 			}
 		}
 		if (!GuiHelper.isShiftDown()) {
@@ -73,7 +73,7 @@ public class ShulkerBoxItem extends StorageBlockItem implements IStashStorageIte
 	@Override
 	public void onDestroyed(ItemEntity itemEntity) {
 		Level level = itemEntity.level();
-		if (level.isClientSide) {
+		if (level.isClientSide()) {
 			return;
 		}
 		ItemStack stack = itemEntity.getItem();

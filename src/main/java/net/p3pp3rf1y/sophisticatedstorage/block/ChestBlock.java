@@ -9,7 +9,7 @@ import net.minecraft.stats.Stats;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -240,7 +240,7 @@ public class ChestBlock extends WoodStorageBlockBase implements SimpleWaterlogge
 	@Nullable
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-		return level.isClientSide ? createTickerHelper(blockEntityType, ModBlocks.CHEST_BLOCK_ENTITY_TYPE.get(), (l, p, s, be) -> ChestBlockEntity.lidAnimateTick(be)) : super.getTicker(level, state, blockEntityType);
+		return level.isClientSide() ? createTickerHelper(blockEntityType, ModBlocks.CHEST_BLOCK_ENTITY_TYPE.get(), (l, p, s, be) -> ChestBlockEntity.lidAnimateTick(be)) : super.getTicker(level, state, blockEntityType);
 	}
 
 	@Override
@@ -249,7 +249,7 @@ public class ChestBlock extends WoodStorageBlockBase implements SimpleWaterlogge
 	}
 
 	@Override
-	protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
 		return WorldHelper.getBlockEntity(level, pos, ChestBlockEntity.class).map(b -> {
 			BlockPos mainChestPos;
 			if (!b.isMainChest()) {
@@ -258,17 +258,17 @@ public class ChestBlock extends WoodStorageBlockBase implements SimpleWaterlogge
 			}
 
 			if (b.isPacked()) {
-				return ItemInteractionResult.FAIL;
+				return InteractionResult.FAIL;
 			}
-			if (level.isClientSide || hand == InteractionHand.OFF_HAND) {
-				return ItemInteractionResult.SUCCESS;
+			if (level.isClientSide() || hand == InteractionHand.OFF_HAND) {
+				return InteractionResult.SUCCESS;
 			}
 
 			if (tryItemInteraction(player, hand, b, stack, state.getValue(FACING), hitResult)) {
-				return ItemInteractionResult.SUCCESS;
+				return InteractionResult.SUCCESS;
 			}
-			return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-		}).orElse(ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION);
+			return InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+		}).orElse(InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION);
 	}
 
 	@Override
@@ -290,7 +290,7 @@ public class ChestBlock extends WoodStorageBlockBase implements SimpleWaterlogge
 				return InteractionResult.PASS;
 			}
 
-			if (level.isClientSide) {
+			if (level.isClientSide()) {
 				return InteractionResult.SUCCESS;
 			}
 
@@ -480,7 +480,7 @@ public class ChestBlock extends WoodStorageBlockBase implements SimpleWaterlogge
 	@Override
 	public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
 		super.entityInside(state, level, pos, entity);
-		if (!level.isClientSide && entity instanceof ItemEntity itemEntity) {
+		if (!level.isClientSide() && entity instanceof ItemEntity itemEntity) {
 			WorldHelper.getBlockEntity(level, pos, ChestBlockEntity.class).ifPresent(be -> tryToPickup(level, itemEntity, be.getMainStorageWrapper()));
 		}
 	}

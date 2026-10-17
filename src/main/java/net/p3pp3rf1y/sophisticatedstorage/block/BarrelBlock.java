@@ -10,7 +10,7 @@ import net.minecraft.stats.Stats;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -97,7 +97,7 @@ public class BarrelBlock extends WoodStorageBlockBase {
 	public boolean sophisticatedCore_addRunningEffects(BlockState state, Level level, BlockPos pos, Entity entity) {
 		Vec3 vec3 = entity.getDeltaMovement();
 		level.addParticle(new CustomTintTerrainParticleData(state, pos),
-				entity.getX() + (level.random.nextDouble() - 0.5D) * entity.getBbWidth(), entity.getY() + 0.1D, entity.getZ() + (level.random.nextDouble() - 0.5D) * entity.getBbWidth(),
+				entity.getX() + (level.getRandom().nextDouble() - 0.5D) * entity.getBbWidth(), entity.getY() + 0.1D, entity.getZ() + (level.getRandom().nextDouble() - 0.5D) * entity.getBbWidth(),
 				vec3.x * -4.0D, 1.5D, vec3.z * -4.0D);
 		return true;
 	}
@@ -115,20 +115,20 @@ public class BarrelBlock extends WoodStorageBlockBase {
 	}
 
 	@Override
-	public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+	public InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
 		return WorldHelper.getBlockEntity(level, pos, WoodStorageBlockEntity.class).map(b -> {
 			if (b.isPacked()) {
-				return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+				return InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 			}
-			if (level.isClientSide || hand == InteractionHand.OFF_HAND) {
-				return ItemInteractionResult.SUCCESS;
+			if (level.isClientSide() || hand == InteractionHand.OFF_HAND) {
+				return InteractionResult.SUCCESS;
 			}
 
 			if (tryItemInteraction(player, hand, b, stack, getFacing(state), hitResult)) {
-				return ItemInteractionResult.SUCCESS;
+				return InteractionResult.SUCCESS;
 			}
-			return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-		}).orElse(ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION);
+			return InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+		}).orElse(InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION);
 	}
 
 	@Override

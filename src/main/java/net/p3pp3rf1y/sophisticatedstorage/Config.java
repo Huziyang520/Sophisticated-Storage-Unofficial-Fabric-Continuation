@@ -1,11 +1,10 @@
 package net.p3pp3rf1y.sophisticatedstorage;
 
-import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeModConfigEvents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
-import net.neoforged.fml.config.ModConfig;
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.p3pp3rf1y.sophisticatedcore.platform.config.ConfigEvents;
+import net.p3pp3rf1y.sophisticatedcore.platform.config.ConfigSpec;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilteredUpgradeConfig;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeGroup;
@@ -38,29 +37,29 @@ public class Config {
 	private static final String MAX_UPGRADES_MATCHER = "([a-z0-9_]+\\|[a-z0-9_/.-]+\\|\\d+)";
 
 	public static final Client CLIENT;
-	public static final ModConfigSpec CLIENT_SPEC;
+	public static final ConfigSpec CLIENT_SPEC;
 
 	public static final Server SERVER;
-	public static final ModConfigSpec SERVER_SPEC;
+	public static final ConfigSpec SERVER_SPEC;
 	public static final Common COMMON;
-	public static final ModConfigSpec COMMON_SPEC;
+	public static final ConfigSpec COMMON_SPEC;
 
 	static {
-		final Pair<Server, ModConfigSpec> serverSpec = new ModConfigSpec.Builder().configure(Server::new);
+		final Pair<Server, ConfigSpec> serverSpec = new ConfigSpec.Builder().configure(Server::new);
 		SERVER_SPEC = serverSpec.getRight();
 		SERVER = serverSpec.getLeft();
-		final Pair<Client, ModConfigSpec> clientSpec = new ModConfigSpec.Builder().configure(Client::new);
+		final Pair<Client, ConfigSpec> clientSpec = new ConfigSpec.Builder().configure(Client::new);
 		CLIENT_SPEC = clientSpec.getRight();
 		CLIENT = clientSpec.getLeft();
-		final Pair<Common, ModConfigSpec> commonSpec = new ModConfigSpec.Builder().configure(Common::new);
+		final Pair<Common, ConfigSpec> commonSpec = new ConfigSpec.Builder().configure(Common::new);
 		COMMON_SPEC = commonSpec.getRight();
 		COMMON = commonSpec.getLeft();
 	}
 
 	public static class Common {
-		public final ModConfigSpec.BooleanValue dropPacked;
+		public final ConfigSpec.BooleanValue dropPacked;
 
-		public Common(ModConfigSpec.Builder builder) {
+		public Common(ConfigSpec.Builder builder) {
 			builder.comment("Common Settings").push("common");
 
 			dropPacked = builder.comment("Determines whether chests / barrels are always dropped as packed with their contents when broken without the need to use packing tape").define("dropPacked", false);
@@ -70,10 +69,10 @@ public class Config {
 	}
 
 	public static class Client {
-		public final ModConfigSpec.BooleanValue showHigherTierTintedVariants;
-		public final ModConfigSpec.BooleanValue showSingleWoodVariantOnly;
+		public final ConfigSpec.BooleanValue showHigherTierTintedVariants;
+		public final ConfigSpec.BooleanValue showSingleWoodVariantOnly;
 
-		public Client(ModConfigSpec.Builder builder) {
+		public Client(ConfigSpec.Builder builder) {
 			builder.comment("Client-side Settings").push("client");
 
 			showHigherTierTintedVariants = builder.comment("Determines whether JEI and creative tab will show tinted storage items for iron and higher tiers. Can help with easily removing many of these items from there.")
@@ -162,19 +161,19 @@ public class Config {
 		public final HopperUpgradeConfig advancedHopperUpgrade;
 		public final JukeboxUpgradeConfig advancedJukeboxUpgrade;
 
-		public final ModConfigSpec.IntValue tooManyItemEntityDrops;
+		public final ConfigSpec.IntValue tooManyItemEntityDrops;
 		public final MaxUgradesPerStorageConfig maxUpgradesPerStorage;
 
 		public void initListeners() {
-			NeoForgeModConfigEvents.reloading(SophisticatedStorage.MOD_ID).register(this::onConfigReload);
-			NeoForgeModConfigEvents.loading(SophisticatedStorage.MOD_ID).register(this::onConfigLoad);
+			ConfigEvents.reloading(SophisticatedStorage.MOD_ID).register(this::onConfigReload);
+			
 		}
 
-		public void onConfigLoad(ModConfig config) {
+		public void onConfigLoad() {
 			clearCache();
 		}
 
-		public void onConfigReload(ModConfig config) {
+		public void onConfigReload() {
 			clearCache();
 		}
 
@@ -184,7 +183,7 @@ public class Config {
 			compressionUpgrade.clearCache();
 		}
 
-		public Server(ModConfigSpec.Builder builder) {
+		public Server(ConfigSpec.Builder builder) {
 			builder.comment("Server Settings").push("server");
 
 			woodBarrel = new StorageConfig(builder, "Wood Barrel", 27, 1);
@@ -290,10 +289,10 @@ public class Config {
 		}
 
 		public static class StorageConfig {
-			public final ModConfigSpec.IntValue inventorySlotCount;
-			public final ModConfigSpec.IntValue upgradeSlotCount;
+			public final ConfigSpec.IntValue inventorySlotCount;
+			public final ConfigSpec.IntValue upgradeSlotCount;
 
-			public StorageConfig(ModConfigSpec.Builder builder, String storagePrefix, int inventorySlotCountDefault, int upgradeSlotCountDefault) {
+			public StorageConfig(ConfigSpec.Builder builder, String storagePrefix, int inventorySlotCountDefault, int upgradeSlotCountDefault) {
 				builder.comment(storagePrefix + " Settings").push(storagePrefix.replace(" ", ""));
 				inventorySlotCount = builder.comment("Number of inventory slots in the storage").defineInRange("inventorySlotCount", inventorySlotCountDefault, 1, 180);
 				upgradeSlotCount = builder.comment("Number of upgrade slots in the storage").defineInRange("upgradeSlotCount", upgradeSlotCountDefault, 0, 10);
@@ -302,10 +301,10 @@ public class Config {
 		}
 
 		public static class LimitedBarrelConfig {
-			public final ModConfigSpec.IntValue baseSlotLimitMultiplier;
-			public final ModConfigSpec.IntValue upgradeSlotCount;
+			public final ConfigSpec.IntValue baseSlotLimitMultiplier;
+			public final ConfigSpec.IntValue upgradeSlotCount;
 
-			public LimitedBarrelConfig(ModConfigSpec.Builder builder, String storagePrefix, int baseSlotLimitMultiplierDefault, int upgradeSlotCountDefault) {
+			public LimitedBarrelConfig(ConfigSpec.Builder builder, String storagePrefix, int baseSlotLimitMultiplierDefault, int upgradeSlotCountDefault) {
 				builder.comment(storagePrefix + " Settings").push(storagePrefix.replace(" ", ""));
 				baseSlotLimitMultiplier = builder.comment("Multiplier that's used to calculate base slot limit").defineInRange("baseSlotLimitMultiplier", baseSlotLimitMultiplierDefault, 1, 8192);
 				upgradeSlotCount = builder.comment("Number of upgrade slots in the storage").defineInRange("upgradeSlotCount", upgradeSlotCountDefault, 0, 10);
@@ -314,12 +313,12 @@ public class Config {
 		}
 
 		public static class ShulkerBoxDisallowedItems {
-			private final ModConfigSpec.BooleanValue containerItemsDisallowed;
-			private final ModConfigSpec.ConfigValue<List<String>> disallowedItemsList;
+			private final ConfigSpec.BooleanValue containerItemsDisallowed;
+			private final ConfigSpec.ConfigValue<List<String>> disallowedItemsList;
 			private boolean initialized = false;
 			private Set<Item> disallowedItemsSet = null;
 
-			ShulkerBoxDisallowedItems(ModConfigSpec.Builder builder) {
+			ShulkerBoxDisallowedItems(ConfigSpec.Builder builder) {
 				builder.push("shulkerBoxDisallowedItems");
 				disallowedItemsList = builder.comment("List of items that are not allowed to be put in shulkerboxes - e.g. \"minecraft:bundle\"").define("disallowedItems", new ArrayList<>());
 				containerItemsDisallowed = builder.comment("Determines if container items (those that override canFitInsideContainerItems to false) are able to fit in shulker boxes")
@@ -355,11 +354,11 @@ public class Config {
 		}
 
 		public static class MaxUgradesPerStorageConfig implements IUpgradeCountLimitConfig {
-			private final ModConfigSpec.ConfigValue<List<? extends String>> maxUpgradesPerStorageList;
+			private final ConfigSpec.ConfigValue<List<? extends String>> maxUpgradesPerStorageList;
 			@Nullable
 			private Map<String, Map<String, Integer>> maxUpgradesPerStorage = null;
 
-			protected MaxUgradesPerStorageConfig(ModConfigSpec.Builder builder, Map<String, Map<String, Integer>> defaultUpgradesPerStorage) {
+			protected MaxUgradesPerStorageConfig(ConfigSpec.Builder builder, Map<String, Map<String, Integer>> defaultUpgradesPerStorage) {
 				maxUpgradesPerStorageList = builder.comment("Limit of maximum number of upgrades of type per storage in format of \"StorageType|UpgradeRegistryName[or UpgradeGroup]|MaxNumber\"")
 						.defineList("maxUpgradesPerStorage", convertToList(defaultUpgradesPerStorage), mapping -> ((String) mapping).matches(MAX_UPGRADES_MATCHER));
 			}

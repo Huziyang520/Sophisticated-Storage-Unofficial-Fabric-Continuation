@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorage.block;
 
 import io.github.fabricators_of_create.porting_lib.core.util.Lazy;
-import io.github.fabricators_of_create.porting_lib.transfer.item.ItemStackHandler;
+import net.p3pp3rf1y.sophisticatedcore.platform.item.ItemStackHandler;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.BlockPos;
@@ -14,7 +14,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -322,8 +322,9 @@ public class DecorationTableBlockEntity extends BlockEntity {
 	}
 
 	@Override
-	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.loadAdditional(tag, registries);
+	protected void loadAdditional(net.minecraft.world.level.storage.ValueInput input) {
+		CompoundTag tag = input.read("sophisticatedstorage_data", CompoundTag.CODEC).orElseGet(CompoundTag::new);
+		super.loadAdditional(input);
 		decorativeBlocks.deserializeNBT(registries, tag.getCompoundOrEmpty("decorativeBlocks"));
 		dyes.deserializeNBT(registries, tag.getCompoundOrEmpty("dyes"));
 		storageBlock.deserializeNBT(registries, tag.getCompoundOrEmpty("storageBlock"));
@@ -350,9 +351,11 @@ public class DecorationTableBlockEntity extends BlockEntity {
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.saveAdditional(tag, registries);
+	protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput output) {
+		CompoundTag tag = new CompoundTag();
+		super.saveAdditional(output);
 		saveData(tag, registries);
+			output.store("sophisticatedstorage_data", CompoundTag.CODEC, tag);
 	}
 
 	private void saveData(CompoundTag tag, HolderLookup.Provider registries) {
@@ -642,7 +645,7 @@ public class DecorationTableBlockEntity extends BlockEntity {
 				}
 
 				ItemStack result = input.copyWithCount(1);
-				result.set(DataComponents.DYED_COLOR, new DyedItemColor(FastColor.ARGB32.color(0, FastColor.ARGB32.red(mainColorToSet), FastColor.ARGB32.green(mainColorToSet), FastColor.ARGB32.blue(mainColorToSet)), true));
+				result.set(DataComponents.DYED_COLOR, new DyedItemColor(ARGB.ARGB32.color(0, ARGB.ARGB32.red(mainColorToSet), ARGB.ARGB32.green(mainColorToSet), ARGB.ARGB32.blue(mainColorToSet)), true));
 
 				return new TintDecorationResult(result, DecorationHelper.getDyePartsNeeded(mainColorToSet, -1, currentColor, -1, 24, 0));
 			}

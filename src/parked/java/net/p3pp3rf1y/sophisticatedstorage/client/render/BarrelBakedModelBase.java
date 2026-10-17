@@ -31,7 +31,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.WoodType;
 import net.p3pp3rf1y.sophisticatedcore.client.render.CustomParticleIcon;
@@ -199,7 +199,7 @@ public abstract class BarrelBakedModelBase implements BakedModel, CustomParticle
 	}
 
 	@Override
-	public void emitBlockQuads(BlockAndTintGetter blockView, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, RenderContext context) {
+	public void emitBlockQuads(net.minecraft.client.renderer.block.BlockAndTintGetter blockView, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, RenderContext context) {
 		modelData = getModelData(blockView, pos, state, ModelData.EMPTY);
 		BakedModel.super.emitBlockQuads(blockView, state, pos, randomSupplier, context);
 	}
@@ -753,7 +753,7 @@ public abstract class BarrelBakedModelBase implements BakedModel, CustomParticle
 		return getParticleIcon();
 	}
 
-	public ModelData getModelData(BlockAndTintGetter world, BlockPos pos, BlockState state, ModelData tileData) {
+	public ModelData getModelData(net.minecraft.client.renderer.block.BlockAndTintGetter world, BlockPos pos, BlockState state, ModelData tileData) {
 		return WorldHelper.getBlockEntity(world, pos, BarrelBlockEntity.class)
 				.map(BarrelBakedModelBase::getModelDataFromBlockEntity).orElse(ModelData.EMPTY);
 	}
@@ -862,7 +862,7 @@ public abstract class BarrelBakedModelBase implements BakedModel, CustomParticle
 			}
 
 			@Override
-			public void emitBlockQuads(BlockAndTintGetter blockView, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, RenderContext context) {
+			public void emitBlockQuads(net.minecraft.client.renderer.block.BlockAndTintGetter blockView, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, RenderContext context) {
 				setProperties();
 				super.emitBlockQuads(blockView, state, pos, randomSupplier, context);
 			}

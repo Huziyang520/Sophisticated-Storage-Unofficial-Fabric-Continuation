@@ -95,7 +95,7 @@ public abstract class StorageBlockBase extends BlockBase implements IStorageBloc
 	@Override
 	public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
 		super.entityInside(state, level, pos, entity);
-		if (!level.isClientSide && entity instanceof ItemEntity itemEntity) {
+		if (!level.isClientSide() && entity instanceof ItemEntity itemEntity) {
 			WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).ifPresent(be -> tryToPickup(level, itemEntity, be.getStorageWrapper()));
 		}
 	}
@@ -111,7 +111,7 @@ public abstract class StorageBlockBase extends BlockBase implements IStorageBloc
 	@Nullable
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-		return !level.isClientSide && Boolean.TRUE.equals(state.getValue(StorageBlockBase.TICKING)) ? StorageBlockBase.createTickerHelper(blockEntityType, getBlockEntityType(), (l, blockPos, blockState, storageBlockEntity) -> StorageBlockEntity.serverTick(l, blockPos, storageBlockEntity)) : null;
+		return !level.isClientSide() && Boolean.TRUE.equals(state.getValue(StorageBlockBase.TICKING)) ? StorageBlockBase.createTickerHelper(blockEntityType, getBlockEntityType(), (l, blockPos, blockState, storageBlockEntity) -> StorageBlockEntity.serverTick(l, blockPos, storageBlockEntity)) : null;
 	}
 
 	protected abstract BlockEntityType<? extends StorageBlockEntity> getBlockEntityType();
@@ -212,7 +212,7 @@ public abstract class StorageBlockBase extends BlockBase implements IStorageBloc
 	}
 
 	protected boolean tryAddUpgrade(Player player, InteractionHand hand, StorageBlockEntity b, ItemStack itemInHand, Direction facing, BlockHitResult hitResult) {
-		if (player.level().isClientSide) {
+		if (player.level().isClientSide()) {
 			return true;
 		}
 

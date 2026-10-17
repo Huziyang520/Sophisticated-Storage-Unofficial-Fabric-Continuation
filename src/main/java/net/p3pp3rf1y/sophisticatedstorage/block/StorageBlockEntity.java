@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.block;
 
-import io.github.fabricators_of_create.porting_lib.transfer.item.SlottedStackStorage;
+import net.p3pp3rf1y.sophisticatedcore.platform.item.SlottedStackStorage;
 import net.fabricmc.fabric.api.block.BlockPickInteractionAware;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -157,7 +157,7 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 	}
 
 	protected boolean canRefreshUpgrades() {
-		return !isDroppingContents && level != null && !level.isClientSide;
+		return !isDroppingContents && level != null && !level.isClientSide();
 	}
 
 	@SuppressWarnings("java:S1172") //parameter used in override
@@ -181,14 +181,16 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.saveAdditional(tag, registries);
+	public void saveAdditional(net.minecraft.world.level.storage.ValueOutput output) {
+		CompoundTag tag = new CompoundTag();
+		super.saveAdditional(output);
 		saveStorageWrapper(tag);
 		saveSynchronizedData(tag);
 		saveControllerPos(tag);
 		if (isLinkedToController) {
 			tag.putBoolean("isLinkedToController", isLinkedToController);
 		}
+			output.store("sophisticatedstorage_data", CompoundTag.CODEC, tag);
 	}
 
 	private void saveStorageWrapper(CompoundTag tag) {
@@ -247,12 +249,13 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 		double d0 = worldPosition.getX() + 0.5D + vec3i.getX() / 2.0D;
 		double d1 = worldPosition.getY() + 0.5D + vec3i.getY() / 2.0D;
 		double d2 = worldPosition.getZ() + 0.5D + vec3i.getZ() / 2.0D;
-		level.playSound(null, d0, d1, d2, sound, SoundSource.BLOCKS, 0.5F, level.random.nextFloat() * 0.1F + 0.9F);
+		level.playSound(null, d0, d1, d2, sound, SoundSource.BLOCKS, 0.5F, level.getRandom().nextFloat() * 0.1F + 0.9F);
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.loadAdditional(tag, registries);
+	public void loadAdditional(net.minecraft.world.level.storage.ValueInput input) {
+		CompoundTag tag = input.read("sophisticatedstorage_data", CompoundTag.CODEC).orElseGet(CompoundTag::new);
+		super.loadAdditional(input);
 		loadStorageWrapper(tag, registries);
 		loadSynchronizedData(tag, registries);
 
@@ -281,7 +284,7 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 		showLock = NBTHelper.getBoolean(tag, "showLock").orElse(true);
 		showTier = NBTHelper.getBoolean(tag, "showTier").orElse(true);
 		showUpgrades = NBTHelper.getBoolean(tag, "showUpgrades").orElse(false);
-		if (level != null && level.isClientSide) {
+		if (level != null && level.isClientSide()) {
 			if (tag.getBooleanOr("updateBlockRender", false)) {
 				WorldHelper.notifyBlockUpdate(this);
 			}
@@ -371,7 +374,7 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 	}
 
 	public void dropContents() {
-		if (level == null || level.isClientSide) {
+		if (level == null || level.isClientSide()) {
 			return;
 		}
 		isDroppingContents = true;

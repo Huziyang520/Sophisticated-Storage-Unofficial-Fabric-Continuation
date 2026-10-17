@@ -4,7 +4,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
@@ -28,7 +28,7 @@ public class ModBlockColors {
 		ColorProviderRegistry.BLOCK.register(ModBlockColors::getChestShulkerBoxColor, ModBlocks.SHULKER_BOXES.stream().map(Supplier::get).toArray(ShulkerBoxBlock[]::new));
 	}
 
-	private static int getBarrelTintColor(BlockState state, @Nullable BlockAndTintGetter blockDisplayReader, @Nullable BlockPos pos, int tintIndex) {
+	private static int getBarrelTintColor(BlockState state, @Nullable net.minecraft.client.renderer.block.BlockAndTintGetter blockDisplayReader, @Nullable BlockPos pos, int tintIndex) {
 		if (tintIndex < 0 || pos == null) {
 			return -1;
 		}
@@ -67,7 +67,7 @@ public class ModBlockColors {
 		return displayItems.size() > displayItemIndex ? displayItems.get(displayItemIndex).getItem() : ItemStack.EMPTY;
 	}
 
-	private static int getChestShulkerBoxColor(BlockState state, @Nullable BlockAndTintGetter blockDisplayReader, @Nullable BlockPos pos, int tintIndex) {
+	private static int getChestShulkerBoxColor(BlockState state, @Nullable net.minecraft.client.renderer.block.BlockAndTintGetter blockDisplayReader, @Nullable BlockPos pos, int tintIndex) {
 		if (tintIndex < 0 || pos == null) {
 			return -1;
 		}

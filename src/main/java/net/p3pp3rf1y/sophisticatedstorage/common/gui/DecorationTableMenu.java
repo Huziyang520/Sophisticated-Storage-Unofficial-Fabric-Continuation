@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorage.common.gui;
 
 import net.minecraft.client.renderer.texture.TextureAtlas;
-import io.github.fabricators_of_create.porting_lib.transfer.item.ItemStackHandler;
+import net.p3pp3rf1y.sophisticatedcore.platform.item.ItemStackHandler;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
@@ -298,7 +298,7 @@ public class DecorationTableMenu extends AbstractContainerMenu implements ISynce
 	}
 
 	protected void sendToServer(Consumer<CompoundTag> addData) {
-		if (blockEntity.getLevel() == null || !blockEntity.getLevel().isClientSide) {
+		if (blockEntity.getLevel() == null || !blockEntity.getLevel().isClientSide()) {
 			return;
 		}
 

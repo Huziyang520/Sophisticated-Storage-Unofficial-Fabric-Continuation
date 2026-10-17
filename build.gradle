@@ -100,10 +100,12 @@ loom {
     }
 }
 
-fabricApi {
-    configureDataGeneration {
-        setModId(project.mod_id)
-        setOutputDirectory(getProject().file("src/generated/resources"))
+// 数据生成产物已经提交在 src/generated/resources 里，直接作为资源根打进 jar
+sourceSets {
+    main {
+        resources {
+            srcDir 'src/generated/resources'
+        }
     }
 }
 

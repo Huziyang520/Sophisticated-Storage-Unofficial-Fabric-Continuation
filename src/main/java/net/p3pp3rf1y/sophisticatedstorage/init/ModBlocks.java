@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorage.init;
 
-import io.github.fabricators_of_create.porting_lib.util.DeferredHolder;
-import io.github.fabricators_of_create.porting_lib.util.DeferredRegister;
+import net.p3pp3rf1y.sophisticatedcore.platform.DeferredHolder;
+import net.p3pp3rf1y.sophisticatedcore.platform.DeferredRegister;
 import net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredientSerializer;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.core.BlockPos;
@@ -11,7 +11,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
@@ -444,16 +444,16 @@ public class ModBlocks {
 		private static final StorageCauldronInteraction INSTANCE = new StorageCauldronInteraction();
 
 		@Override
-		public ItemInteractionResult interact(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, ItemStack stack) {
+		public InteractionResult interact(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, ItemStack stack) {
 			if (canRemovePaint(stack)) {
 
 				if (!level.isClientSide()) {
 					removePaint(stack);
 					LayeredCauldronBlock.lowerFillLevel(state, level, pos);
 				}
-				return ItemInteractionResult.sidedSuccess(level.isClientSide);
+				return InteractionResult.sidedSuccess(level.isClientSide());
 			}
-			return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+			return InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 		}
 
 		protected boolean canRemovePaint(ItemStack stack) {

@@ -21,7 +21,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
@@ -132,7 +132,7 @@ public class SimpleCompositeModel implements IUnbakedGeometry<SimpleCompositeMod
 		}
 
 		@Override
-		public void emitBlockQuads(BlockAndTintGetter blockView, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, RenderContext context) {
+		public void emitBlockQuads(net.minecraft.client.renderer.block.BlockAndTintGetter blockView, BlockState state, BlockPos pos, Supplier<RandomSource> randomSupplier, RenderContext context) {
 			for (Map.Entry<String, BakedModel> entry : children.entrySet()) {
 				entry.getValue().emitBlockQuads(blockView, state, pos, randomSupplier, context);
 			}
@@ -156,7 +156,7 @@ public class SimpleCompositeModel implements IUnbakedGeometry<SimpleCompositeMod
 		}
 
 		/*@Override
-		public ModelData getModelData(BlockAndTintGetter level, BlockPos pos, BlockState state, ModelData modelData) {
+		public ModelData getModelData(net.minecraft.client.renderer.block.BlockAndTintGetter level, BlockPos pos, BlockState state, ModelData modelData) {
 			return ModelData.EMPTY;
 		}*/
 

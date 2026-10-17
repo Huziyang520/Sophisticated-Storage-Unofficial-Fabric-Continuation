@@ -21,7 +21,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.p3pp3rf1y.sophisticatedcore.client.render.CustomParticleIcon;
@@ -88,7 +88,7 @@ public class ShulkerBoxDynamicModel implements IUnbakedGeometry<ShulkerBoxDynami
 		}
 
 		@NotNull
-		public ModelData getModelData(BlockAndTintGetter level, BlockPos pos, BlockState state, ModelData modelData) {
+		public ModelData getModelData(net.minecraft.client.renderer.block.BlockAndTintGetter level, BlockPos pos, BlockState state, ModelData modelData) {
 			return WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class)
 					.map(be -> {
 						ModelData.Builder builder = ModelData.builder();

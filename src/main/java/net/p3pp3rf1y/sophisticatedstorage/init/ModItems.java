@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorage.init;
 
-import io.github.fabricators_of_create.porting_lib.util.DeferredHolder;
-import io.github.fabricators_of_create.porting_lib.util.DeferredRegister;
+import net.p3pp3rf1y.sophisticatedcore.platform.DeferredHolder;
+import net.p3pp3rf1y.sophisticatedcore.platform.DeferredRegister;
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditionType;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
@@ -195,10 +195,10 @@ public class ModItems {
 	public static final String PACKING_TAPE_NAME = "packing_tape";
 	public static final Supplier<ItemBase> PACKING_TAPE = ITEMS.register(PACKING_TAPE_NAME, () -> new ItemBase(new Item.Properties().stacksTo(1).durability(8)) {
 		@Override
-		public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag isAdvanced) {
-			super.appendHoverText(stack, context, tooltip, isAdvanced);
+		public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag isAdvanced) {
+			super.appendHoverText(stack, context, display, tooltip, isAdvanced);
 			if (Boolean.TRUE.equals(Config.COMMON.dropPacked.get())) {
-				tooltip.add(Component.translatable(StorageTranslationHelper.INSTANCE.translItemTooltip(PACKING_TAPE_NAME) + ".disabled").withStyle(ChatFormatting.RED));
+				tooltip.accept(Component.translatable(StorageTranslationHelper.INSTANCE.translItemTooltip(PACKING_TAPE_NAME) + ".disabled").withStyle(ChatFormatting.RED));
 			} else {
 				tooltip.add(Component.translatable(StorageTranslationHelper.INSTANCE.translItemTooltip(PACKING_TAPE_NAME),
 								Component.literal(String.valueOf(stack.getMaxDamage() - stack.getDamageValue())).withStyle(ChatFormatting.GREEN)
