@@ -1,6 +1,8 @@
 {
   "pack": {
+    "description": "Sophisticated Storage resources",
     "pack_format": 97,
-    "description": "Sophisticated Storage resources"
+    "min_format": 97,
+    "max_format": 97
   }
 }

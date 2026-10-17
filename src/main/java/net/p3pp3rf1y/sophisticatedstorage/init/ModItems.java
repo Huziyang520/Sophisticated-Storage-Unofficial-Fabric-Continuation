@@ -189,10 +189,10 @@ public class ModItems {
 	public static final Supplier<StorageTierUpgradeItem> GOLD_TO_NETHERITE_TIER_UPGRADE = ITEMS.register("gold_to_netherite_tier_upgrade", () -> new StorageTierUpgradeItem(StorageTierUpgradeItem.TierUpgrade.GOLD_TO_NETHERITE));
 	public static final Supplier<StorageTierUpgradeItem> DIAMOND_TO_NETHERITE_TIER_UPGRADE = ITEMS.register("diamond_to_netherite_tier_upgrade", () -> new StorageTierUpgradeItem(StorageTierUpgradeItem.TierUpgrade.DIAMOND_TO_NETHERITE));
 
-	public static final Supplier<ItemBase> UPGRADE_BASE = ITEMS.register("upgrade_base", () -> new ItemBase(new Item.Properties().stacksTo(16)));
+	public static final Supplier<ItemBase> UPGRADE_BASE = ITEMS.register("upgrade_base", () -> new ItemBase(net.p3pp3rf1y.sophisticatedcore.platform.RegistryIdContext.applyToItem(new Item.Properties()).stacksTo(16)));
 
 	public static final String PACKING_TAPE_NAME = "packing_tape";
-	public static final Supplier<ItemBase> PACKING_TAPE = ITEMS.register(PACKING_TAPE_NAME, () -> new ItemBase(new Item.Properties().stacksTo(1).durability(8)) {
+	public static final Supplier<ItemBase> PACKING_TAPE = ITEMS.register(PACKING_TAPE_NAME, () -> new ItemBase(net.p3pp3rf1y.sophisticatedcore.platform.RegistryIdContext.applyToItem(new Item.Properties()).stacksTo(1).durability(8)) {
 		@Override
 		public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag isAdvanced) {
 			super.appendHoverText(stack, context, display, tooltip, isAdvanced);
@@ -214,9 +214,9 @@ public class ModItems {
 		}
 	});
 	public static final Supplier<ItemBase> STORAGE_TOOL = ITEMS.register("storage_tool", StorageToolItem::new);
-	public static final Supplier<ItemBase> DEBUG_TOOL = ITEMS.register("debug_tool", () -> new ItemBase(new Item.Properties().stacksTo(1)));
+	public static final Supplier<ItemBase> DEBUG_TOOL = ITEMS.register("debug_tool", () -> new ItemBase(net.p3pp3rf1y.sophisticatedcore.platform.RegistryIdContext.applyToItem(new Item.Properties()).stacksTo(1)));
 	public static final Supplier<ItemBase> PAINTBRUSH = ITEMS.register("paintbrush", PaintbrushItem::new);
-	public static final Supplier<Item> INACCESSIBLE_SLOT = ITEMS.register("inaccessible_slot", () -> new Item(new Item.Properties().stacksTo(1)));
+	public static final Supplier<Item> INACCESSIBLE_SLOT = ITEMS.register("inaccessible_slot", () -> new Item(net.p3pp3rf1y.sophisticatedcore.platform.RegistryIdContext.applyToItem(new Item.Properties()).stacksTo(1)));
 	public static final Supplier<MapCodec<? extends LootItemFunction>> COPY_STORAGE_DATA = LOOT_FUNCTION_TYPES.register("copy_storage_data", () -> CopyStorageDataFunction.CODEC);
 
 	//private static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, SophisticatedStorage.MOD_ID);
