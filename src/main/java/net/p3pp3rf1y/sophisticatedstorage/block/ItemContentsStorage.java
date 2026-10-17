@@ -1,25 +1,28 @@
 package net.p3pp3rf1y.sophisticatedstorage.block;
 
-import net.minecraft.core.HolderLookup;
+import com.mojang.serialization.Codec;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.level.saveddata.SavedDataType;
+import net.minecraft.world.level.storage.SavedDataStorage;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedstorage.SophisticatedStorage;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 public class ItemContentsStorage extends SavedData {
-	private static final String SAVED_DATA_NAME = SophisticatedStorage.MOD_ID;
+	private static final Identifier SAVED_DATA_NAME = Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "item_contents");
+	private static final Codec<ItemContentsStorage> CODEC = CompoundTag.CODEC.xmap(ItemContentsStorage::load, ItemContentsStorage::saveToTag);
+	public static final SavedDataType<ItemContentsStorage> TYPE = new SavedDataType<>(SAVED_DATA_NAME, ItemContentsStorage::new, CODEC, DataFixTypes.LEVEL);
 
 	private final Map<UUID, CompoundTag> storageContents = new HashMap<>();
 	private static final ItemContentsStorage clientStorageCopy = new ItemContentsStorage();
@@ -33,31 +36,36 @@ public class ItemContentsStorage extends SavedData {
 			if (server != null) {
 				ServerLevel overworld = server.getLevel(Level.OVERWORLD);
 				//noinspection ConstantConditions - by this time overworld is loaded
-				DimensionDataStorage storage = overworld.getDataStorage();
-				return storage.computeIfAbsent(new Factory<>(ItemContentsStorage::new, ItemContentsStorage::load, null), SAVED_DATA_NAME);
+				SavedDataStorage storage = overworld.getDataStorage();
+				return storage.computeIfAbsent(TYPE);
 			}
 		}
 		return clientStorageCopy;
 	}
 
-	public static ItemContentsStorage load(CompoundTag nbt, HolderLookup.Provider registries) {
+	public static ItemContentsStorage load(CompoundTag nbt) {
 		ItemContentsStorage storage = new ItemContentsStorage();
 		readStorageContents(nbt, storage);
 		return storage;
 	}
 
 	private static void readStorageContents(CompoundTag nbt, ItemContentsStorage storage) {
-		ListTag storageContents = nbt.getList(nbt.contains("shulkerBoxContents") ? "shulkerBoxContents" : "storageContents", Tag.TAG_COMPOUND);
-		for (Tag n : storageContents) {
-			CompoundTag uuidContentsPair = (CompoundTag) n;
-			UUID uuid = NbtUtils.loadUUID(Objects.requireNonNull(uuidContentsPair.get("uuid")));
-			CompoundTag contents = uuidContentsPair.getCompoundOrEmpty("contents");
-			storage.storageContents.put(uuid, contents);
+		ListTag storageContents = nbt.getListOrEmpty(nbt.contains("shulkerBoxContents") ? "shulkerBoxContents" : "storageContents");
+		for (int i = 0; i < storageContents.size(); i++) {
+			CompoundTag uuidContentsPair = storageContents.getCompoundOrEmpty(i);
+			Optional<String> uuid = uuidContentsPair.getString("uuid");
+			if (uuid.isEmpty()) {
+				continue;
+			}
+			try {
+				storage.storageContents.put(UUID.fromString(uuid.get()), uuidContentsPair.getCompoundOrEmpty("contents"));
+			} catch (IllegalArgumentException e) {
+				//skip entries with malformed uuid
+			}
 		}
 	}
 
-	@Override
-	public CompoundTag save(CompoundTag compound, HolderLookup.Provider registries) {
+	private CompoundTag saveToTag() {
 		CompoundTag ret = new CompoundTag();
 		writeStorageContents(ret);
 		return ret;
@@ -67,7 +75,7 @@ public class ItemContentsStorage extends SavedData {
 		ListTag storageContentsNbt = new ListTag();
 		for (Map.Entry<UUID, CompoundTag> entry : storageContents.entrySet()) {
 			CompoundTag uuidContentsPair = new CompoundTag();
-			uuidContentsPair.put("uuid", NbtUtils.createUUID(entry.getKey()));
+			uuidContentsPair.putString("uuid", entry.getKey().toString());
 			uuidContentsPair.put("contents", entry.getValue());
 			storageContentsNbt.add(uuidContentsPair);
 		}

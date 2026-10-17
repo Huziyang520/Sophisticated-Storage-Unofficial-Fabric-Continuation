@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorage.item;
 
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -24,11 +25,15 @@ public class StackStorageWrapper extends StorageWrapper {
 		setStorageStack(storageStack);
 	}
 
+	public static StackStorageWrapper fromStack(ItemStack stack) {
+		return fromStack(RegistryAccess.EMPTY, stack);
+	}
+
 	public static StackStorageWrapper fromStack(HolderLookup.Provider registries, ItemStack stack) {
 		StackStorageWrapper stackStorageWrapper = StorageWrapperRepository.getStorageWrapper(stack, StackStorageWrapper.class, StackStorageWrapper::new);
 		UUID uuid = stack.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID);
 		if (uuid != null) {
-			CompoundTag compoundtag = ItemContentsStorage.get().getOrCreateStorageContents(uuid).getCompound(StorageBlockEntity.STORAGE_WRAPPER_TAG);
+			CompoundTag compoundtag = ItemContentsStorage.get().getOrCreateStorageContents(uuid).getCompoundOrEmpty(StorageBlockEntity.STORAGE_WRAPPER_TAG);
 			stackStorageWrapper.load(compoundtag);
 			stackStorageWrapper.setContentsUuid(uuid); //setting here because client side the uuid isn't in contentsnbt before this data is synced from server and it would create a new one otherwise
 		}
@@ -74,7 +79,7 @@ public class StackStorageWrapper extends StorageWrapper {
 			if (contentsUuid == null) {
 				contentsUuid = getNewUuid();
 			}
-			return ItemContentsStorage.get().getOrCreateStorageContents(contentsUuid).getCompound(StorageBlockEntity.STORAGE_WRAPPER_TAG).getCompoundOrEmpty(CONTENTS_TAG);
+			return ItemContentsStorage.get().getOrCreateStorageContents(contentsUuid).getCompound(StorageBlockEntity.STORAGE_WRAPPER_TAG).map(wrapperTag -> wrapperTag.getCompoundOrEmpty(CONTENTS_TAG)).orElseGet(CompoundTag::new);
 		});
 	}
 
@@ -91,8 +96,8 @@ public class StackStorageWrapper extends StorageWrapper {
 	@Override
 	protected void loadSlotNumbers(CompoundTag tag) {
 		StorageBlockItem.getEntityWrapperTagFromStack(storageStack).ifPresentOrElse(wrapperTag -> {
-			numberOfInventorySlots = wrapperTag.getInt(StorageWrapper.NUMBER_OF_INVENTORY_SLOTS_TAG);
-			numberOfUpgradeSlots = wrapperTag.getInt(StorageWrapper.NUMBER_OF_UPGRADE_SLOTS_TAG);
+			numberOfInventorySlots = wrapperTag.getIntOr(StorageWrapper.NUMBER_OF_INVENTORY_SLOTS_TAG, 0);
+			numberOfUpgradeSlots = wrapperTag.getIntOr(StorageWrapper.NUMBER_OF_UPGRADE_SLOTS_TAG, 0);
 		}, () -> {
 			numberOfInventorySlots = storageStack.sophisticatedCore_getOrDefault(ModCoreDataComponents.NUMBER_OF_INVENTORY_SLOTS, 0);
 			numberOfUpgradeSlots = storageStack.sophisticatedCore_getOrDefault(ModCoreDataComponents.NUMBER_OF_UPGRADE_SLOTS, 0);

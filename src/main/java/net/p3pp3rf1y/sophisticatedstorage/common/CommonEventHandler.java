@@ -1,8 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorage.common;
 
 import com.google.common.collect.Queues;
-import net.fabricmc.fabric.api.block.BlockPickInteractionAware;
-import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
@@ -51,7 +50,7 @@ public class CommonEventHandler {
 	private final Queue<TickTask> pendingTickTasks = Queues.newConcurrentLinkedQueue();
 
 	public void registerHandlers() {
-		ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register(this::onPlayerChangedDimension);
+		ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register(this::onPlayerChangedDimension);
 		ServerPlayerEvents.AFTER_RESPAWN.register(this::onPlayerRespawn);
 		PlayerBlockBreakEvents.BEFORE.register(this::handleTooManyDropsBreak);
 		PlayerBlockBreakEvents.BEFORE.register(this::handleBreakStorageWithInfinityUpgrade);
@@ -128,7 +127,7 @@ public class CommonEventHandler {
 		}
 
 		if (WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class)
-				.map(storageBlockEntity -> storageBlockEntity.getStorageWrapper().getUpgradeHandler().getTypeWrappers(InfinityUpgradeItem.TYPE).stream().anyMatch(w -> !player.hasPermissions(w.getPermissionLevel())))
+				.map(storageBlockEntity -> storageBlockEntity.getStorageWrapper().getUpgradeHandler().getTypeWrappers(InfinityUpgradeItem.TYPE).stream().anyMatch(w -> !net.p3pp3rf1y.sophisticatedcore.util.PlayerHelper.hasPermissionLevel(player, w.getPermissionLevel())))
 				.orElse(false)) {
 			player.sendOverlayMessage(StorageTranslationHelper.INSTANCE.translStatusMessage("infinity_upgrade_only_admin_break").withStyle(ChatFormatting.RED));
 			return false;
@@ -172,12 +171,8 @@ public class CommonEventHandler {
 				ItemBase packingTapeItem = ModItems.PACKING_TAPE.get();
 				Component packingTapeItemName = packingTapeItem.getName(new ItemStack(packingTapeItem)).copy().withStyle(ChatFormatting.GREEN);
 
-				ItemStack clonedStack;
-				if (state.getBlock() instanceof BlockPickInteractionAware) {
-					clonedStack = ((BlockPickInteractionAware) state.getBlock()).getPickedStack(state, level, pos, player, new BlockHitResult(new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), Direction.DOWN, pos, true));
-				} else {
-					clonedStack = state.getBlock().getCloneItemStack(level, pos, state);
-				}
+				// 26.3：BlockBehaviour#getCloneItemStack 变为 protected，改用块对应的物品
+				ItemStack clonedStack = new ItemStack(state.getBlock().asItem());
 
 				player.sendSystemMessage(StorageTranslationHelper.INSTANCE.translStatusMessage("too_many_item_entity_drops",
 						clonedStack.getHoverName().copy().withStyle(ChatFormatting.GREEN),

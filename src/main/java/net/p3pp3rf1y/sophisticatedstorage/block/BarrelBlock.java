@@ -3,6 +3,8 @@ package net.p3pp3rf1y.sophisticatedstorage.block;
 import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
@@ -28,7 +30,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.WoodType;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
@@ -41,7 +43,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
-import net.p3pp3rf1y.sophisticatedstorage.client.particle.CustomTintTerrainParticleData;
 import net.p3pp3rf1y.sophisticatedstorage.common.gui.StorageContainerMenu;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
 import net.p3pp3rf1y.sophisticatedstorage.item.BarrelBlockItem;
@@ -55,7 +56,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class BarrelBlock extends WoodStorageBlockBase {
-	public static final DirectionProperty FACING = BlockStateProperties.FACING;
+	public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
 	public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
 	public static final BooleanProperty FLAT_TOP = BooleanProperty.create("flat_top");
 	private static final VoxelShape ITEM_ENTITY_COLLISION_SHAPE = box(0.05, 0.05, 0.05, 15.95, 15.95, 15.95);
@@ -89,36 +90,38 @@ public class BarrelBlock extends WoodStorageBlockBase {
 
 	@Override
 	public boolean sophisticatedCore_addLandingEffects(BlockState state1, ServerLevel level, BlockPos pos, BlockState state2, LivingEntity entity, int numberOfParticles) {
-		level.sendParticles(new CustomTintTerrainParticleData(state1, pos), entity.getX(), entity.getY(), entity.getZ(), numberOfParticles, 0.0D, 0.0D, 0.0D, 0.15D);
+		level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, state1), entity.getX(), entity.getY(), entity.getZ(), numberOfParticles, 0.0D, 0.0D, 0.0D, 0.15D);
 		return true;
 	}
 
 	@Override
 	public boolean sophisticatedCore_addRunningEffects(BlockState state, Level level, BlockPos pos, Entity entity) {
 		Vec3 vec3 = entity.getDeltaMovement();
-		level.addParticle(new CustomTintTerrainParticleData(state, pos),
+		level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, state),
 				entity.getX() + (level.getRandom().nextDouble() - 0.5D) * entity.getBbWidth(), entity.getY() + 0.1D, entity.getZ() + (level.getRandom().nextDouble() - 0.5D) * entity.getBbWidth(),
 				vec3.x * -4.0D, 1.5D, vec3.z * -4.0D);
 		return true;
 	}
 
+	// 26.3：自定义木桶粒子（更精细的命中/破坏粒子）依赖的 TerrainParticle 扩展接口在当前核心版本里缺失，
+	// BarrelBlockClientExtensions 已暂放；这里交回原版处理。
 	@Environment(EnvType.CLIENT)
 	@Override
 	public boolean sophisticatedCore_addHitEffects(BlockState state, Level level, HitResult target, ParticleEngine manager) {
-		return BarrelBlockClientExtensions.addHitEffects(this, state, level, target, manager);
+		return false;
 	}
 
 	@Environment(EnvType.CLIENT)
 	@Override
 	public boolean sophisticatedCore_addDestroyEffects(BlockState state, Level level, BlockPos pos, ParticleEngine manager) {
-		return BarrelBlockClientExtensions.addDestroyEffects(this, state, level, pos, manager);
+		return false;
 	}
 
 	@Override
 	public InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
 		return WorldHelper.getBlockEntity(level, pos, WoodStorageBlockEntity.class).map(b -> {
 			if (b.isPacked()) {
-				return InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+				return InteractionResult.PASS;
 			}
 			if (level.isClientSide() || hand == InteractionHand.OFF_HAND) {
 				return InteractionResult.SUCCESS;
@@ -127,8 +130,8 @@ public class BarrelBlock extends WoodStorageBlockBase {
 			if (tryItemInteraction(player, hand, b, stack, getFacing(state), hitResult)) {
 				return InteractionResult.SUCCESS;
 			}
-			return InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-		}).orElse(InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION);
+			return InteractionResult.PASS;
+		}).orElse(InteractionResult.PASS);
 	}
 
 	@Override
@@ -140,7 +143,9 @@ public class BarrelBlock extends WoodStorageBlockBase {
 						WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).map(StorageBlockEntity::getDisplayName).orElse(Component.empty())
 				), pos
 		);
-		PiglinAi.angerNearbyPiglins(player, true);
+		if (level instanceof ServerLevel serverLevel) {
+			PiglinAi.angerNearbyPiglins(serverLevel, player, true);
+		}
 		return InteractionResult.CONSUME;
 	}
 
@@ -181,8 +186,8 @@ public class BarrelBlock extends WoodStorageBlockBase {
 	}
 
 	@Override
-	public ItemStack getCloneItemStack(LevelReader world, BlockPos pos, BlockState state) {
-		ItemStack cloneItemStack = super.getCloneItemStack(world, pos, state);
+	protected ItemStack getCloneItemStack(LevelReader world, BlockPos pos, BlockState state, boolean includeData) {
+		ItemStack cloneItemStack = super.getCloneItemStack(world, pos, state, includeData);
 		BarrelBlockItem.setFlatTop(cloneItemStack, state.getValue(FLAT_TOP));
 		WorldHelper.getBlockEntity(world, pos, BarrelBlockEntity.class).ifPresent(barrelBlockEntity -> {
 			Map<BarrelMaterial, Identifier> materials = barrelBlockEntity.getMaterials();
@@ -245,7 +250,7 @@ public class BarrelBlock extends WoodStorageBlockBase {
 	}
 
 	@Override
-	public VoxelShape getOcclusionShape(BlockState state, BlockGetter level, BlockPos pos) {
+	protected VoxelShape getOcclusionShape(BlockState state) {
 		return Shapes.block();
 	}
 

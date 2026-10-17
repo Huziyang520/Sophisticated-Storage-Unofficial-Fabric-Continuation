@@ -39,7 +39,7 @@ public class BarrelBlockEntity extends WoodStorageBlockEntity implements IMateri
 			//noop
 		}
 
-		protected boolean isOwnContainer(Player player) {
+		public boolean isOwnContainer(Player player) {
 			if (player.containerMenu instanceof StorageContainerMenu storageContainerMenu) {
 				return storageContainerMenu.getStorageBlockEntity() == BarrelBlockEntity.this;
 			} else {
@@ -87,7 +87,7 @@ public class BarrelBlockEntity extends WoodStorageBlockEntity implements IMateri
 	public void setLevel(Level level) {
 		super.setLevel(level);
 		if (level.isClientSide()) {
-			dynamicRenderTracker = new DynamicRenderTracker(this);
+			//dynamic render tracking lives in the (currently parked) client render package
 		}
 	}
 
@@ -114,7 +114,7 @@ public class BarrelBlockEntity extends WoodStorageBlockEntity implements IMateri
 	@Override
 	public void loadSynchronizedData(CompoundTag tag, HolderLookup.Provider registries) {
 		super.loadSynchronizedData(tag, registries);
-		materials = NBTHelper.getMap(tag, MATERIALS_TAG, BarrelMaterial::fromName, (bm, t) -> Optional.of(Identifier.parse(t.getAsString()))).orElse(Map.of());
+		materials = NBTHelper.getMap(tag, MATERIALS_TAG, BarrelMaterial::fromName, (bm, t) -> t.asString().map(Identifier::parse)).orElse(Map.of());
 	}
 
 	@Override

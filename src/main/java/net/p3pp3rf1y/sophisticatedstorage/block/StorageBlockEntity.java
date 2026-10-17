@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.block;
 
 import net.p3pp3rf1y.sophisticatedcore.platform.item.SlottedStackStorage;
-import net.fabricmc.fabric.api.block.BlockPickInteractionAware;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -84,12 +83,8 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 				BlockPos pos = getBlockPos();
 				BlockState state = getBlockState();
 
-				ItemStack clonedStack;
-				if (state.getBlock() instanceof BlockPickInteractionAware) {
-					clonedStack = ((BlockPickInteractionAware) state.getBlock()).getPickedStack(state, getLevel(), pos, null, new BlockHitResult(new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5), Direction.DOWN, pos, true));
-				} else {
-					clonedStack = state.getBlock().getCloneItemStack(getLevel(), pos, state);
-				}
+				// 26.3：BlockBehaviour#getCloneItemStack 变为 protected，改用块对应的物品
+				ItemStack clonedStack = new ItemStack(state.getBlock().asItem());
 				return addWrappedStorageStackData(clonedStack, state);
 			}
 
@@ -203,7 +198,7 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 
 	protected void saveSynchronizedData(CompoundTag tag) {
 		if (displayName != null) {
-			tag.putString("displayName", Component.Serializer.toJson(displayName, level.registryAccess()));
+			tag.putString("displayName", net.minecraft.network.chat.ComponentSerialization.CODEC.encodeStart(com.mojang.serialization.JsonOps.INSTANCE, displayName).getOrThrow().toString());
 		}
 		if (updateBlockRender) {
 			tag.putBoolean("updateBlockRender", true);
@@ -224,7 +219,7 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 
 	public void startOpen(Player player) {
 		if (!remove && !player.isSpectator() && level != null) {
-			getOpenersCounter().incrementOpeners(player, level, getBlockPos(), getBlockState());
+			getOpenersCounter().incrementOpeners(player, level, getBlockPos(), getBlockState(), 5.0D);
 		}
 
 	}
@@ -256,6 +251,7 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 	public void loadAdditional(net.minecraft.world.level.storage.ValueInput input) {
 		CompoundTag tag = input.read("sophisticatedstorage_data", CompoundTag.CODEC).orElseGet(CompoundTag::new);
 		super.loadAdditional(input);
+		HolderLookup.Provider registries = level == null ? net.minecraft.core.RegistryAccess.EMPTY : level.registryAccess();
 		loadStorageWrapper(tag, registries);
 		loadSynchronizedData(tag, registries);
 

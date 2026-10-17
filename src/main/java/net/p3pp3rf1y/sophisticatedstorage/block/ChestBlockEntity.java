@@ -5,10 +5,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Containers;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -59,7 +59,7 @@ public class ChestBlockEntity extends WoodStorageBlockEntity {
 			chestLidController.shouldBeOpen(openCount > 0);
 		}
 
-		protected boolean isOwnContainer(Player player) {
+		public boolean isOwnContainer(Player player) {
 			if (player.containerMenu instanceof StorageContainerMenu storageContainerMenu) {
 				return storageContainerMenu.getStorageBlockEntity() == ChestBlockEntity.this;
 			} else {
@@ -68,18 +68,18 @@ public class ChestBlockEntity extends WoodStorageBlockEntity {
 		}
 
 		@Override
-		public void incrementOpeners(Player player, Level level, BlockPos pos, BlockState state) {
-			super.incrementOpeners(player, level, pos, state);
+		public void incrementOpeners(LivingEntity opener, Level level, BlockPos pos, BlockState state, double interactionRange) {
+			super.incrementOpeners(opener, level, pos, state, interactionRange);
 			if (isMainChest()) {
-				runOnTheOtherPart(level, pos, state, (blockEntity, neighborPos) -> blockEntity.openersCounter.incrementOpeners(player, level, neighborPos, level.getBlockState(neighborPos)));
+				runOnTheOtherPart(level, pos, state, (blockEntity, neighborPos) -> blockEntity.openersCounter.incrementOpeners(opener, level, neighborPos, level.getBlockState(neighborPos), interactionRange));
 			}
 		}
 
 		@Override
-		public void decrementOpeners(Player player, Level level, BlockPos pos, BlockState state) {
-			super.decrementOpeners(player, level, pos, state);
+		public void decrementOpeners(LivingEntity opener, Level level, BlockPos pos, BlockState state) {
+			super.decrementOpeners(opener, level, pos, state);
 			if (isMainChest()) {
-				runOnTheOtherPart(level, pos, state, (blockEntity, neighborPos) -> blockEntity.openersCounter.decrementOpeners(player, level, neighborPos, level.getBlockState(neighborPos)));
+				runOnTheOtherPart(level, pos, state, (blockEntity, neighborPos) -> blockEntity.openersCounter.decrementOpeners(opener, level, neighborPos, level.getBlockState(neighborPos)));
 			}
 		}
 	};
@@ -398,8 +398,9 @@ public class ChestBlockEntity extends WoodStorageBlockEntity {
 		}
 
 		if (level instanceof ServerLevel serverLevel) {
-			serverLevel.getServer().tell(new TickTask(serverLevel.getServer().getTickCount(), () ->
-					dropItems.forEach(itemStack -> Containers.dropItemStack(serverLevel, dropPosition.getX(), dropPosition.getY(), dropPosition.getZ(), itemStack)))
+			// 26.3：MinecraftServer#tell(TickTask) 已移除，直接在服务器线程排队执行
+			serverLevel.getServer().execute(() ->
+					dropItems.forEach(itemStack -> Containers.dropItemStack(serverLevel, dropPosition.getX(), dropPosition.getY(), dropPosition.getZ(), itemStack))
 			);
 		}
 
@@ -417,8 +418,8 @@ public class ChestBlockEntity extends WoodStorageBlockEntity {
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.loadAdditional(tag, registries);
+	public void loadAdditional(net.minecraft.world.level.storage.ValueInput input) {
+		super.loadAdditional(input);
 		if (!isBeingUpgraded() && getBlockState().getValue(ChestBlock.TYPE) == ChestType.SINGLE) {
 			if (getBlockState().getBlock() instanceof ChestBlock chestBlock
 					&& getStorageWrapper().getInventoryHandler().getSlotCount() > chestBlock.getNumberOfInventorySlots()) {

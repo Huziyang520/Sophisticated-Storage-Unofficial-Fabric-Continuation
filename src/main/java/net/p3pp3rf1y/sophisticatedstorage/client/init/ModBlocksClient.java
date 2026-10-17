@@ -11,6 +11,6 @@ public class ModBlocksClient {
 		MenuScreens.register(SETTINGS_CONTAINER_TYPE.get(), StorageSettingsScreen::constructScreen);
 		MenuScreens.register(LIMITED_BARREL_CONTAINER_TYPE.get(), LimitedBarrelScreen::new);
 		MenuScreens.register(LIMITED_BARREL_SETTINGS_CONTAINER_TYPE.get(), LimitedBarrelSettingsScreen::new);
-		MenuScreens.register(DECORATION_TABLE_CONTAINER_TYPE.get(), DecorationTableScreen::new);
+		// 26.3：DecorationTableScreen 依赖已删除的 GUI 渲染 API，暂放于 src/parked/java
 	}
 }

@@ -85,9 +85,9 @@ public class DecorationHelper {
 
 	private static int[] calculateRGBPartsNeeded(int color, int totalParts) {
 		float[] ratios = new float[3];
-		ratios[0] = ARGB.ARGB32.red(color) / 255f;
-		ratios[1] = ARGB.ARGB32.green(color) / 255f;
-		ratios[2] = ARGB.ARGB32.blue(color) / 255f;
+		ratios[0] = ARGB.red(color) / 255f;
+		ratios[1] = ARGB.green(color) / 255f;
+		ratios[2] = ARGB.blue(color) / 255f;
 
 		float totalRaios = ratios[0] + ratios[1] + ratios[2];
 		ratios[0] /= totalRaios;

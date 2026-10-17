@@ -60,7 +60,7 @@ public class StorageTierUpgradeItem extends ItemBase {
 	@Override
 	public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltipComponents, TooltipFlag isAdvanced) {
 		if (hasTooltip) {
-			tooltipComponents.addAll(StorageTranslationHelper.INSTANCE.getTranslatedLines(stack.getItem().getDescriptionId() + TranslationHelper.TOOLTIP_SUFFIX, null, ChatFormatting.DARK_GRAY));
+			StorageTranslationHelper.INSTANCE.getTranslatedLines(stack.getItem().getDescriptionId() + TranslationHelper.TOOLTIP_SUFFIX, null, ChatFormatting.DARK_GRAY).forEach(tooltipComponents);
 		}
 		super.appendHoverText(stack, context, display, tooltipComponents, isAdvanced);
 	}
@@ -130,13 +130,12 @@ public class StorageTierUpgradeItem extends ItemBase {
 		}
 
 		private StorageBlockEntity upgradeStorageBlock(BlockPos pos, Level level, StorageBlockEntity blockEntity, BlockState newBlockState, int newInventorySize, int newUpgradeSize) {
-			CompoundTag beTag = new CompoundTag();
-			blockEntity.saveAdditional(beTag, level.registryAccess());
+			CompoundTag beTag = net.p3pp3rf1y.sophisticatedstorage.util.NbtTransferHelper.saveAdditional(blockEntity, level.registryAccess());
 
 			StorageBlockEntity newBlockEntity = newBlock().newBlockEntity(pos, newBlockState);
 			//noinspection ConstantConditions - all storage blocks create a block entity so no chancde of null here
 			newBlockEntity.setBeingUpgraded(true);
-			newBlockEntity.loadAdditional(beTag, level.registryAccess());
+			net.p3pp3rf1y.sophisticatedstorage.util.NbtTransferHelper.loadAdditional(newBlockEntity, beTag, level.registryAccess());
 
 			blockEntity.setBeingUpgraded(true);
 			level.removeBlockEntity(pos);
@@ -366,22 +365,22 @@ public class StorageTierUpgradeItem extends ItemBase {
 	private static Map<Block, TierUpgradeDefinition<?>> getVanillaShulkerBoxTierUpgradeDefinitions(net.p3pp3rf1y.sophisticatedstorage.block.ShulkerBoxBlock toShulkerBox) {
 		return new ImmutableMap.Builder<Block, TierUpgradeDefinition<?>>()
 				.put(Blocks.SHULKER_BOX, new VanillaTierUpgradeDefinition<>(ShulkerBoxBlockEntity.class, shulkerBoxBlockEntity -> shulkerBoxBlockEntity.openCount > 0, toShulkerBox, null, ShulkerBoxBlock.FACING))
-				.put(Blocks.WHITE_SHULKER_BOX, new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.WHITE, toShulkerBox))
-				.put(Blocks.ORANGE_SHULKER_BOX, new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.ORANGE, toShulkerBox))
-				.put(Blocks.MAGENTA_SHULKER_BOX, new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.MAGENTA, toShulkerBox))
-				.put(Blocks.LIGHT_BLUE_SHULKER_BOX, new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.LIGHT_BLUE, toShulkerBox))
-				.put(Blocks.YELLOW_SHULKER_BOX, new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.YELLOW, toShulkerBox))
-				.put(Blocks.LIME_SHULKER_BOX, new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.LIME, toShulkerBox))
-				.put(Blocks.PINK_SHULKER_BOX, new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.PINK, toShulkerBox))
-				.put(Blocks.GRAY_SHULKER_BOX, new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.GRAY, toShulkerBox))
-				.put(Blocks.LIGHT_GRAY_SHULKER_BOX, new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.LIGHT_GRAY, toShulkerBox))
-				.put(Blocks.CYAN_SHULKER_BOX, new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.CYAN, toShulkerBox))
-				.put(Blocks.PURPLE_SHULKER_BOX, new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.PURPLE, toShulkerBox))
-				.put(Blocks.BLUE_SHULKER_BOX, new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.BLUE, toShulkerBox))
-				.put(Blocks.BROWN_SHULKER_BOX, new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.BROWN, toShulkerBox))
-				.put(Blocks.GREEN_SHULKER_BOX, new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.GREEN, toShulkerBox))
-				.put(Blocks.RED_SHULKER_BOX, new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.RED, toShulkerBox))
-				.put(Blocks.BLACK_SHULKER_BOX, new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.BLACK, toShulkerBox))
+				.put(Blocks.DYED_SHULKER_BOX.white(), new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.WHITE, toShulkerBox))
+				.put(Blocks.DYED_SHULKER_BOX.orange(), new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.ORANGE, toShulkerBox))
+				.put(Blocks.DYED_SHULKER_BOX.magenta(), new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.MAGENTA, toShulkerBox))
+				.put(Blocks.DYED_SHULKER_BOX.lightBlue(), new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.LIGHT_BLUE, toShulkerBox))
+				.put(Blocks.DYED_SHULKER_BOX.yellow(), new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.YELLOW, toShulkerBox))
+				.put(Blocks.DYED_SHULKER_BOX.lime(), new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.LIME, toShulkerBox))
+				.put(Blocks.DYED_SHULKER_BOX.pink(), new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.PINK, toShulkerBox))
+				.put(Blocks.DYED_SHULKER_BOX.gray(), new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.GRAY, toShulkerBox))
+				.put(Blocks.DYED_SHULKER_BOX.lightGray(), new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.LIGHT_GRAY, toShulkerBox))
+				.put(Blocks.DYED_SHULKER_BOX.cyan(), new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.CYAN, toShulkerBox))
+				.put(Blocks.DYED_SHULKER_BOX.purple(), new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.PURPLE, toShulkerBox))
+				.put(Blocks.DYED_SHULKER_BOX.blue(), new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.BLUE, toShulkerBox))
+				.put(Blocks.DYED_SHULKER_BOX.brown(), new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.BROWN, toShulkerBox))
+				.put(Blocks.DYED_SHULKER_BOX.green(), new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.GREEN, toShulkerBox))
+				.put(Blocks.DYED_SHULKER_BOX.red(), new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.RED, toShulkerBox))
+				.put(Blocks.DYED_SHULKER_BOX.black(), new VanillaTintedShulkerBoxTierUpgradeDefinition(DyeColor.BLACK, toShulkerBox))
 				.build();
 	}
 

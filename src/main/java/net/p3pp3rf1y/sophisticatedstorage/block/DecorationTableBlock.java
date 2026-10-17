@@ -7,11 +7,12 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.pathfinder.PathComputationType;
@@ -26,7 +27,7 @@ import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
 import org.jetbrains.annotations.Nullable;
 
 public class DecorationTableBlock extends BlockBase implements EntityBlock {
-	public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+	public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
 	protected static final VoxelShape SHAPE = Shapes.or(
 			Block.box(0, 12, 0, 16, 16, 16),
 			Block.box(1, 8, 1, 15, 12, 15),
@@ -70,9 +71,9 @@ public class DecorationTableBlock extends BlockBase implements EntityBlock {
 	}
 
 	@Override
-	protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
 		level.getBlockEntity(pos, ModBlocks.DECORATION_TABLE_BLOCK_ENTITY_TYPE.get()).ifPresent(DecorationTableBlockEntity::dropContents);
-		super.onRemove(state, level, pos, newState, movedByPiston);
+		super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
 	}
 
 	@Nullable

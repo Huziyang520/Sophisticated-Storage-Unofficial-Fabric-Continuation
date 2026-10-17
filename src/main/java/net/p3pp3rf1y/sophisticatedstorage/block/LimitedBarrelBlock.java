@@ -8,6 +8,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -21,7 +23,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -46,7 +48,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public class LimitedBarrelBlock extends BarrelBlock {
-	public static final DirectionProperty HORIZONTAL_FACING = BlockStateProperties.HORIZONTAL_FACING;
+	public static final EnumProperty<Direction> HORIZONTAL_FACING = BlockStateProperties.HORIZONTAL_FACING;
 	public static final EnumProperty<VerticalFacing> VERTICAL_FACING = EnumProperty.create("vertical_facing", VerticalFacing.class);
 	private final Supplier<Integer> getBaseStackSizeMultiplier;
 
@@ -105,12 +107,7 @@ public class LimitedBarrelBlock extends BarrelBlock {
 		return getBaseStackSizeMultiplier.get();
 	}
 
-	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag flat) {
-		int numberOfInventorySlots = getNumberOfInventorySlots();
-		String translationKey = numberOfInventorySlots == 1 ? "limited_barrel_singular" : "limited_barrel_plural";
-		tooltip.accept(Component.translatable(StorageTranslationHelper.INSTANCE.translBlockTooltipKey(translationKey), String.valueOf(numberOfInventorySlots), String.valueOf(getBaseStackSizeMultiplier())).withStyle(ChatFormatting.DARK_GRAY));
-	}
+	// 26.3：Block 不再有 appendHoverText（提示文本改由物品提供），有限木桶的容量提示暂时移除
 
 	@Nullable
 	@Override
@@ -137,7 +134,7 @@ public class LimitedBarrelBlock extends BarrelBlock {
 				return false;
 			} else if (limitedBarrelBlockEntity.depositItem(player, hand, stackInHand, slot)) {
 				return true;
-			} else if (stackInHand.getItem() instanceof DyeItem dyeItem && limitedBarrelBlockEntity.applyDye(slot, stackInHand, dyeItem.getDyeColor(), player.isShiftKeyDown())) {
+			} else if (stackInHand.getItem() instanceof DyeItem && stackInHand.get(DataComponents.DYE) instanceof DyeColor dyeColor && limitedBarrelBlockEntity.applyDye(slot, stackInHand, dyeColor, player.isShiftKeyDown())) {
 				return true;
 			}
 		}
@@ -157,8 +154,11 @@ public class LimitedBarrelBlock extends BarrelBlock {
 		if (hitVec.getDirection() != getFacing(state) || !(itemStack.getItem() instanceof DyeItem)) {
 			return false;
 		}
+		if (!(itemStack.get(DataComponents.DYE) instanceof DyeColor dyeColor)) {
+			return false;
+		}
 		return WorldHelper.getBlockEntity(level, pos, LimitedBarrelBlockEntity.class).map(barrel ->
-				barrel.applyDye(0, itemStack, ((DyeItem) itemStack.getItem()).getDyeColor(), true)
+				barrel.applyDye(0, itemStack, dyeColor, true)
 		).orElse(false);
 	}
 

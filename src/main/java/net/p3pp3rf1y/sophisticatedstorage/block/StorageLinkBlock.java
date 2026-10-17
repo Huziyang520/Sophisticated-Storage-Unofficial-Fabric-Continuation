@@ -41,10 +41,7 @@ public class StorageLinkBlock extends BlockBase implements EntityBlock {
 		registerDefaultState(stateDefinition.any().setValue(FACING, Direction.UP));
 	}
 
-	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltipComponents, TooltipFlag flag) {
-		tooltipComponents.addAll(StorageTranslationHelper.INSTANCE.getTranslatedLines(stack.getItem().getDescriptionId() + TranslationHelper.TOOLTIP_SUFFIX, null, ChatFormatting.DARK_GRAY));
-	}
+	// 26.3：Block 不再有 appendHoverText（提示文本改由物品提供），这段提示暂时移除
 
 	@Nullable
 	@Override
@@ -71,11 +68,8 @@ public class StorageLinkBlock extends BlockBase implements EntityBlock {
 	}
 
 	@Override
-	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-		if (!state.is(newState.getBlock())) {
-			WorldHelper.getBlockEntity(level, pos, ILinkable.class).ifPresent(ILinkable::unlinkFromController);
-		}
-
-		super.onRemove(state, level, pos, newState, isMoving);
+	protected void affectNeighborsAfterRemoval(BlockState state, net.minecraft.server.level.ServerLevel level, BlockPos pos, boolean isMoving) {
+		WorldHelper.getBlockEntity(level, pos, ILinkable.class).ifPresent(ILinkable::unlinkFromController);
+		super.affectNeighborsAfterRemoval(state, level, pos, isMoving);
 	}
 }

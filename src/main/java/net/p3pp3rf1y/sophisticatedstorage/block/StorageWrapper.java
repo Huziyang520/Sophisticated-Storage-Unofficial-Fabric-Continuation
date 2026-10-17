@@ -4,7 +4,6 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -170,7 +169,7 @@ public abstract class StorageWrapper implements IStorageWrapper {
 			tag.put(RENDER_INFO_TAG, renderInfoNbt);
 		}
 		if (contentsUuid != null) {
-			tag.put(UUID_TAG, NbtUtils.createUUID(contentsUuid));
+			tag.putString(UUID_TAG, contentsUuid.toString());
 		}
 		if (openTabId >= 0) {
 			tag.putInt(OPEN_TAB_ID_TAG, openTabId);
@@ -210,7 +209,7 @@ public abstract class StorageWrapper implements IStorageWrapper {
 		settingsHandler.reloadFrom(settingsNbt);
 		renderInfoNbt = tag.getCompoundOrEmpty(RENDER_INFO_TAG);
 		renderInfo.deserializeFrom(renderInfoNbt);
-		contentsUuid = NBTHelper.getTagValue(tag, UUID_TAG, CompoundTag::get).map(NbtUtils::loadUUID).orElse(null);
+		contentsUuid = NBTHelper.getString(tag, UUID_TAG).flatMap(StorageWrapper::parseUuid).orElse(null);
 		openTabId = NBTHelper.getInt(tag, OPEN_TAB_ID_TAG).orElse(-1);
 		sortBy = NBTHelper.getString(tag, "sortBy").map(SortBy::fromName).orElse(SortBy.NAME);
 		columnsTaken = NBTHelper.getInt(tag, "columnsTaken").orElse(0);
@@ -437,5 +436,13 @@ public abstract class StorageWrapper implements IStorageWrapper {
 
 	public <T extends IUpgradeWrapper> void registerUpgradeDefaultsHandler(Class<T> upgradeClass, Consumer<T> defaultsHandler) {
 		upgradeDefaultsHandlers.put(upgradeClass, defaultsHandler);
+	}
+
+	private static java.util.Optional<UUID> parseUuid(String value) {
+		try {
+			return java.util.Optional.of(UUID.fromString(value));
+		} catch (IllegalArgumentException e) {
+			return java.util.Optional.empty();
+		}
 	}
 }

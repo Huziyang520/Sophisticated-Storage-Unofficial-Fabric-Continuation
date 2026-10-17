@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.block;
 
-import io.github.fabricators_of_create.porting_lib.core.util.Lazy;
+import net.p3pp3rf1y.sophisticatedstorage.util.Lazy;
 import net.p3pp3rf1y.sophisticatedcore.platform.item.ItemStackHandler;
 import net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -60,7 +60,7 @@ public class DecorationTableBlockEntity extends BlockEntity {
 
 	private final ItemStackHandler decorativeBlocks = new ItemStackHandler(7) {
 		@Override
-		protected void onContentsChanged(int slot) {
+		public void onContentsChanged(int slot) {
 			super.onContentsChanged(slot);
 			updateResultAndSetChanged();
 		}
@@ -73,7 +73,7 @@ public class DecorationTableBlockEntity extends BlockEntity {
 
 	private final ItemStackHandler dyes = new ItemStackHandler(3) {
 		@Override
-		protected void onContentsChanged(int slot) {
+		public void onContentsChanged(int slot) {
 			super.onContentsChanged(slot);
 			updateResultAndSetChanged();
 		}
@@ -104,7 +104,7 @@ public class DecorationTableBlockEntity extends BlockEntity {
 
 	private final ItemStackHandler storageBlock = new ItemStackHandler(1) {
 		@Override
-		protected void onContentsChanged(int slot) {
+		public void onContentsChanged(int slot) {
 			super.onContentsChanged(slot);
 			updateResultAndSetChanged();
 		}
@@ -314,6 +314,10 @@ public class DecorationTableBlockEntity extends BlockEntity {
 		return ClientboundBlockEntityDataPacket.create(this);
 	}
 
+	private HolderLookup.Provider registries() {
+		return getLevel() == null ? net.minecraft.core.RegistryAccess.EMPTY : getLevel().registryAccess();
+	}
+
 	@Override
 	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
 		CompoundTag tag = super.getUpdateTag(registries);
@@ -325,10 +329,10 @@ public class DecorationTableBlockEntity extends BlockEntity {
 	protected void loadAdditional(net.minecraft.world.level.storage.ValueInput input) {
 		CompoundTag tag = input.read("sophisticatedstorage_data", CompoundTag.CODEC).orElseGet(CompoundTag::new);
 		super.loadAdditional(input);
-		decorativeBlocks.deserializeNBT(registries, tag.getCompoundOrEmpty("decorativeBlocks"));
-		dyes.deserializeNBT(registries, tag.getCompoundOrEmpty("dyes"));
-		storageBlock.deserializeNBT(registries, tag.getCompoundOrEmpty("storageBlock"));
-		result = ItemStack.parse(registries, tag.getCompoundOrEmpty("result")).orElse(ItemStack.EMPTY);
+		decorativeBlocks.deserializeNBT(registries(), tag.getCompoundOrEmpty("decorativeBlocks"));
+		dyes.deserializeNBT(registries(), tag.getCompoundOrEmpty("dyes"));
+		storageBlock.deserializeNBT(registries(), tag.getCompoundOrEmpty("storageBlock"));
+		result = ItemStack.CODEC.parse(net.minecraft.nbt.NbtOps.INSTANCE, tag.getCompoundOrEmpty("result")).result().orElse(ItemStack.EMPTY);
 		slotMaterialInheritance.clear();
 		ListTag inheritance = tag.getListOrEmpty("slotMaterialInheritance");
 		for (int i = 0; i < inheritance.size(); i++) {
@@ -354,7 +358,7 @@ public class DecorationTableBlockEntity extends BlockEntity {
 	protected void saveAdditional(net.minecraft.world.level.storage.ValueOutput output) {
 		CompoundTag tag = new CompoundTag();
 		super.saveAdditional(output);
-		saveData(tag, registries);
+		saveData(tag, registries());
 			output.store("sophisticatedstorage_data", CompoundTag.CODEC, tag);
 	}
 
@@ -363,7 +367,7 @@ public class DecorationTableBlockEntity extends BlockEntity {
 		tag.put("dyes", dyes.serializeNBT(registries));
 		tag.put("storageBlock", storageBlock.serializeNBT(registries));
 		if (!result.isEmpty()) {
-			tag.put("result", result.save(registries));
+			ItemStack.CODEC.encodeStart(net.minecraft.nbt.NbtOps.INSTANCE, result).result().ifPresent(saved -> tag.put("result", saved));
 		}
 		ListTag inheritance = new ListTag();
 		slotMaterialInheritance.forEach((slot, value) -> {
@@ -616,7 +620,7 @@ public class DecorationTableBlockEntity extends BlockEntity {
 				return List.of(new ItemStack(ModBlocks.LIMITED_BARREL_3_ITEM.get()), new ItemStack(ModBlocks.CHEST_ITEM.get()), new ItemStack(ModBlocks.SHULKER_BOX_ITEM.get()));
 			}
 		});
-		ITEM_DECORATORS.put(stack -> stack.is(ItemTags.DYEABLE), new IItemDecorator() {
+		ITEM_DECORATORS.put(stack -> stack.is(net.fabricmc.fabric.api.tag.convention.v2.ConventionalItemTags.DYEABLE), new IItemDecorator() {
 			@Override
 			public boolean supportsMaterials(ItemStack input) {
 				return false;
@@ -645,7 +649,7 @@ public class DecorationTableBlockEntity extends BlockEntity {
 				}
 
 				ItemStack result = input.copyWithCount(1);
-				result.set(DataComponents.DYED_COLOR, new DyedItemColor(ARGB.ARGB32.color(0, ARGB.ARGB32.red(mainColorToSet), ARGB.ARGB32.green(mainColorToSet), ARGB.ARGB32.blue(mainColorToSet)), true));
+				result.set(DataComponents.DYED_COLOR, new DyedItemColor(ARGB.color(0, ARGB.red(mainColorToSet), ARGB.green(mainColorToSet), ARGB.blue(mainColorToSet))));
 
 				return new TintDecorationResult(result, DecorationHelper.getDyePartsNeeded(mainColorToSet, -1, currentColor, -1, 24, 0));
 			}

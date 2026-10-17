@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.block;
 
 import net.p3pp3rf1y.sophisticatedcore.platform.item.SlottedStackStorage;
-import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -49,7 +48,7 @@ public abstract class WoodStorageBlockEntity extends StorageBlockEntity {
 		super.loadSynchronizedData(tag, registries);
 		woodType = NBTHelper.getString(tag, "woodType").flatMap(woodTypeName -> WoodType.values().filter(wt -> wt.name().equals(woodTypeName)).findFirst())
 				.orElse(getStorageWrapper().hasMainColor() && getStorageWrapper().hasAccentColor() ? null : WoodType.ACACIA);
-		packed = tag.getBoolean(PACKED_TAG);
+		packed = tag.getBooleanOr(PACKED_TAG, false);
 	}
 
 	public Optional<WoodType> getWoodType() {
@@ -70,7 +69,7 @@ public abstract class WoodStorageBlockEntity extends StorageBlockEntity {
 	}
 
 	private Component makeWoodStorageDescriptionId(@Nullable WoodType wt) {
-		String id = Util.makeDescriptionId("block", Objects.requireNonNull(BuiltInRegistries.BLOCK.getKey(getBlockState().getBlock())));
+		String id = getBlockState().getBlock().getDescriptionId();
 		return WoodStorageBlockItem.getDisplayName(id, wt);
 	}
 

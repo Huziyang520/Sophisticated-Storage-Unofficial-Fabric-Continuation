@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.client.gui;
 
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.player.LocalPlayer;
@@ -37,16 +37,8 @@ public class PaintbrushOverlay {
 		return ITEM_REQUIREMENTS_CACHE;
 	}
 
-	public static final HudRenderCallback HUD_PAINTBRUSH_INFO = (guiGraphics, deltaTracker) -> {
+	public static final HudElement HUD_PAINTBRUSH_INFO = (guiGraphics, deltaTracker) -> {
 		Minecraft mc = Minecraft.getInstance();
-		if (mc.screen != null) {
-			if (!mc.screen.isPauseScreen()) {
-				lastPosCached = null;
-				lastPaintbrushCached = null;
-			}
-			return;
-		}
-
 		LocalPlayer player = mc.player;
 		Level level = mc.level;
 		if (player == null || level == null || !(mc.hitResult instanceof BlockHitResult blockHitResult)) {
@@ -69,12 +61,12 @@ public class PaintbrushOverlay {
 					int i = font.width(missingItems);
 					int x = (guiGraphics.guiWidth() - i) / 2;
 					int y = guiGraphics.guiHeight() - 75 - 10;
-					guiGraphics.drawStringWithBackdrop(font, missingItems, x + 1, y, DyeColor.WHITE.getTextColor(), 0xFFFFFFFF);
+					guiGraphics.textWithBackdrop(font, missingItems, x + 1, y, DyeColor.WHITE.getTextColor(), 0xFFFFFFFF);
 
 					x = (guiGraphics.guiWidth() - itemRequirements.itemsMissing().size() * 18) / 2;
 					for (ItemStack missingItem : itemRequirements.itemsMissing()) {
-						guiGraphics.renderItem(missingItem, x, y + 10);
-						guiGraphics.renderItemDecorations(font, missingItem, x, y + 10);
+						guiGraphics.item(missingItem, x, y + 10);
+						guiGraphics.itemDecorations(font, missingItem, x, y + 10);
 						x += 18;
 					}
 				});

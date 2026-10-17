@@ -1,12 +1,12 @@
 package net.p3pp3rf1y.sophisticatedstorage;
 
-import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeConfigRegistry;
 import net.minecraft.resources.Identifier;
 import net.fabricmc.api.ModInitializer;
 import net.p3pp3rf1y.sophisticatedcore.compat.CompatRegistry;
+import net.p3pp3rf1y.sophisticatedcore.platform.config.ConfigRegistry;
+import net.p3pp3rf1y.sophisticatedcore.platform.config.ConfigSide;
 import net.p3pp3rf1y.sophisticatedstorage.common.CommonEventHandler;
 import net.p3pp3rf1y.sophisticatedstorage.init.*;
-import net.neoforged.fml.config.ModConfig;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +22,9 @@ public class SophisticatedStorage implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		NeoForgeConfigRegistry.INSTANCE.register(MOD_ID, ModConfig.Type.SERVER, Config.SERVER_SPEC);
-		NeoForgeConfigRegistry.INSTANCE.register(MOD_ID, ModConfig.Type.CLIENT, Config.CLIENT_SPEC);
-		NeoForgeConfigRegistry.INSTANCE.register(MOD_ID, ModConfig.Type.COMMON, Config.COMMON_SPEC);
+		ConfigRegistry.register(MOD_ID, ConfigSide.SERVER, Config.SERVER_SPEC);
+		ConfigRegistry.register(MOD_ID, ConfigSide.CLIENT, Config.CLIENT_SPEC);
+		ConfigRegistry.register(MOD_ID, ConfigSide.COMMON, Config.COMMON_SPEC);
 		Config.SERVER.initListeners();
 		commonEventHandler.registerHandlers();
 		ModCompat.register();

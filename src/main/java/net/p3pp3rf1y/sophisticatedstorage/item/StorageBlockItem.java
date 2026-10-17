@@ -23,23 +23,29 @@ public class StorageBlockItem extends BlockItemBase implements ITintableBlockIte
 	}
 
 	public static Optional<CompoundTag> getEntityWrapperTagFromStack(SophisticatedDataComponentHolder componentHolder) {
-		CustomData customData = componentHolder.sophisticatedCore_get(() -> DataComponents.BLOCK_ENTITY_DATA);
-		if (customData == null) {
+		// 26.3：核心的 sophisticatedCore_get 泛型推断在此处过于严格，直接走原版 DataComponentHolder
+		net.minecraft.world.item.component.TypedEntityData<net.minecraft.world.level.block.entity.BlockEntityType<?>> entityData =
+				((net.minecraft.core.component.DataComponentHolder) componentHolder).get(DataComponents.BLOCK_ENTITY_DATA);
+		if (entityData == null) {
 			return Optional.empty();
 		}
-		return Optional.of(customData.copyTag().getCompoundOrEmpty(STORAGE_WRAPPER_TAG));
+		return Optional.of(entityData.copyTagWithoutId().getCompoundOrEmpty(STORAGE_WRAPPER_TAG));
 	}
 
 	public static Optional<Integer> getMainColorFromComponentHolder(SophisticatedDataComponentHolder componentHolder) {
-		return getEntityWrapperTagFromStack(componentHolder)
-				.flatMap(tag -> tag.contains(StorageWrapper.MAIN_COLOR_TAG) ? Optional.of(tag.getInt(StorageWrapper.MAIN_COLOR_TAG)) : Optional.empty())
-				.or(() -> Optional.ofNullable(componentHolder.sophisticatedCore_get(ModCoreDataComponents.MAIN_COLOR)));
+		Optional<CompoundTag> wrapperTag = getEntityWrapperTagFromStack(componentHolder);
+		if (wrapperTag.isPresent() && wrapperTag.get().contains(StorageWrapper.MAIN_COLOR_TAG)) {
+			return Optional.of(wrapperTag.get().getIntOr(StorageWrapper.MAIN_COLOR_TAG, 0));
+		}
+		return Optional.ofNullable(((net.minecraft.core.component.DataComponentHolder) componentHolder).<Integer>get(ModCoreDataComponents.MAIN_COLOR.get()));
 	}
 
 	public static Optional<Integer> getAccentColorFromComponentHolder(SophisticatedDataComponentHolder componentHolder) {
-		return getEntityWrapperTagFromStack(componentHolder)
-				.flatMap(tag -> tag.contains(StorageWrapper.ACCENT_COLOR_TAG) ? Optional.of(tag.getInt(StorageWrapper.ACCENT_COLOR_TAG)) : Optional.empty())
-				.or(() -> Optional.ofNullable(componentHolder.sophisticatedCore_get(ModCoreDataComponents.ACCENT_COLOR)));
+		Optional<CompoundTag> wrapperTag = getEntityWrapperTagFromStack(componentHolder);
+		if (wrapperTag.isPresent() && wrapperTag.get().contains(StorageWrapper.ACCENT_COLOR_TAG)) {
+			return Optional.of(wrapperTag.get().getIntOr(StorageWrapper.ACCENT_COLOR_TAG, 0));
+		}
+		return Optional.ofNullable(((net.minecraft.core.component.DataComponentHolder) componentHolder).<Integer>get(ModCoreDataComponents.ACCENT_COLOR.get()));
 	}
 
 	public static void setNumberOfInventorySlots(ItemStack storageStack, int numberOfInventorySlots) {

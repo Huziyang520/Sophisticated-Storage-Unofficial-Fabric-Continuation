@@ -24,7 +24,12 @@ public class ClientStorageContentsTooltip extends ClientStorageContentsTooltipBa
 	}
 
 	@Override
-	public void renderImage(Font font, int leftX, int topY, GuiGraphicsExtractor guiGraphics) {
+	public int getHeight(Font font) {
+		return getHeight();
+	}
+
+	@Override
+	public void extractImage(Font font, int leftX, int topY, int width, int height, GuiGraphicsExtractor guiGraphics) {
 		//noinspection DataFlowIssue - level definitely exists here
 		renderTooltip(StackStorageWrapper.fromStack(Minecraft.getInstance().level.registryAccess(), storageItem), font, leftX, topY, guiGraphics);
 	}

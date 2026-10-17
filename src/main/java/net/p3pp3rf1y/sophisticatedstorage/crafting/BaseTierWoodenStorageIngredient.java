@@ -4,9 +4,12 @@ import com.google.common.collect.Lists;
 import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredient;
 import net.fabricmc.fabric.api.recipe.v1.ingredient.CustomIngredientSerializer;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.util.BlockItemBase;
 import net.p3pp3rf1y.sophisticatedcore.util.StreamCodecHelper;
@@ -15,6 +18,7 @@ import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 public class BaseTierWoodenStorageIngredient implements CustomIngredient {
 	public static final BaseTierWoodenStorageIngredient INSTANCE = new BaseTierWoodenStorageIngredient();
@@ -29,6 +33,10 @@ public class BaseTierWoodenStorageIngredient implements CustomIngredient {
 	}
 
 	@Override
+	public Stream<Holder<Item>> items() {
+		return getMatchingStacks().stream().map(stack -> BuiltInRegistries.ITEM.wrapAsHolder(stack.getItem()));
+	}
+
 	public List<ItemStack> getMatchingStacks() {
 		List<ItemStack> itemStacks = Lists.newArrayList();
 		if (ModBlocks.CHEST_ITEM.get() instanceof BlockItemBase itemBase) {
@@ -61,12 +69,12 @@ public class BaseTierWoodenStorageIngredient implements CustomIngredient {
 		}
 
 		@Override
-		public MapCodec<BaseTierWoodenStorageIngredient> getCodec(boolean allowEmpty) {
+		public MapCodec<BaseTierWoodenStorageIngredient> getCodec() {
 			return CODEC;
 		}
 
 		@Override
-		public StreamCodec<RegistryFriendlyByteBuf, BaseTierWoodenStorageIngredient> getPacketCodec() {
+		public StreamCodec<RegistryFriendlyByteBuf, BaseTierWoodenStorageIngredient> getStreamCodec() {
 			return PACKET_CODEC;
 		}
 	}

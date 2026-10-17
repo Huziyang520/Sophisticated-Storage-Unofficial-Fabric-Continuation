@@ -45,7 +45,7 @@ public class LimitedBarrelScreen extends StorageScreen {
 
 	@Override
 	protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
-		super.renderLabels(guiGraphics, mouseX, mouseY);
+		super.extractLabels(guiGraphics, mouseX, mouseY);
 		renderBars(font, imageWidth, getMenu(), guiGraphics, getMenu()::getSlotFillPercentage);
 	}
 

@@ -1,10 +1,15 @@
 package net.p3pp3rf1y.sophisticatedstorage.crafting;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.PlacementInfo;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.crafting.IWrapperRecipe;
 import net.p3pp3rf1y.sophisticatedcore.crafting.RecipeWrapperSerializer;
@@ -14,13 +19,13 @@ import net.p3pp3rf1y.sophisticatedstorage.item.ChestBlockItem;
 import net.p3pp3rf1y.sophisticatedstorage.item.StackStorageWrapper;
 import net.p3pp3rf1y.sophisticatedstorage.item.StorageBlockItem;
 
+import java.util.List;
 import java.util.Optional;
 
-public class DoubleChestTierUpgradeRecipe extends ShapedRecipe implements IWrapperRecipe<ShapedRecipe> {
+public class DoubleChestTierUpgradeRecipe implements CraftingRecipe, IWrapperRecipe<ShapedRecipe> {
 	private final ShapedRecipe compose;
 
 	public DoubleChestTierUpgradeRecipe(ShapedRecipe compose) {
-		super(compose.getGroup(), compose.category(), compose.pattern, compose.result);
 		this.compose = compose;
 	}
 
@@ -31,17 +36,17 @@ public class DoubleChestTierUpgradeRecipe extends ShapedRecipe implements IWrapp
 
 	@Override
 	public boolean matches(CraftingInput input, Level level) {
-		return super.matches(input, level) && getDoubleChest(input).isPresent();
+		return compose.matches(input, level) && getDoubleChest(input).isPresent();
 	}
 
 	@Override
-	public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
-		ItemStack upgradedStorage = super.assemble(input, registries);
+	public ItemStack assemble(CraftingInput input) {
+		ItemStack upgradedStorage = compose.assemble(input);
 		getDoubleChest(input).ifPresent(originalStorage -> {
 			upgradedStorage.applyComponents(originalStorage.getComponents());
 		});
 		if (upgradedStorage.sophisticatedCore_has(ModCoreDataComponents.STORAGE_UUID)) {
-			StackStorageWrapper storageWrapper = StackStorageWrapper.fromStack(registries, upgradedStorage);
+			StackStorageWrapper storageWrapper = StackStorageWrapper.fromStack(upgradedStorage);
 			StorageBlockItem.setNumberOfInventorySlots(upgradedStorage, storageWrapper.getDefaultNumberOfInventorySlots() * 2);
 			StorageBlockItem.setNumberOfUpgradeSlots(upgradedStorage, storageWrapper.getDefaultNumberOfUpgradeSlots() * 2);
 		}
@@ -65,13 +70,51 @@ public class DoubleChestTierUpgradeRecipe extends ShapedRecipe implements IWrapp
 	}
 
 	@Override
-	public RecipeSerializer<?> getSerializer() {
-		return ModBlocks.DOUBLE_CHEST_TIER_UPGRADE_RECIPE_SERIALIZER.get();
+	public String group() {
+		return compose.group();
 	}
 
-	public static class Serializer extends RecipeWrapperSerializer<ShapedRecipe, DoubleChestTierUpgradeRecipe> {
-		public Serializer() {
-			super(DoubleChestTierUpgradeRecipe::new, RecipeSerializer.SHAPED_RECIPE);
+	@Override
+	public boolean showNotification() {
+		return compose.showNotification();
+	}
+
+	@Override
+	public CraftingBookCategory category() {
+		return compose.category();
+	}
+
+	@Override
+	public RecipeBookCategory recipeBookCategory() {
+		return compose.recipeBookCategory();
+	}
+
+	@Override
+	public PlacementInfo placementInfo() {
+		return compose.placementInfo();
+	}
+
+	@Override
+	public List<RecipeDisplay> display() {
+		return compose.display();
+	}
+
+	@Override
+	public RecipeType<CraftingRecipe> getType() {
+		return compose.getType();
+	}
+
+	@Override
+	public RecipeSerializer<? extends CraftingRecipe> getSerializer() {
+		return (RecipeSerializer<? extends CraftingRecipe>) ModBlocks.DOUBLE_CHEST_TIER_UPGRADE_RECIPE_SERIALIZER.get();
+	}
+
+	public static class Serializer {
+		private Serializer() {
+		}
+
+		public static RecipeSerializer<DoubleChestTierUpgradeRecipe> create() {
+			return RecipeWrapperSerializer.create(DoubleChestTierUpgradeRecipe::new, ShapedRecipe.SERIALIZER);
 		}
 	}
 }

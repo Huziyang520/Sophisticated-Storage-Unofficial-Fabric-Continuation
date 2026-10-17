@@ -41,14 +41,14 @@ import org.jetbrains.annotations.NotNull;
 
 import org.jetbrains.annotations.Nullable;
 import java.util.*;
+import java.util.function.Consumer;
 
 public class PaintbrushItem extends ItemBase {
 	public static final Codec<Map<Identifier, Integer>> REMAINING_PARTS_CODEC =
 			Codec.unboundedMap(Identifier.CODEC, ExtraCodecs.POSITIVE_INT);
 
 	public static final StreamCodec<FriendlyByteBuf, Map<Identifier, Integer>> REMAINING_PARTS_STREAM_CODEC =
-			StreamCodec.of((buf, map) -> buf.writeMap(map, Identifier.STREAM_CODEC, ByteBufCodecs.INT),
-					buf -> buf.readMap(Identifier.STREAM_CODEC, ByteBufCodecs.INT));
+			ByteBufCodecs.map(HashMap::new, Identifier.STREAM_CODEC, ByteBufCodecs.INT);
 
 	public PaintbrushItem() {
 		super(new Properties().stacksTo(1));
@@ -173,11 +173,11 @@ public class PaintbrushItem extends ItemBase {
 
 			Item dyeItem;
 			if (part == ConventionalItemTags.RED_DYES) {
-				dyeItem = Items.RED_DYE;
+				dyeItem = Items.DYE.red();
 			} else if (part == ConventionalItemTags.GREEN_DYES) {
-				dyeItem = Items.GREEN_DYE;
+				dyeItem = Items.DYE.green();
 			} else if (part == ConventionalItemTags.BLUE_DYES) {
-				dyeItem = Items.BLUE_DYE;
+				dyeItem = Items.DYE.blue();
 			} else {
 				continue;
 			}
@@ -383,17 +383,17 @@ public class PaintbrushItem extends ItemBase {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag tooltipFlag) {
+	public void appendHoverText(ItemStack stack, TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag tooltipFlag) {
 		super.appendHoverText(stack, context, display, tooltip, tooltipFlag);
 
-		tooltip.addAll(StorageTranslationHelper.INSTANCE.getTranslatedLines(StorageTranslationHelper.INSTANCE.translItemTooltip(stack.getItem()), null, ChatFormatting.DARK_GRAY));
+		StorageTranslationHelper.INSTANCE.getTranslatedLines(StorageTranslationHelper.INSTANCE.translItemTooltip(stack.getItem()), null, ChatFormatting.DARK_GRAY).forEach(tooltip);
 
 		if (hasBarrelMaterials(stack)) {
 			tooltip.accept(Component.translatable(StorageTranslationHelper.INSTANCE.translItemTooltip("paintbrush") + ".materials").withStyle(ChatFormatting.GRAY));
 			Map<BarrelMaterial, Identifier> barrelMaterials = getBarrelMaterials(stack);
 			barrelMaterials.forEach((barrelMaterial, blockName) -> {
 				BuiltInRegistries.BLOCK.getOptional(blockName).ifPresent(block -> {
-					tooltip.add(
+					tooltip.accept(
 							Component.translatable(StorageTranslationHelper.INSTANCE.translItemTooltip("paintbrush") + ".material",
 									Component.translatable(StorageTranslationHelper.INSTANCE.translGui("barrel_part." + barrelMaterial.getSerializedName())),
 									block.getName().withStyle(ChatFormatting.DARK_AQUA)
@@ -405,7 +405,7 @@ public class PaintbrushItem extends ItemBase {
 
 		if (hasMainColor(stack)) {
 			int mainColor = getMainColor(stack);
-			tooltip.add(Component.translatable(StorageTranslationHelper.INSTANCE.translItemTooltip("paintbrush") + ".main_color",
+			tooltip.accept(Component.translatable(StorageTranslationHelper.INSTANCE.translItemTooltip("paintbrush") + ".main_color",
 							Component.literal(ColorHelper.getHexColor(mainColor)).withStyle(Style.EMPTY.withColor(mainColor))
 					).withStyle(ChatFormatting.GRAY)
 			);
@@ -413,7 +413,7 @@ public class PaintbrushItem extends ItemBase {
 
 		if (hasAccentColor(stack)) {
 			int accentColor = getAccentColor(stack);
-			tooltip.add(Component.translatable(StorageTranslationHelper.INSTANCE.translItemTooltip("paintbrush") + ".accent_color",
+			tooltip.accept(Component.translatable(StorageTranslationHelper.INSTANCE.translItemTooltip("paintbrush") + ".accent_color",
 							Component.literal(ColorHelper.getHexColor(accentColor)).withStyle(Style.EMPTY.withColor(accentColor))
 					).withStyle(ChatFormatting.GRAY)
 			);

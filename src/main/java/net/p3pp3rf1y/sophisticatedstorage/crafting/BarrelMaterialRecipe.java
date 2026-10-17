@@ -1,8 +1,9 @@
 package net.p3pp3rf1y.sophisticatedstorage.crafting;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -24,8 +25,15 @@ import java.util.List;
 import java.util.Map;
 
 public class BarrelMaterialRecipe extends CustomRecipe {
-	public BarrelMaterialRecipe(CraftingBookCategory category) {
-		super(category);
+	public static final RecipeSerializer<BarrelMaterialRecipe> SERIALIZER = new RecipeSerializer<>(MapCodec.unit(BarrelMaterialRecipe::new), StreamCodec.unit(new BarrelMaterialRecipe()));
+
+	public BarrelMaterialRecipe() {
+		super();
+	}
+
+	@Override
+	public CraftingBookCategory category() {
+		return CraftingBookCategory.MISC;
 	}
 
 	@Override
@@ -86,7 +94,7 @@ public class BarrelMaterialRecipe extends CustomRecipe {
 	}
 
 	@Override
-	public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
+	public ItemStack assemble(CraftingInput input) {
 		int barrelColumn = -1;
 		int barrelRow = -1;
 		ItemStack barrelStackCopy = ItemStack.EMPTY;
@@ -184,12 +192,7 @@ public class BarrelMaterialRecipe extends CustomRecipe {
 	}
 
 	@Override
-	public boolean canCraftInDimensions(int width, int height) {
-		return width * height > 1;
-	}
-
-	@Override
-	public RecipeSerializer<?> getSerializer() {
-		return ModBlocks.BARREL_MATERIAL_RECIPE_SERIALIZER.get();
+	public RecipeSerializer<? extends CustomRecipe> getSerializer() {
+		return BarrelMaterialRecipe.SERIALIZER;
 	}
 }

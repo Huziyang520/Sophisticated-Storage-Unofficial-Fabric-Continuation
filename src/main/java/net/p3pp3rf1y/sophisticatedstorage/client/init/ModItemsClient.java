@@ -7,8 +7,6 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeGuiManager;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ContentsFilteredUpgradeContainer;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.battery.BatteryInventoryPart;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.battery.BatteryUpgradeTab;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.compacting.CompactingUpgradeContainer;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.compacting.CompactingUpgradeTab;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.cooking.AutoCookingUpgradeContainer;
@@ -86,9 +84,7 @@ public class ModItemsClient {
 		UpgradeGuiManager.registerTab(ModItems.JUKEBOX_TYPE, JukeboxUpgradeTab.Basic::new);
 		UpgradeGuiManager.registerTab(ModItems.ADVANCED_JUKEBOX_TYPE, (JukeboxUpgradeContainer uc, Position p, StorageScreenBase<?> s) -> new JukeboxUpgradeTab.Advanced(uc, p, s, Config.SERVER.advancedJukeboxUpgrade.slotsInRow.get()));
 		UpgradeGuiManager.registerTab(ModItems.TANK_TYPE, TankUpgradeTab::new);
-		UpgradeGuiManager.registerTab(ModItems.BATTERY_TYPE, BatteryUpgradeTab::new);
 		UpgradeGuiManager.registerInventoryPart(ModItems.TANK_TYPE, TankInventoryPart::new);
-		UpgradeGuiManager.registerInventoryPart(ModItems.BATTERY_TYPE, BatteryInventoryPart::new);
 		UpgradeGuiManager.registerTab(ModItems.PUMP_TYPE, PumpUpgradeTab.Basic::new);
 		UpgradeGuiManager.registerTab(ModItems.ADVANCED_PUMP_TYPE, PumpUpgradeTab.Advanced::new);
 		UpgradeGuiManager.registerTab(ModItems.XP_PUMP_TYPE, (XpPumpUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen) ->

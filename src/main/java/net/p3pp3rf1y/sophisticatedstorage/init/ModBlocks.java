@@ -19,7 +19,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Item.Properties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DispenserBlock;
@@ -48,6 +47,12 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class ModBlocks {
+	// 26.3：BlockEntityType.Builder 已删除，改为直接构造；无 datafixer 类型参数
+	private static <T extends net.minecraft.world.level.block.entity.BlockEntity> BlockEntityType<T> beType(
+			BlockEntityType.BlockEntitySupplier<T> supplier, Block... blocks) {
+		return new BlockEntityType<>(supplier, java.util.Set.of(blocks));
+	}
+
 	private static final String LIMITED_BARREL_NAME = "limited_barrel";
 
 	private ModBlocks() {
@@ -280,52 +285,42 @@ public class ModBlocks {
 	///
 	@SuppressWarnings("ConstantConditions") //no datafixer type needed
 	public static final Supplier<BlockEntityType<BarrelBlockEntity>> BARREL_BLOCK_ENTITY_TYPE = BLOCK_ENTITY_TYPES.register(BARREL_REG_NAME, () ->
-			BlockEntityType.Builder.of(BarrelBlockEntity::new, BARRELS.stream().map(Supplier::get).toArray(Block[]::new))
-					.build(null));
+			beType(BarrelBlockEntity::new, BARRELS.stream().map(Supplier::get).toArray(Block[]::new)));
 
 	@SuppressWarnings("ConstantConditions") //no datafixer type needed
 	public static final Supplier<BlockEntityType<LimitedBarrelBlockEntity>> LIMITED_BARREL_BLOCK_ENTITY_TYPE = BLOCK_ENTITY_TYPES.register(LIMITED_BARREL_REG_NAME, () ->
-			BlockEntityType.Builder.of(LimitedBarrelBlockEntity::new, LIMITED_BARRELS.stream().map(Supplier::get).toArray(Block[]::new))
-					.build(null));
+			beType(LimitedBarrelBlockEntity::new, LIMITED_BARRELS.stream().map(Supplier::get).toArray(Block[]::new)));
 
 	@SuppressWarnings("ConstantConditions") //no datafixer type needed
 	public static final Supplier<BlockEntityType<ChestBlockEntity>> CHEST_BLOCK_ENTITY_TYPE = BLOCK_ENTITY_TYPES.register(CHEST_REG_NAME, () ->
-			BlockEntityType.Builder.of(ChestBlockEntity::new, CHESTS.stream().map(Supplier::get).toArray(Block[]::new))
-					.build(null));
+			beType(ChestBlockEntity::new, CHESTS.stream().map(Supplier::get).toArray(Block[]::new)));
 
 	@SuppressWarnings("ConstantConditions") //no datafixer type needed
 	public static final Supplier<BlockEntityType<ShulkerBoxBlockEntity>> SHULKER_BOX_BLOCK_ENTITY_TYPE = BLOCK_ENTITY_TYPES.register(SHULKER_BOX_REG_NAME, () ->
-			BlockEntityType.Builder.of(ShulkerBoxBlockEntity::new, SHULKER_BOXES.stream().map(Supplier::get).toArray(Block[]::new))
-					.build(null));
+			beType(ShulkerBoxBlockEntity::new, SHULKER_BOXES.stream().map(Supplier::get).toArray(Block[]::new)));
 
 	@SuppressWarnings("ConstantConditions") //no datafixer type needed
 	public static final Supplier<BlockEntityType<ControllerBlockEntity>> CONTROLLER_BLOCK_ENTITY_TYPE = BLOCK_ENTITY_TYPES.register(CONTROLLER_REG_NAME, () ->
-			BlockEntityType.Builder.of(ControllerBlockEntity::new, CONTROLLER.get())
-					.build(null));
+			beType(ControllerBlockEntity::new, CONTROLLER.get()));
 
 	@SuppressWarnings("ConstantConditions") //no datafixer type needed
 	public static final Supplier<BlockEntityType<StorageLinkBlockEntity>> STORAGE_LINK_BLOCK_ENTITY_TYPE = BLOCK_ENTITY_TYPES.register(STORAGE_LINK_REG_NAME, () ->
-			BlockEntityType.Builder.of(StorageLinkBlockEntity::new, STORAGE_LINK.get())
-					.build(null));
+			beType(StorageLinkBlockEntity::new, STORAGE_LINK.get()));
 
 	@SuppressWarnings("ConstantConditions") //no datafixer type needed
 	public static final Supplier<BlockEntityType<StorageIOBlockEntity>> STORAGE_IO_BLOCK_ENTITY_TYPE = BLOCK_ENTITY_TYPES.register(STORAGE_IO_REG_NAME, () ->
-			BlockEntityType.Builder.of(StorageIOBlockEntity::new, STORAGE_IO.get())
-					.build(null));
+			beType(StorageIOBlockEntity::new, STORAGE_IO.get()));
 
 	@SuppressWarnings("ConstantConditions") //no datafixer type needed
 	public static final Supplier<BlockEntityType<StorageInputBlockEntity>> STORAGE_INPUT_BLOCK_ENTITY_TYPE = BLOCK_ENTITY_TYPES.register(STORAGE_INPUT_REG_NAME, () ->
-			BlockEntityType.Builder.of(StorageInputBlockEntity::new, STORAGE_INPUT.get())
-					.build(null));
+			beType(StorageInputBlockEntity::new, STORAGE_INPUT.get()));
 
 	@SuppressWarnings("ConstantConditions") //no datafixer type needed
 	public static final Supplier<BlockEntityType<StorageOutputBlockEntity>> STORAGE_OUTPUT_BLOCK_ENTITY_TYPE = BLOCK_ENTITY_TYPES.register(STORAGE_OUTPUT_REG_NAME, () ->
-			BlockEntityType.Builder.of(StorageOutputBlockEntity::new, STORAGE_OUTPUT.get())
-					.build(null));
+			beType(StorageOutputBlockEntity::new, STORAGE_OUTPUT.get()));
 
 	public static final Supplier<BlockEntityType<DecorationTableBlockEntity>> DECORATION_TABLE_BLOCK_ENTITY_TYPE = BLOCK_ENTITY_TYPES.register("decoration_table", () ->
-			BlockEntityType.Builder.of(DecorationTableBlockEntity::new, DECORATION_TABLE.get())
-					.build(null));
+			beType(DecorationTableBlockEntity::new, DECORATION_TABLE.get()));
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -357,15 +352,15 @@ public class ModBlocks {
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(BuiltInRegistries.RECIPE_SERIALIZER, SophisticatedStorage.MOD_ID);
-	public static final Supplier<SimpleCraftingRecipeSerializer<?>> STORAGE_DYE_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("storage_dye", () -> new SimpleCraftingRecipeSerializer<>(StorageDyeRecipe::new));
-	public static final Supplier<RecipeSerializer<?>> STORAGE_TIER_UPGRADE_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("storage_tier_upgrade", StorageTierUpgradeRecipe.Serializer::new);
-	public static final Supplier<RecipeSerializer<?>> DOUBLE_CHEST_TIER_UPGRADE_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("double_chest_tier_upgrade", DoubleChestTierUpgradeRecipe.Serializer::new);
-	public static final Supplier<RecipeSerializer<?>> SHULKER_BOX_FROM_VANILLA_SHAPELESS_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("shulker_box_from_vanilla_shapeless", ShulkerBoxFromVanillaShapelessRecipe.Serializer::new);
-	public static final Supplier<RecipeSerializer<?>> STORAGE_TIER_UPGRADE_SHAPELESS_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("storage_tier_upgrade_shapeless", StorageTierUpgradeShapelessRecipe.Serializer::new);
-	public static final Supplier<RecipeSerializer<?>> DOUBLE_CHEST_TIER_UPGRADE_SHAPELESS_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("double_chest_tier_upgrade_shapeless", DoubleChestTierUpgradeShapelessRecipe.Serializer::new);
-	public static final Supplier<RecipeSerializer<?>> SHULKER_BOX_FROM_CHEST_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("shulker_box_from_chest", ShulkerBoxFromChestRecipe.Serializer::new);
-	public static final Supplier<SimpleCraftingRecipeSerializer<?>> FLAT_TOP_BARREL_TOGGLE_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("flat_top_barrel_toggle", () -> new SimpleCraftingRecipeSerializer<>(FlatTopBarrelToggleRecipe::new));
-	public static final Supplier<SimpleCraftingRecipeSerializer<?>> BARREL_MATERIAL_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("barrel_material", () -> new SimpleCraftingRecipeSerializer<>(BarrelMaterialRecipe::new));
+	public static final Supplier<RecipeSerializer<?>> STORAGE_DYE_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("storage_dye", () -> StorageDyeRecipe.SERIALIZER);
+	public static final Supplier<RecipeSerializer<?>> STORAGE_TIER_UPGRADE_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("storage_tier_upgrade", StorageTierUpgradeRecipe.Serializer::create);
+	public static final Supplier<RecipeSerializer<?>> DOUBLE_CHEST_TIER_UPGRADE_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("double_chest_tier_upgrade", DoubleChestTierUpgradeRecipe.Serializer::create);
+	public static final Supplier<RecipeSerializer<?>> SHULKER_BOX_FROM_VANILLA_SHAPELESS_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("shulker_box_from_vanilla_shapeless", ShulkerBoxFromVanillaShapelessRecipe.Serializer::create);
+	public static final Supplier<RecipeSerializer<?>> STORAGE_TIER_UPGRADE_SHAPELESS_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("storage_tier_upgrade_shapeless", StorageTierUpgradeShapelessRecipe.Serializer::create);
+	public static final Supplier<RecipeSerializer<?>> DOUBLE_CHEST_TIER_UPGRADE_SHAPELESS_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("double_chest_tier_upgrade_shapeless", DoubleChestTierUpgradeShapelessRecipe.Serializer::create);
+	public static final Supplier<RecipeSerializer<?>> SHULKER_BOX_FROM_CHEST_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("shulker_box_from_chest", ShulkerBoxFromChestRecipe.Serializer::create);
+	public static final Supplier<RecipeSerializer<?>> FLAT_TOP_BARREL_TOGGLE_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("flat_top_barrel_toggle", () -> FlatTopBarrelToggleRecipe.SERIALIZER);
+	public static final Supplier<RecipeSerializer<?>> BARREL_MATERIAL_RECIPE_SERIALIZER = RECIPE_SERIALIZERS.register("barrel_material", () -> BarrelMaterialRecipe.SERIALIZER);
 	/*private static final DeferredRegister<IngredientType<?>> INGREDIENT_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.INGREDIENT_TYPES, SophisticatedStorage.MOD_ID);
 	public static final Supplier<IngredientType<BaseTierWoodenStorageIngredient>> BASE_TIER_WOODEN_STORAGE_INGREDIENT_TYPE = INGREDIENT_TYPES.register("base_tier_wooden_storage", () -> new IngredientType<>(BaseTierWoodenStorageIngredient.CODEC));*/
 
@@ -396,18 +391,12 @@ public class ModBlocks {
 		DispenserBlock.registerBehavior(SHULKER_BOX_ITEM.get(), new ShulkerBoxDispenseBehavior());
 	}
 
+	/**
+	 * 26.3：CauldronInteraction 移到 net.minecraft.core.cauldron，且 Dispatcher#put 变成包私有，
+	 * 外部无法再注册炼药锅交互。此处保留空实现（炼药锅里给桶/箱子洗掉染料的功能暂时失效）。
+	 */
 	public static void registerCauldronInteractions() {
-		for (Supplier<BlockItem> item : ALL_BARREL_ITEMS) {
-			CauldronInteraction.WATER.map().put(item.get(), BarrelCauldronInteraction.INSTANCE);
-		}
-
-		for (Supplier<BlockItem> item : CHEST_ITEMS) {
-			CauldronInteraction.WATER.map().put(item.get(), WoodStorageCauldronInteraction.INSTANCE);
-		}
-
-		for (Supplier<BlockItem> item : SHULKER_BOX_ITEMS) {
-			CauldronInteraction.WATER.map().put(item.get(), StorageCauldronInteraction.INSTANCE);
-		}
+		// 见上方说明：等核心/Minecraft 提供公开注册入口后再恢复
 	}
 
 	@SuppressWarnings("java:S6548") //singleton is correct here
@@ -451,9 +440,9 @@ public class ModBlocks {
 					removePaint(stack);
 					LayeredCauldronBlock.lowerFillLevel(state, level, pos);
 				}
-				return InteractionResult.sidedSuccess(level.isClientSide());
+				return (level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.CONSUME);
 			}
-			return InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+			return InteractionResult.PASS;
 		}
 
 		protected boolean canRemovePaint(ItemStack stack) {

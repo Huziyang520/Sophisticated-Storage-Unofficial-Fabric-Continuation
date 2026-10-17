@@ -354,13 +354,13 @@ public class Config {
 		}
 
 		public static class MaxUgradesPerStorageConfig implements IUpgradeCountLimitConfig {
-			private final ConfigSpec.ConfigValue<List<? extends String>> maxUpgradesPerStorageList;
+			private final ConfigSpec.ConfigValue<List<String>> maxUpgradesPerStorageList;
 			@Nullable
 			private Map<String, Map<String, Integer>> maxUpgradesPerStorage = null;
 
 			protected MaxUgradesPerStorageConfig(ConfigSpec.Builder builder, Map<String, Map<String, Integer>> defaultUpgradesPerStorage) {
 				maxUpgradesPerStorageList = builder.comment("Limit of maximum number of upgrades of type per storage in format of \"StorageType|UpgradeRegistryName[or UpgradeGroup]|MaxNumber\"")
-						.defineList("maxUpgradesPerStorage", convertToList(defaultUpgradesPerStorage), mapping -> ((String) mapping).matches(MAX_UPGRADES_MATCHER));
+						.defineList("maxUpgradesPerStorage", convertToList(defaultUpgradesPerStorage), mapping -> mapping instanceof String str && str.matches(MAX_UPGRADES_MATCHER));
 			}
 
 			private List<String> convertToList(Map<String, Map<String, Integer>> defaultUpgradesPerStorage) {

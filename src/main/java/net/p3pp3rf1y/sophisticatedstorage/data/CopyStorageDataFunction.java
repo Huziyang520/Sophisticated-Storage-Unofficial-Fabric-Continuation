@@ -6,11 +6,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
-import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.p3pp3rf1y.sophisticatedstorage.block.IAdditionalDropDataBlock;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageBlockEntity;
-import net.p3pp3rf1y.sophisticatedstorage.init.ModItems;
 
 public class CopyStorageDataFunction implements LootItemFunction {
 	private static final CopyStorageDataFunction INSTANCE = new CopyStorageDataFunction();
@@ -21,9 +19,9 @@ public class CopyStorageDataFunction implements LootItemFunction {
 
 	@Override
 	public ItemStack apply(ItemStack stack, LootContext context) {
-		BlockState state = context.getParamOrNull(LootContextParams.BLOCK_STATE);
+		BlockState state = context.getOptional(LootContextParams.BLOCK_STATE);
 		if (state != null && state.getBlock() instanceof IAdditionalDropDataBlock additionalDropDataBlock) {
-			BlockEntity be = context.getParamOrNull(LootContextParams.BLOCK_ENTITY);
+			BlockEntity be = context.getOptional(LootContextParams.BLOCK_ENTITY);
 			if (be instanceof StorageBlockEntity storageBlockEntity) {
 				additionalDropDataBlock.addDropData(stack, storageBlockEntity);
 			}
@@ -33,8 +31,8 @@ public class CopyStorageDataFunction implements LootItemFunction {
 	}
 
 	@Override
-	public LootItemFunctionType<? extends LootItemFunction> getType() {
-		return ModItems.COPY_STORAGE_DATA.get();
+	public MapCodec<? extends LootItemFunction> codec() {
+		return CODEC;
 	}
 
 

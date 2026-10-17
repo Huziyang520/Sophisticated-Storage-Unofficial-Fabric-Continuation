@@ -52,7 +52,7 @@ public class ShulkerBoxBlockEntity extends StorageBlockEntity {
 		}
 
 		@Override
-		protected boolean isOwnContainer(Player player) {
+		public boolean isOwnContainer(Player player) {
 			return false;
 		}
 	};
@@ -112,17 +112,17 @@ public class ShulkerBoxBlockEntity extends StorageBlockEntity {
 	}
 
 	public AABB getBoundingBox(BlockState state) {
-		return Shulker.getProgressAabb(1.0F, state.getValue(ShulkerBoxBlock.FACING), 0.5F * getProgress(1.0F));
+		return Shulker.getProgressAabb(1.0F, state.getValue(ShulkerBoxBlock.FACING), 0.5F * getProgress(1.0F), Vec3.ZERO);
 	}
 
 	private void moveCollidedEntities(Level level, BlockPos pos, BlockState state) {
 		if (state.getBlock() instanceof ShulkerBoxBlock) {
 			Direction direction = state.getValue(ShulkerBoxBlock.FACING);
-			AABB aabb = Shulker.getProgressDeltaAabb(1.0F, direction, progressOld, progress).move(pos);
+			AABB aabb = Shulker.getProgressDeltaAabb(1.0F, direction, progressOld, progress, Vec3.ZERO).move(pos);
 			List<Entity> list = level.getEntities(null, aabb);
 			if (!list.isEmpty()) {
 				for (Entity entity : list) {
-					if (entity.getPistonPushReaction() != PushReaction.IGNORE) {
+					if (entity.getPistonPushReaction() != PushReaction.IGNORE_ENTITY) {
 						entity.move(MoverType.SHULKER_BOX, new Vec3((aabb.getXsize() + 0.01D) * direction.getStepX(), (aabb.getYsize() + 0.01D) * direction.getStepY(), (aabb.getZsize() + 0.01D) * direction.getStepZ()));
 					}
 				}

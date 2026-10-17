@@ -19,14 +19,13 @@ import net.minecraft.world.item.crafting.BlastingRecipe;
 import net.minecraft.world.item.crafting.SmeltingRecipe;
 import net.minecraft.world.item.crafting.SmokingRecipe;
 import net.minecraft.world.level.block.state.properties.WoodType;
-import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
+import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
+import com.mojang.serialization.MapCodec;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerRegistry;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ContentsFilteredUpgradeContainer;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.battery.BatteryUpgradeContainer;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.battery.BatteryUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.compacting.CompactingUpgradeContainer;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.compacting.CompactingUpgradeItem;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.compacting.CompactingUpgradeWrapper;
@@ -89,8 +88,8 @@ public class ModItems {
 	}
 
 	public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(BuiltInRegistries.ITEM, SophisticatedStorage.MOD_ID);
-	public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB.location(), SophisticatedStorage.MOD_ID);
-	public static final DeferredRegister<LootItemFunctionType<?>> LOOT_FUNCTION_TYPES = DeferredRegister.create(Registries.LOOT_FUNCTION_TYPE.location(), SophisticatedStorage.MOD_ID);
+	public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, SophisticatedStorage.MOD_ID);
+	public static final DeferredRegister<MapCodec<? extends LootItemFunction>> LOOT_FUNCTION_TYPES = DeferredRegister.create(Registries.LOOT_FUNCTION_TYPE, SophisticatedStorage.MOD_ID);
 	//private static final DeferredRegister<MapCodec<? extends ICondition>> CONDITION_CODECS = DeferredRegister.create(NeoForgeRegistries.Keys.CONDITION_CODECS, SophisticatedStorage.MOD_ID);
 	public static final Identifier STORAGE_UPGRADE_TAG_NAME = Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "upgrade");
 
@@ -161,7 +160,7 @@ public class ModItems {
 	public static final DeferredHolder<Item, StackUpgradeItem> STACK_UPGRADE_OMEGA_TIER = ITEMS.register("stack_upgrade_omega_tier", () ->
 			new StackUpgradeItem(Integer.MAX_VALUE, Config.SERVER.maxUpgradesPerStorage));
 	public static final DeferredHolder<Item, JukeboxUpgradeItem> JUKEBOX_UPGRADE = ITEMS.register("jukebox_upgrade", () -> new JukeboxUpgradeItem(Config.SERVER.maxUpgradesPerStorage, () -> 1, () -> 1));
-	public static final DeferredHolder<Item, JukeboxUpgradeItem> ADVANCED_JUKEBOX_UPGRADE = ITEMS.register("advanced_jukebox_upgrade", () -> new JukeboxUpgradeItem(Config.SERVER.maxUpgradesPerStorage, Config.SERVER.advancedJukeboxUpgrade.numberOfSlots, Config.SERVER.advancedJukeboxUpgrade.slotsInRow));
+	public static final DeferredHolder<Item, JukeboxUpgradeItem> ADVANCED_JUKEBOX_UPGRADE = ITEMS.register("advanced_jukebox_upgrade", () -> new JukeboxUpgradeItem(Config.SERVER.maxUpgradesPerStorage, Config.SERVER.advancedJukeboxUpgrade.numberOfSlots::get, Config.SERVER.advancedJukeboxUpgrade.slotsInRow::get));
 	public static final DeferredHolder<Item, PumpUpgradeItem> PUMP_UPGRADE = ITEMS.register("pump_upgrade", () -> new PumpUpgradeItem(false, false, Config.SERVER.pumpUpgrade, Config.SERVER.maxUpgradesPerStorage));
 	public static final DeferredHolder<Item, PumpUpgradeItem> ADVANCED_PUMP_UPGRADE = ITEMS.register("advanced_pump_upgrade", () -> new PumpUpgradeItem(true, true, Config.SERVER.pumpUpgrade, Config.SERVER.maxUpgradesPerStorage));
 	public static final DeferredHolder<Item, XpPumpUpgradeItem> XP_PUMP_UPGRADE = ITEMS.register("xp_pump_upgrade", () -> new XpPumpUpgradeItem(Config.SERVER.xpPumpUpgrade, Config.SERVER.maxUpgradesPerStorage));
@@ -200,7 +199,7 @@ public class ModItems {
 			if (Boolean.TRUE.equals(Config.COMMON.dropPacked.get())) {
 				tooltip.accept(Component.translatable(StorageTranslationHelper.INSTANCE.translItemTooltip(PACKING_TAPE_NAME) + ".disabled").withStyle(ChatFormatting.RED));
 			} else {
-				tooltip.add(Component.translatable(StorageTranslationHelper.INSTANCE.translItemTooltip(PACKING_TAPE_NAME),
+				tooltip.accept(Component.translatable(StorageTranslationHelper.INSTANCE.translItemTooltip(PACKING_TAPE_NAME),
 								Component.literal(String.valueOf(stack.getMaxDamage() - stack.getDamageValue())).withStyle(ChatFormatting.GREEN)
 						).withStyle(ChatFormatting.DARK_GRAY)
 				);
@@ -218,16 +217,28 @@ public class ModItems {
 	public static final Supplier<ItemBase> DEBUG_TOOL = ITEMS.register("debug_tool", () -> new ItemBase(new Item.Properties().stacksTo(1)));
 	public static final Supplier<ItemBase> PAINTBRUSH = ITEMS.register("paintbrush", PaintbrushItem::new);
 	public static final Supplier<Item> INACCESSIBLE_SLOT = ITEMS.register("inaccessible_slot", () -> new Item(new Item.Properties().stacksTo(1)));
-	public static final Supplier<LootItemFunctionType<CopyStorageDataFunction>> COPY_STORAGE_DATA = LOOT_FUNCTION_TYPES.register("copy_storage_data", () -> new LootItemFunctionType<>(CopyStorageDataFunction.CODEC));
+	public static final Supplier<MapCodec<? extends LootItemFunction>> COPY_STORAGE_DATA = LOOT_FUNCTION_TYPES.register("copy_storage_data", () -> CopyStorageDataFunction.CODEC);
 
 	//private static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, SophisticatedStorage.MOD_ID);
 
 	public static Supplier<CreativeModeTab> CREATIVE_TAB = CREATIVE_MODE_TABS.register("main", () ->
-			FabricItemGroup.builder().icon(() -> WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.GOLD_BARREL_ITEM.get()), WoodType.SPRUCE))
+			FabricCreativeModeTab.builder().icon(() -> WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.GOLD_BARREL_ITEM.get()), WoodType.SPRUCE))
 					.title(Component.translatable("itemGroup.sophisticatedstorage"))
 					.displayItems((featureFlags, output) -> {
-						ITEMS.getEntries().stream().filter(i -> i.get() instanceof ItemBase).forEach(i -> ((ItemBase) i.get()).addCreativeTabItems(output::accept));
-						ModBlocks.ITEMS.getEntries().stream().filter(i -> i.get() instanceof BlockItemBase).forEach(i -> ((BlockItemBase) i.get()).addCreativeTabItems(output::accept));
+						// 26.3：核心的 DeferredRegister 不再暴露 getEntries()，改为遍历注册表里属于本模组的物品
+						BuiltInRegistries.ITEM.entrySet().forEach(entry -> {
+							if (!entry.getKey().identifier().getNamespace().equals(SophisticatedStorage.MOD_ID)) {
+								return;
+							}
+							Item item = entry.getValue();
+							if (item instanceof ItemBase itemBase) {
+								itemBase.addCreativeTabItems(output::accept);
+							} else if (item instanceof BlockItemBase blockItemBase) {
+								blockItemBase.addCreativeTabItems(output::accept);
+							} else {
+								output.accept(new ItemStack(item));
+							}
+						});
 					})
 					.build());
 
@@ -269,7 +280,6 @@ public class ModItems {
 	public static final UpgradeContainerType<JukeboxUpgradeWrapper, JukeboxUpgradeContainer> JUKEBOX_TYPE = new UpgradeContainerType<>(JukeboxUpgradeContainer::new);
 	public static final UpgradeContainerType<JukeboxUpgradeWrapper, JukeboxUpgradeContainer> ADVANCED_JUKEBOX_TYPE = new UpgradeContainerType<>(JukeboxUpgradeContainer::new);
 	public static final UpgradeContainerType<TankUpgradeWrapper, TankUpgradeContainer> TANK_TYPE = new UpgradeContainerType<>(TankUpgradeContainer::new);
-	public static final UpgradeContainerType<BatteryUpgradeWrapper, BatteryUpgradeContainer> BATTERY_TYPE = new UpgradeContainerType<>(BatteryUpgradeContainer::new);
 	public static final UpgradeContainerType<PumpUpgradeWrapper, PumpUpgradeContainer> PUMP_TYPE = new UpgradeContainerType<>(PumpUpgradeContainer::new);
 	public static final UpgradeContainerType<PumpUpgradeWrapper, PumpUpgradeContainer> ADVANCED_PUMP_TYPE = new UpgradeContainerType<>(PumpUpgradeContainer::new);
 	public static final UpgradeContainerType<XpPumpUpgradeWrapper, XpPumpUpgradeContainer> XP_PUMP_TYPE = new UpgradeContainerType<>(XpPumpUpgradeContainer::new);

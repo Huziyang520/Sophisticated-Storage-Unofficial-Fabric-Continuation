@@ -225,7 +225,7 @@ public class LimitedBarrelBlockEntity extends BarrelBlockEntity implements ICoun
 			//noinspection ConstantConditions
 			getLevel().playSound(null, getBlockPos(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, .2f, (RandHelper.getRandomMinusOneToOne(getLevel().getRandom()) * .7f + 1) * 2);
 		} else {
-			player.drop(stackTaken, false);
+			player.drop(stackTaken, false, net.minecraft.util.Prediction.SERVER_ONLY);
 		}
 		return true;
 	}
@@ -244,7 +244,11 @@ public class LimitedBarrelBlockEntity extends BarrelBlockEntity implements ICoun
 			sc.add(slot, stack.getCount());
 			sfl.add(slot, FloatTag.valueOf(stack.getCount() / (float) getStorageWrapper().getInventoryHandler().getStackLimit(slot, stack)));
 		});
-		updateTag.putIntArray(SLOT_COUNTS_TAG, sc);
+		int[] slotCountsArray = new int[sc.size()];
+		for (int i = 0; i < sc.size(); i++) {
+			slotCountsArray[i] = sc.get(i);
+		}
+		updateTag.putIntArray(SLOT_COUNTS_TAG, slotCountsArray);
 		updateTag.put(SLOT_FILL_LEVELS_TAG, sfl);
 		return updateTag;
 	}
@@ -253,7 +257,7 @@ public class LimitedBarrelBlockEntity extends BarrelBlockEntity implements ICoun
 	public void loadSynchronizedData(CompoundTag tag, HolderLookup.Provider registries) {
 		super.loadSynchronizedData(tag, registries);
 		if (tag.contains(SLOT_COUNTS_TAG)) {
-			int[] countsArray = tag.getIntArray(SLOT_COUNTS_TAG);
+			int[] countsArray = tag.getIntArray(SLOT_COUNTS_TAG).orElse(new int[0]);
 			if (slotCounts.size() != countsArray.length) {
 				slotCounts.clear();
 				for (int i = 0; i < countsArray.length; i++) {
@@ -266,15 +270,15 @@ public class LimitedBarrelBlockEntity extends BarrelBlockEntity implements ICoun
 			}
 		}
 		if (tag.contains(SLOT_FILL_LEVELS_TAG)) {
-			ListTag fillLevelsList = tag.getList(SLOT_FILL_LEVELS_TAG, Tag.TAG_FLOAT);
+			ListTag fillLevelsList = tag.getListOrEmpty(SLOT_FILL_LEVELS_TAG);
 			if (slotFillLevels.size() != fillLevelsList.size()) {
 				slotFillLevels.clear();
 				for (int i = 0; i < fillLevelsList.size(); i++) {
-					slotFillLevels.add(i, fillLevelsList.getFloat(i));
+					slotFillLevels.add(i, fillLevelsList.getFloatOr(i, 0.0F));
 				}
 			} else {
 				for (int i = 0; i < fillLevelsList.size(); i++) {
-					slotFillLevels.set(i, fillLevelsList.getFloat(i));
+					slotFillLevels.set(i, fillLevelsList.getFloatOr(i, 0.0F));
 				}
 			}
 		}

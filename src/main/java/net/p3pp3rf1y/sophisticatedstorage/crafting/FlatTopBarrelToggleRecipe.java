@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorage.crafting;
 
-import net.minecraft.core.HolderLookup;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -13,8 +14,15 @@ import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
 import net.p3pp3rf1y.sophisticatedstorage.item.BarrelBlockItem;
 
 public class FlatTopBarrelToggleRecipe extends CustomRecipe {
-	public FlatTopBarrelToggleRecipe(CraftingBookCategory category) {
-		super(category);
+	public static final RecipeSerializer<FlatTopBarrelToggleRecipe> SERIALIZER = new RecipeSerializer<>(MapCodec.unit(FlatTopBarrelToggleRecipe::new), StreamCodec.unit(new FlatTopBarrelToggleRecipe()));
+
+	public FlatTopBarrelToggleRecipe() {
+		super();
+	}
+
+	@Override
+	public CraftingBookCategory category() {
+		return CraftingBookCategory.MISC;
 	}
 
 	@Override
@@ -37,7 +45,7 @@ public class FlatTopBarrelToggleRecipe extends CustomRecipe {
 	}
 
 	@Override
-	public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
+	public ItemStack assemble(CraftingInput input) {
 		for (int i = 0; i < input.size(); i++) {
 			ItemStack item = input.getItem(i);
 			if (item.isEmpty()) {
@@ -56,12 +64,7 @@ public class FlatTopBarrelToggleRecipe extends CustomRecipe {
 	}
 
 	@Override
-	public boolean canCraftInDimensions(int width, int height) {
-		return width * height >= 1;
-	}
-
-	@Override
-	public RecipeSerializer<?> getSerializer() {
-		return ModBlocks.FLAT_TOP_BARREL_TOGGLE_RECIPE_SERIALIZER.get();
+	public RecipeSerializer<? extends CustomRecipe> getSerializer() {
+		return FlatTopBarrelToggleRecipe.SERIALIZER;
 	}
 }

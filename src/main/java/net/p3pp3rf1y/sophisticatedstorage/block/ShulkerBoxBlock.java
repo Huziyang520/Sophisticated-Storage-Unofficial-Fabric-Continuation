@@ -2,6 +2,8 @@ package net.p3pp3rf1y.sophisticatedstorage.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -44,7 +46,6 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 import net.p3pp3rf1y.sophisticatedstorage.Config;
-import net.p3pp3rf1y.sophisticatedstorage.client.particle.CustomTintTerrainParticleData;
 import net.p3pp3rf1y.sophisticatedstorage.common.gui.StorageContainerMenu;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModItems;
@@ -78,7 +79,7 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 				return shulkerboxblockentity.isClosed();
 			}
 		};
-		return Properties.of().strength(2.0F, explosionResistance).dynamicShape().noOcclusion().isSuffocating(statePredicate).isViewBlocking(statePredicate).pushReaction(PushReaction.DESTROY).mapColor(DyeColor.PURPLE);
+		return Properties.of().strength(2.0F, explosionResistance).dynamicShape().noOcclusion().isSuffocating(statePredicate).isViewBlocking((state, level, pos, box) -> statePredicate.test(state, level, pos)).pushReaction(PushReaction.POPPED).mapColor(DyeColor.PURPLE);
 	}
 
 	@Override
@@ -106,8 +107,8 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 			if (tryItemInteraction(player, hand, b, player.getItemInHand(hand), getFacing(state), hitResult)) {
 				return InteractionResult.SUCCESS;
 			}
-			return InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-		}).orElse(InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION);
+			return InteractionResult.PASS;
+		}).orElse(InteractionResult.PASS);
 	}
 
 	@Override
@@ -123,7 +124,9 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 		player.awardStat(Stats.CUSTOM.get(Stats.OPEN_SHULKER_BOX));
 		player.sophisticatedCore_openMenu(new SimpleMenuProvider((w, p, pl) -> new StorageContainerMenu(w, pl, pos),
 				WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).map(StorageBlockEntity::getDisplayName).orElse(Component.empty())), pos);
-		PiglinAi.angerNearbyPiglins(player, true);
+		if (level instanceof ServerLevel serverLevel) {
+			PiglinAi.angerNearbyPiglins(serverLevel, player, true);
+		}
 		return InteractionResult.CONSUME;
 	}
 
@@ -137,7 +140,7 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 			UUID storageUuid = stack.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID);
 			if (storageUuid != null) {
 				ItemContentsStorage itemContentsStorage = ItemContentsStorage.get();
-				be.loadAdditional(itemContentsStorage.getOrCreateStorageContents(storageUuid), level.registryAccess());
+				net.p3pp3rf1y.sophisticatedstorage.util.NbtTransferHelper.loadAdditional(be, itemContentsStorage.getOrCreateStorageContents(storageUuid), level.registryAccess());
 				itemContentsStorage.removeStorageContents(storageUuid);
 			}
 
@@ -195,7 +198,7 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 		if (blockEntity.getAnimationStatus() != ShulkerBoxBlockEntity.AnimationStatus.CLOSED) {
 			return true;
 		} else {
-			AABB aabb = Shulker.getProgressDeltaAabb(1.0F, state.getValue(FACING), 0.0F, 0.5F).move(pos).deflate(1.0E-6D);
+			AABB aabb = Shulker.getProgressDeltaAabb(1.0F, state.getValue(FACING), 0.0F, 0.5F, Vec3.ZERO).move(pos).deflate(1.0E-6D);
 			return level.noCollision(aabb);
 		}
 	}
@@ -259,8 +262,8 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
-		ItemStack stack = super.getCloneItemStack(level, pos, state);
+	protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
+		ItemStack stack = super.getCloneItemStack(level, pos, state, false);
 		WorldHelper.getBlockEntity(level, pos, ShulkerBoxBlockEntity.class).ifPresent(be -> {
 			StorageWrapper storageWrapper = be.getStorageWrapper();
 			addBasicPropertiesToStack(stack, be, storageWrapper);
@@ -288,7 +291,7 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 	@SuppressWarnings("deprecation")
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
-		return RenderShape.ENTITYBLOCK_ANIMATED;
+		return RenderShape.INVISIBLE;
 	}
 
 	@Override
@@ -328,14 +331,14 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 
 	@Override
 	public boolean sophisticatedCore_addLandingEffects(BlockState state1, ServerLevel level, BlockPos pos, BlockState state2, LivingEntity entity, int numberOfParticles) {
-		level.sendParticles(new CustomTintTerrainParticleData(state1, pos), entity.getX(), entity.getY(), entity.getZ(), numberOfParticles, 0.0D, 0.0D, 0.0D, 0.15D);
+		level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, state1), entity.getX(), entity.getY(), entity.getZ(), numberOfParticles, 0.0D, 0.0D, 0.0D, 0.15D);
 		return true;
 	}
 
 	@Override
 	public boolean sophisticatedCore_addRunningEffects(BlockState state, Level level, BlockPos pos, Entity entity) {
 		Vec3 vec3 = entity.getDeltaMovement();
-		level.addParticle(new CustomTintTerrainParticleData(state, pos),
+		level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, state),
 				entity.getX() + (level.getRandom().nextDouble() - 0.5D) * entity.getBbWidth(), entity.getY() + 0.1D, entity.getZ() + (level.getRandom().nextDouble() - 0.5D) * entity.getBbWidth(),
 				vec3.x * -4.0D, 1.5D, vec3.z * -4.0D);
 		return true;

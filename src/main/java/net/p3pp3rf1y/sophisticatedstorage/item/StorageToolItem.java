@@ -8,7 +8,6 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -39,9 +38,9 @@ public class StorageToolItem extends ItemBase {
 
 	@Override
 	public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltipComponents, TooltipFlag flag) {
-		tooltipComponents.addAll(StorageTranslationHelper.INSTANCE.getTranslatedLines(stack.getItem().getDescriptionId() + TranslationHelper.TOOLTIP_SUFFIX, null, ChatFormatting.DARK_GRAY));
+		StorageTranslationHelper.INSTANCE.getTranslatedLines(stack.getItem().getDescriptionId() + TranslationHelper.TOOLTIP_SUFFIX, null, ChatFormatting.DARK_GRAY).forEach(tooltipComponents);
 		String itemName = RegistryHelper.getItemKey(stack.getItem()).getPath();
-		tooltipComponents.add(Component.translatable(StorageTranslationHelper.INSTANCE.translItemTooltip(itemName) + ".controls",
+		tooltipComponents.accept(Component.translatable(StorageTranslationHelper.INSTANCE.translItemTooltip(itemName) + ".controls",
 				Component.translatable(StorageTranslationHelper.INSTANCE.translItemTooltip(itemName) + ".controls.combination").withStyle(ChatFormatting.AQUA)).withStyle(ChatFormatting.GRAY));
 	}
 
@@ -127,12 +126,12 @@ public class StorageToolItem extends ItemBase {
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
+	public InteractionResult use(Level level, Player player, InteractionHand usedHand) {
 		if (player.isShiftKeyDown()) {
 			ItemStack tool = player.getItemInHand(usedHand);
 			if (getControllerLink(tool).isPresent()) {
 				removeControllerLink(tool);
-				return InteractionResultHolder.success(tool);
+				return InteractionResult.SUCCESS;
 			}
 		}
 

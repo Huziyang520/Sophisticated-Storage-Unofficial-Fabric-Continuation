@@ -55,7 +55,7 @@ public class WoodStorageBlockItem extends StorageBlockItem {
                 }
             }
             if (!GuiHelper.isShiftDown()) {
-                tooltip.add(Component.translatable(
+                tooltip.accept(Component.translatable(
                         TranslationHelper.INSTANCE.translItemTooltip("storage") + ".press_for_contents",
                         Component.translatable(TranslationHelper.INSTANCE.translItemTooltip("storage") + ".shift").withStyle(ChatFormatting.AQUA)
                 ).withStyle(ChatFormatting.GRAY));

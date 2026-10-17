@@ -138,7 +138,7 @@ public abstract class WoodStorageBlockBase extends StorageBlockBase implements I
 	}
 
 	@Override
-	public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
+	protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
 		ItemStack stack = new ItemStack(this);
 		addNameWoodAndTintData(stack, level, pos);
 		return stack;
@@ -155,7 +155,7 @@ public abstract class WoodStorageBlockBase extends StorageBlockBase implements I
 			if (storageUuid != null) {
 				ItemContentsStorage itemContentsStorage = ItemContentsStorage.get();
 				be.setBeingUpgraded(true);
-				be.loadAdditional(itemContentsStorage.getOrCreateStorageContents(storageUuid), level.registryAccess());
+				net.p3pp3rf1y.sophisticatedstorage.util.NbtTransferHelper.loadAdditional(be, itemContentsStorage.getOrCreateStorageContents(storageUuid), level.registryAccess());
 				itemContentsStorage.removeStorageContents(storageUuid);
 
 				setNewSize(stack, be);

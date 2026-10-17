@@ -29,7 +29,7 @@ public class CompressionUpgradeConfig {
 		builder.comment("Compression Upgrade Settings").push("compressionUpgrade");
 		maxNumberOfSlots = builder.comment("Defines how many slots at a maximum compression upgrade is able to use").defineInRange("maxNumberOfSlots", 5, 3, 9);
 		additionalDecompressibleItems = builder.comment("List of items that can be decompressed by compression upgrade and their results. "
-				+ "Item registry names are expected here in format of \"mod:itemBeingDecompressed=Nxmod:itemDecompressResult").define("additionalDecompressibleItems", getDecompressibleItemsDefault(), entries -> {
+				+ "Item registry names are expected here in format of \"mod:itemBeingDecompressed=Nxmod:itemDecompressResult").define("additionalDecompressibleItems", CompressionUpgradeConfig::getDecompressibleItemsDefault, entries -> {
 			List<String> decompressibleItems = (List<String>) entries;
 			return decompressibleItems != null && decompressibleItems.stream().allMatch(itemName -> itemName.matches(DECOMPRESSIBLE_MATCHER));
 		});

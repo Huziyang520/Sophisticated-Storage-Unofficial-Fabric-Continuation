@@ -251,7 +251,7 @@ public class DecorationTableMenu extends AbstractContainerMenu implements ISynce
 
 	@Override
 	public boolean stillValid(Player player) {
-		return player.canInteractWithBlock(blockEntity.getBlockPos(), 4);
+		return !blockEntity.isRemoved() && player.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(blockEntity.getBlockPos())) <= 16.0D;
 	}
 
 	public static DecorationTableMenu fromBuffer(int containerId, Inventory playerInventory, FriendlyByteBuf buffer) {

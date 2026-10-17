@@ -12,6 +12,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -93,8 +94,8 @@ public abstract class StorageBlockBase extends BlockBase implements IStorageBloc
 	}
 
 	@Override
-	public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
-		super.entityInside(state, level, pos, entity);
+	public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, net.minecraft.world.entity.InsideBlockEffectApplier effectApplier, boolean insideEffect) {
+		super.entityInside(state, level, pos, entity, effectApplier, insideEffect);
 		if (!level.isClientSide() && entity instanceof ItemEntity itemEntity) {
 			WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).ifPresent(be -> tryToPickup(level, itemEntity, be.getStorageWrapper()));
 		}
@@ -137,23 +138,21 @@ public abstract class StorageBlockBase extends BlockBase implements IStorageBloc
 	}
 
 	@Override
-	public int getAnalogOutputSignal(BlockState blockState, Level level, BlockPos pos) {
+	public int getAnalogOutputSignal(BlockState blockState, Level level, BlockPos pos, Direction direction) {
 		return WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).map(be -> InventoryHelper.getAnalogOutputSignal(be.getStorageWrapper().getInventoryForInputOutput())).orElse(0);
 	}
 
 	@Override
-	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-		if (!state.is(newState.getBlock())) {
-			WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).ifPresent(b -> {
-				b.removeFromController();
-				if (b.shouldDropContents()) {
-					b.dropContents();
-				}
-				level.updateNeighbourForOutputSignal(pos, this);
-			});
-		}
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean isMoving) {
+		WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).ifPresent(b -> {
+			b.removeFromController();
+			if (b.shouldDropContents()) {
+				b.dropContents();
+			}
+			level.updateNeighbourForOutputSignal(pos, this);
+		});
 
-		super.onRemove(state, level, pos, newState, isMoving);
+		super.affectNeighborsAfterRemoval(state, level, pos, isMoving);
 	}
 
 	@Override
@@ -207,8 +206,8 @@ public abstract class StorageBlockBase extends BlockBase implements IStorageBloc
 	}
 
 	@Override
-	protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
-		WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).ifPresent(be -> be.onNeighborChange(neighborPos));
+	protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, net.minecraft.world.level.redstone.Orientation orientation, boolean movedByPiston) {
+		WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).ifPresent(be -> be.onNeighborChange(pos));
 	}
 
 	protected boolean tryAddUpgrade(Player player, InteractionHand hand, StorageBlockEntity b, ItemStack itemInHand, Direction facing, BlockHitResult hitResult) {

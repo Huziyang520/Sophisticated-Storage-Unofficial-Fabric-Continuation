@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedstorage.crafting;
 import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditionType;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.resources.RegistryOps;
 import net.p3pp3rf1y.sophisticatedstorage.Config;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModItems;
 import org.jetbrains.annotations.Nullable;
@@ -13,12 +13,12 @@ public class DropPackedDisabledCondition implements ResourceCondition {
 	public static final MapCodec<DropPackedDisabledCondition> CODEC = MapCodec.unit(INSTANCE).stable();
 
 	@Override
-	public boolean test(HolderLookup.@Nullable Provider registryLookup) {
+	public boolean test(RegistryOps.@Nullable RegistryInfoLookup registryLookup) {
 		return Boolean.FALSE.equals(Config.COMMON.dropPacked.get());
 	}
 
 	@Override
-	public ResourceConditionType<DropPackedDisabledCondition> getType() {
+	public ResourceConditionType<?> getType() {
 		return ModItems.DROP_PACKED_DISABLED_CONDITION;
 	}
 }
