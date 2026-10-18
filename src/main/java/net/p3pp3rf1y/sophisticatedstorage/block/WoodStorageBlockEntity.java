@@ -50,6 +50,9 @@ public abstract class WoodStorageBlockEntity extends StorageBlockEntity {
 		woodType = NBTHelper.getString(tag, "woodType").flatMap(woodTypeName -> WoodType.values().filter(wt -> wt.name().equals(woodTypeName)).findFirst())
 				.orElse(getStorageWrapper().hasMainColor() && getStorageWrapper().hasAccentColor() ? null : WoodType.ACACIA);
 		packed = tag.getBooleanOr(PACKED_TAG, false);
+		// 客户端是走 loadSynchronizedData 拿到 woodType 的（不经过 setWoodType），
+		// 必须让区块重画，否则方块颜色按“无染色”烘焙后一直是白的
+		WorldHelper.notifyBlockUpdate(this);
 	}
 
 	public Optional<WoodType> getWoodType() {
