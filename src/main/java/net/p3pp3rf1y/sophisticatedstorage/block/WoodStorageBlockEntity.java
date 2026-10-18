@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.WoodType;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 import net.p3pp3rf1y.sophisticatedstorage.item.WoodStorageBlockItem;
 
 import org.jetbrains.annotations.Nullable;
@@ -58,6 +59,9 @@ public abstract class WoodStorageBlockEntity extends StorageBlockEntity {
 	public void setWoodType(WoodType woodType) {
 		this.woodType = woodType;
 		setChanged();
+		// 方块颜色是从方块实体读的，客户端拿到 woodType 后必须让区块重新渲染，
+		// 否则首次烘焙时取不到颜色（-1 = 不染色）→ 放下后是白桶，直到下一次方块更新
+		WorldHelper.notifyBlockUpdate(this);
 	}
 
 	@Override

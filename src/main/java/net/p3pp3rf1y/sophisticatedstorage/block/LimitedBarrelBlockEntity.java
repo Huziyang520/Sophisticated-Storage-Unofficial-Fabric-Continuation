@@ -40,6 +40,15 @@ public class LimitedBarrelBlockEntity extends BarrelBlockEntity implements ICoun
 	public LimitedBarrelBlockEntity(BlockPos pos, BlockState state) {
 		super(pos, state, ModBlocks.LIMITED_BARREL_BLOCK_ENTITY_TYPE.get());
 		registerUpgradeDefaults();
+		// 26.3：构造期 getBlockState() 还拿不到方块状态（要等 setLevel 才注入），
+		// 此时 getInventoryHandler() 会按 getDefaultNumberOfInventorySlots() = 0 建出 0 槽的 handler，
+		// 打开界面时 slotCount 恒为 0 → LimitedBarrelScreen 直接抛 IllegalStateException。
+		// 因此把监听器注册推迟到 setLevel。
+	}
+
+	@Override
+	public void setLevel(net.minecraft.world.level.Level level) {
+		super.setLevel(level);
 		registerClientNotificationOnCountChange();
 	}
 
@@ -47,7 +56,13 @@ public class LimitedBarrelBlockEntity extends BarrelBlockEntity implements ICoun
 		getStorageWrapper().registerUpgradeDefaultsHandler(VoidUpgradeWrapper.class, VOID_UPGRADE_VOIDING_OVERFLOW_OF_EVERYTHING_BY_DEFAULT);
 	}
 
+	private boolean clientNotificationRegistered = false;
+
 	private void registerClientNotificationOnCountChange() {
+		if (clientNotificationRegistered) {
+			return;
+		}
+		clientNotificationRegistered = true;
 		getStorageWrapper().getInventoryHandler().addListener(slot -> WorldHelper.notifyBlockUpdate(this));
 	}
 

@@ -255,6 +255,14 @@ public abstract class StorageWrapper implements IStorageWrapper {
 				return isAllowedInStorage(stack);
 			}
 		};
+		// 读回来的内容 NBT 里可能带着 Size=0（例如从物品侧继承来的空 wrapper），
+		// 那会把按方块声明的槽位数缩成 0，界面上就一个存储槽都没有、整屏错位。
+		int expectedSlots = getNumberOfInventorySlots();
+		if (expectedSlots > 0 && inventoryHandler.getSlotCount() != expectedSlots) {
+			SophisticatedCore.LOGGER.warn("inventory handler size {} does not match the block's {} slots, resizing",
+					inventoryHandler.getSlotCount(), expectedSlots);
+			inventoryHandler.changeSlots(expectedSlots - inventoryHandler.getSlotCount());
+		}
 		inventoryHandler.addListener(getSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class)::itemChanged);
 		inventoryHandler.setShouldInsertIntoEmpty(this::emptyInventorySlotsAcceptItems);
 	}

@@ -225,12 +225,13 @@ public class ModItems {
 			FabricCreativeModeTab.builder().icon(() -> WoodStorageBlockItem.setWoodType(new ItemStack(ModBlocks.GOLD_BARREL_ITEM.get()), WoodType.SPRUCE))
 					.title(Component.translatable("itemGroup.sophisticatedstorage"))
 					.displayItems((featureFlags, output) -> {
-						// 26.3：核心的 DeferredRegister 不再暴露 getEntries()，改为遍历注册表里属于本模组的物品
-						BuiltInRegistries.ITEM.entrySet().forEach(entry -> {
-							if (!entry.getKey().identifier().getNamespace().equals(SophisticatedStorage.MOD_ID)) {
+						// 26.3：核心的 DeferredRegister 不再暴露 getEntries()，改为遍历注册表里属于本模组的物品。
+						// 必须用 stream()（按注册 id 顺序）而不是 entrySet()：MappedRegistry.entrySet() 走 byKey 的
+						// HashMap，返回哈希序，创造栏与 JEI 里就会乱序。
+						BuiltInRegistries.ITEM.stream().forEach(item -> {
+							if (!BuiltInRegistries.ITEM.getKey(item).getNamespace().equals(SophisticatedStorage.MOD_ID)) {
 								return;
 							}
-							Item item = entry.getValue();
 							if (item instanceof ItemBase itemBase) {
 								itemBase.addCreativeTabItems(output::accept);
 							} else if (item instanceof BlockItemBase blockItemBase) {

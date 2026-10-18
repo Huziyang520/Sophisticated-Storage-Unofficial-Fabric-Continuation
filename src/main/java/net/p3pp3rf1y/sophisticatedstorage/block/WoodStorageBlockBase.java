@@ -107,7 +107,9 @@ public abstract class WoodStorageBlockBase extends StorageBlockBase implements I
 
 	@Override
 	public void addCreativeTabItems(Consumer<ItemStack> itemConsumer) {
-		if (!Config.CLIENT_SPEC.isLoaded() || Boolean.TRUE.equals(Config.CLIENT.showSingleWoodVariantOnly.get())) {
+		// 配置在创造栏枚举之前可能还没 attach（isLoaded() = false）。此时必须按默认值 false 处理，
+		// 否则只会加进一个金合欢木变体，玩家看到的就是“存储只有金合欢木”。
+		if (Config.CLIENT_SPEC.isLoaded() && Boolean.TRUE.equals(Config.CLIENT.showSingleWoodVariantOnly.get())) {
 			itemConsumer.accept(WoodStorageBlockItem.setWoodType(new ItemStack(this), WoodType.ACACIA));
 		} else {
 			CUSTOM_TEXTURE_WOOD_TYPES.keySet().forEach(woodType -> itemConsumer.accept(WoodStorageBlockItem.setWoodType(new ItemStack(this), woodType)));

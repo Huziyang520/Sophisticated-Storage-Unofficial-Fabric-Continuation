@@ -207,7 +207,10 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 	@Override
 	public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
 		BlockEntity blockentity = level.getBlockEntity(pos);
-		if (blockentity instanceof ShulkerBoxBlockEntity shulkerBoxBlockEntity && !level.isClientSide() && player.isCreative()) {
+		// 26.3 vanilla：只在实际会阻止掉落（创造/旁观等）且盒子非空时才额外丢一份带内容的盒子，
+		// 否则打空盒子也会凭空复制一个出来
+		if (blockentity instanceof ShulkerBoxBlockEntity shulkerBoxBlockEntity && !level.isClientSide()
+				&& player.preventsBlockDrops() && hasContents(shulkerBoxBlockEntity)) {
 			ItemStack shulkerBoxDrop = new ItemStack(this);
 			addShulkerContentsToStack(shulkerBoxDrop, shulkerBoxBlockEntity);
 
@@ -217,6 +220,16 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 		}
 
 		return super.playerWillDestroy(level, pos, state, player);
+	}
+
+	private static boolean hasContents(ShulkerBoxBlockEntity be) {
+		var handler = be.getStorageWrapper().getInventoryHandler();
+		for (int slot = 0; slot < handler.getSlotCount(); slot++) {
+			if (!handler.getStackInSlot(slot).isEmpty()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
