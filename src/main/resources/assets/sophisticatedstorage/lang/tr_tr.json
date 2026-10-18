@@ -278,5 +278,8 @@
   "gui.sophisticatedstorage.status.too_many_item_entity_drops": "%s kıramazsın çünkü çok fazla (%s) eşya varlığının düşmesine neden olur\nBu kontrolü atlamak için %s kullanmayı veya eğilirken kırmayı deneyin",
   "gui.sophisticatedstorage.status.too_low_tier_upgrade_count": "Yükseltme %s %ss gerektirir",
   "gui.sophisticatedstorage.status.packing_tape_disabled": "Paketleme bandına gerek kalmadan tüm depoları paketlenmiş olarak bırakmak için yapılandırma ayarı",
-  "gui.sophisticatedstorage.tooltip.parts_stored": "Parts Stored"
+  "gui.sophisticatedstorage.tooltip.parts_stored": "Parts Stored",
+  "keybind.sophisticatedstorage.cycle_tool_mode": "Cycle Storage Tool Mode",
+  "key.category.sophisticatedstorage.main": "Sophisticated Storage",
+  "item.sophisticatedstorage.inaccessible_slot": "Inaccessible Slot"
 }

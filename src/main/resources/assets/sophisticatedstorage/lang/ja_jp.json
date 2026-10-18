@@ -278,5 +278,8 @@
   "gui.sophisticatedstorage.status.too_many_item_entity_drops": "その %s を壊すと%s個のアイテムをドロップするため壊せません。\n%sを使用するか、SHIFTを押しながら壊してください。",
   "gui.sophisticatedstorage.status.too_low_tier_upgrade_count": "アップグレードには%s個の %s が必要です。",
   "gui.sophisticatedstorage.status.packing_tape_disabled": "Config set to drop all storages as packed without the need for packing tape",
-  "gui.sophisticatedstorage.tooltip.parts_stored": "Parts Stored"
+  "gui.sophisticatedstorage.tooltip.parts_stored": "Parts Stored",
+  "keybind.sophisticatedstorage.cycle_tool_mode": "Cycle Storage Tool Mode",
+  "key.category.sophisticatedstorage.main": "Sophisticated Storage",
+  "item.sophisticatedstorage.inaccessible_slot": "Inaccessible Slot"
 }

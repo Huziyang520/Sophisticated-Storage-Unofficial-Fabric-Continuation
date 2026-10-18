@@ -711,5 +711,8 @@
   "config.sophisticatedstorage.server.advancedJukeboxUpgrade.slotsInRow.tooltip": "唱片槽位在界面中每行显示的数量。",
   "config.sophisticatedstorage.server.maxUpgradesPerStorage": "每台存储的升级上限",
   "config.sophisticatedstorage.server.maxUpgradesPerStorage.tooltip": "每台存储各类型升级的数量上限，格式为 \"存储类型|升级注册名[或升级组]|上限数量\"。",
-  "sophisticatedcore.link.feedback": "备用反馈地址"
+  "sophisticatedcore.link.feedback": "备用反馈地址",
+  "keybind.sophisticatedstorage.cycle_tool_mode": "切换存储工具模式",
+  "key.category.sophisticatedstorage.main": "精妙存储",
+  "item.sophisticatedstorage.inaccessible_slot": "不可访问槽位"
 }

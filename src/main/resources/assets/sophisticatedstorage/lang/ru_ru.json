@@ -278,5 +278,8 @@
   "gui.sophisticatedstorage.status.too_many_item_entity_drops": "%s нежелательно ломать из-за слишком большого количества (%s) выбрасываемых предметов-сущностей.\n%s вам в помощь — или ломайте хранилище с зажатым SHIFT для игнорирования предупреждения",
   "gui.sophisticatedstorage.status.too_low_tier_upgrade_count": "Для повышения уровня необходимы %s %s",
   "gui.sophisticatedstorage.status.packing_tape_disabled": "Настроена конфигурация на выпадение хранилищ уже упакованными, без нужды в упаковочной ленте",
-  "gui.sophisticatedstorage.tooltip.parts_stored": "Parts Stored"
+  "gui.sophisticatedstorage.tooltip.parts_stored": "Parts Stored",
+  "keybind.sophisticatedstorage.cycle_tool_mode": "Cycle Storage Tool Mode",
+  "key.category.sophisticatedstorage.main": "Sophisticated Storage",
+  "item.sophisticatedstorage.inaccessible_slot": "Inaccessible Slot"
 }

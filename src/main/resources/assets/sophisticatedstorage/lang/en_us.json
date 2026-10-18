@@ -532,5 +532,8 @@
   "config.sophisticatedstorage.server.advancedJukeboxUpgrade.numberOfSlots": "Number Of Slots",
   "config.sophisticatedstorage.server.advancedJukeboxUpgrade.slotsInRow": "Slots In Row",
   "config.sophisticatedstorage.server.maxUpgradesPerStorage": "Max Upgrades Per Storage",
-  "sophisticatedcore.link.feedback": "Backup Feedback"
+  "sophisticatedcore.link.feedback": "Backup Feedback",
+  "keybind.sophisticatedstorage.cycle_tool_mode": "Cycle Storage Tool Mode",
+  "key.category.sophisticatedstorage.main": "Sophisticated Storage",
+  "item.sophisticatedstorage.inaccessible_slot": "Inaccessible Slot"
 }

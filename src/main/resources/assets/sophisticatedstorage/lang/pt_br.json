@@ -368,5 +368,8 @@
   "item.sophisticatedstorage.jungle_netherite_chest": "Baú de netherita de madeira da selva",
   "item.sophisticatedstorage.dark_oak_netherite_chest": "Baú de netherita de carvalho escuro",
   "item.sophisticatedstorage.crimson_netherite_chest": "Baú de netherita carmesim",
-  "item.sophisticatedstorage.warped_netherite_chest": "Baú de netherita distorcido"
+  "item.sophisticatedstorage.warped_netherite_chest": "Baú de netherita distorcido",
+  "keybind.sophisticatedstorage.cycle_tool_mode": "Cycle Storage Tool Mode",
+  "key.category.sophisticatedstorage.main": "Sophisticated Storage",
+  "item.sophisticatedstorage.inaccessible_slot": "Inaccessible Slot"
 }

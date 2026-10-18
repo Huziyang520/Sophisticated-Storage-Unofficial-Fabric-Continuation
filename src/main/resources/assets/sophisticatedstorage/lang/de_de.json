@@ -290,5 +290,8 @@
   "item.sophisticatedstorage.chipped.philosopher_workbench_upgrade": "Chipped: Philosophen-Werkbank-Upgrade",
   "item.sophisticatedstorage.chipped.philosopher_workbench_upgrade.tooltip": "Chipped Philosophen-Werkbank in einem Upgrade-Tab",
   "item.sophisticatedstorage.chipped.tinkerer_workbench_upgrade": "Chipped: Bastler-Werkbank-Upgrade",
-  "item.sophisticatedstorage.chipped.tinkerer_workbench_upgrade.tooltip": "Chipped Bastler-Werkbank in einem Upgrade-Tab"
+  "item.sophisticatedstorage.chipped.tinkerer_workbench_upgrade.tooltip": "Chipped Bastler-Werkbank in einem Upgrade-Tab",
+  "keybind.sophisticatedstorage.cycle_tool_mode": "Cycle Storage Tool Mode",
+  "key.category.sophisticatedstorage.main": "Sophisticated Storage",
+  "item.sophisticatedstorage.inaccessible_slot": "Inaccessible Slot"
 }

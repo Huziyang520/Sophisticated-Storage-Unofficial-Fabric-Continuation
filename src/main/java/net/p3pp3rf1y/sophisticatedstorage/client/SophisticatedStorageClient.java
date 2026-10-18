@@ -22,6 +22,7 @@ public class SophisticatedStorageClient implements ClientModInitializer {
 		// 这里只保留屏幕与 HUD 注册（HUD 改用 26.3 的 HudElementRegistry）。
 		ModBlocksClient.registerScreens();
 		ModItemsClient.registerScreens();
+		ClientKeybinds.register();
 
 		HudElementRegistry.attachElementAfter(VanillaHudElements.OVERLAY_MESSAGE, Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "paintbrush_info"), PaintbrushOverlay.HUD_PAINTBRUSH_INFO);
 		HudElementRegistry.attachElementAfter(VanillaHudElements.OVERLAY_MESSAGE, Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "tool_info"), ToolInfoOverlay.HUD_TOOL_INFO);
