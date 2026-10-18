@@ -35,6 +35,8 @@ public class StorageContainerMenu extends StorageContainerMenuBase<IStorageWrapp
 	public StorageContainerMenu(MenuType<?> menuType, int containerId, Player player, BlockPos pos) {
 		super(menuType, containerId, player, getWrapper(player.level(), pos), NoopStorageWrapper.INSTANCE, -1, false);
 		storageBlockEntity = WorldHelper.getBlockEntity(player.level(), pos, StorageBlockEntity.class).orElseThrow(() -> new IllegalArgumentException("Incorrect block entity at " + pos + " exptected to find StorageBlockEntity"));
+		// breadcrumb for the port: the menu exists on both sides, the screen may still fail to appear
+		net.p3pp3rf1y.sophisticatedstorage.SophisticatedStorage.LOGGER.info("storage menu created at {} (id {})", pos, containerId);
 		storageBlockEntity.startOpen(player);
 	}
 

@@ -1,10 +1,9 @@
 package net.p3pp3rf1y.sophisticatedstorage.client.render;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.item.ItemStack;
+import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.client.render.ClientStorageContentsTooltipBase;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedstorage.item.StackStorageWrapper;
@@ -24,14 +23,8 @@ public class ClientStorageContentsTooltip extends ClientStorageContentsTooltipBa
 	}
 
 	@Override
-	public int getHeight(Font font) {
-		return getHeight();
-	}
-
-	@Override
-	public void extractImage(Font font, int leftX, int topY, int width, int height, GuiGraphicsExtractor guiGraphics) {
-		//noinspection DataFlowIssue - level definitely exists here
-		renderTooltip(StackStorageWrapper.fromStack(Minecraft.getInstance().level.registryAccess(), storageItem), font, leftX, topY, guiGraphics);
+	protected IStorageWrapper getStorageWrapper() {
+		return StackStorageWrapper.fromStack(Minecraft.getInstance().level.registryAccess(), storageItem);
 	}
 
 	public ClientStorageContentsTooltip(StorageContentsTooltip tooltip) {
