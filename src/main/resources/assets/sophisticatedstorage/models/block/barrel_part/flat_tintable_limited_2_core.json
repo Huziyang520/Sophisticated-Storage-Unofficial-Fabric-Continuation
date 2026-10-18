@@ -1,11 +1,6 @@
 {
-    "loader": "sophisticatedstorage:simple_composite",
-    "parts": {
-        "core_without_top": {
-            "parent": "sophisticatedstorage:block/barrel_part/flat_tintable_core_without_top"
-        },
-        "top": {
-            "parent": "sophisticatedstorage:block/barrel_part/flat_tintable_limited_2_core_top"
-        }
-    }
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "sophisticatedstorage:block/wood_barrel_side"
+  }
 }

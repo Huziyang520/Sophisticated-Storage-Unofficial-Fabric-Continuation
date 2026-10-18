@@ -33,7 +33,11 @@ public class WoodStorageBlockItem extends StorageBlockItem {
             });
 
     public WoodStorageBlockItem(Block block, Properties properties) {
-        super(block, properties);
+        // 26.3 no longer consults Item.getName when resolving a hover name: BlockItem pins DataComponents.ITEM_NAME to
+        // the block's plain translation. These names take the wood name as a format argument, so the component has to be
+        // supplied here - and refreshed when the wood type changes - or the player sees a literal "%s".
+        super(block, properties.component(net.minecraft.core.component.DataComponents.ITEM_NAME,
+                Component.translatable(block.getDescriptionId(), "", "")));
     }
 
     public static void setPacked(ItemStack storageStack, boolean packed) {
@@ -101,6 +105,8 @@ public class WoodStorageBlockItem extends StorageBlockItem {
 
     public static ItemStack setWoodType(ItemStack storageStack, WoodType woodType) {
         storageStack.sophisticatedCore_set(ModDataComponents.WOOD_TYPE, woodType);
+        storageStack.set(net.minecraft.core.component.DataComponents.ITEM_NAME,
+                getDisplayName(storageStack.getItem().getDescriptionId(), woodType));
         return storageStack;
     }
 

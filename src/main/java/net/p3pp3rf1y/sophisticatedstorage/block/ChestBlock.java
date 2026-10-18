@@ -103,7 +103,7 @@ public class ChestBlock extends WoodStorageBlockBase implements SimpleWaterlogge
 
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
-		return RenderShape.INVISIBLE;
+		return RenderShape.MODEL;
 	}
 
 	@Override

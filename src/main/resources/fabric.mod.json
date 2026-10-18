@@ -12,7 +12,8 @@
   "license": "${mod_license}",
   "icon": "${mod_logo_file}",
   "contact": {
-    "issues": "${mod_issue_tracker_url}"
+    "homepage": "https://github.com/Huziyang520/Sophisticated-Storage-Unofficial-Fabric-Continuation",
+    "issues": "https://github.com/Huziyang520/Sophisticated-Storage-Unofficial-Fabric-Continuation/issues"
   },
   "environment": "*",
   "entrypoints": {
@@ -32,7 +33,7 @@
     "fabric-api": "*",
     "minecraft": "${fabric_minecraft_range}",
     "java": ">=${java_version}",
-    "cloth-config": ">=${cloth_config_version}",
+    "cloth-config": ">=26.3.158",
     "sophisticatedcore": ">=1.5.13.2406"
   },
   "recommends": {
@@ -40,7 +41,10 @@
   },
   "custom": {
     "modmenu": {
-      "badges": []
+      "badges": [],
+      "links": {
+        "sophisticatedcore.link.feedback": "https://issue.mengcai.online/"
+      }
     },
     "loom:injected_interfaces": {
       "net/minecraft/client/gui/screens/inventory/AbstractContainerScreen": [
