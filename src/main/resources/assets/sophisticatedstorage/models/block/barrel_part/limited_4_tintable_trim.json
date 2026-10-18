@@ -1,6 +1,17 @@
 {
-  "parent": "minecraft:block/cube_all",
-  "textures": {
-    "all": "sophisticatedstorage:block/wood_barrel_side"
-  }
+    "loader": "sophisticatedstorage:simple_composite",
+    "parts": {
+        "base": {
+            "parent": "sophisticatedstorage:block/barrel_part/tintable_trim"
+        },
+        "middle_inner_trim": {
+            "parent": "sophisticatedstorage:block/barrel_part/middle_inner_trim_tintable_accent"
+        },
+        "down_inner_trim": {
+            "parent": "sophisticatedstorage:block/barrel_part/down_inner_trim_tintable_accent"
+        },
+        "up_inner_trim": {
+            "parent": "sophisticatedstorage:block/barrel_part/up_inner_trim_tintable_accent"
+        }
+    }
 }

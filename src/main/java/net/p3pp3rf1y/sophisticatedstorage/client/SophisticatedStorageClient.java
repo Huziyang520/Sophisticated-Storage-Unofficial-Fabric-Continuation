@@ -14,6 +14,8 @@ import net.p3pp3rf1y.sophisticatedstorage.client.gui.PaintbrushOverlay;
 import net.p3pp3rf1y.sophisticatedstorage.client.gui.ToolInfoOverlay;
 import net.p3pp3rf1y.sophisticatedstorage.client.init.ModBlocksClient;
 import net.p3pp3rf1y.sophisticatedstorage.client.init.ModItemsClient;
+import net.p3pp3rf1y.sophisticatedstorage.client.init.StorageRenderers;
+import net.p3pp3rf1y.sophisticatedstorage.client.init.StorageTints;
 
 public class SophisticatedStorageClient implements ClientModInitializer {
 	@Override
@@ -23,6 +25,9 @@ public class SophisticatedStorageClient implements ClientModInitializer {
 		ModBlocksClient.registerScreens();
 		ModItemsClient.registerScreens();
 		ClientKeybinds.register();
+		// 26.3：木桶的木种/染料着色走 BlockTintSource 列表；箱子/潜影盒的外观完全由 BER 画，必须注册渲染器
+		StorageTints.register();
+		StorageRenderers.register();
 
 		HudElementRegistry.attachElementAfter(VanillaHudElements.OVERLAY_MESSAGE, Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "paintbrush_info"), PaintbrushOverlay.HUD_PAINTBRUSH_INFO);
 		HudElementRegistry.attachElementAfter(VanillaHudElements.OVERLAY_MESSAGE, Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "tool_info"), ToolInfoOverlay.HUD_TOOL_INFO);
