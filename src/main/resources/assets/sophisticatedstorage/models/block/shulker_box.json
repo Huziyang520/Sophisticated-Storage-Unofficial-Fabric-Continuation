@@ -3,7 +3,7 @@
   "textures": {
     "particle": "minecraft:block/shulker_box",
     "body": "minecraft:block/shulker_box",
-    "latch": "minecraft:block/iron_block"
+    "lid": "minecraft:block/shulker_box"
   },
   "elements": [
     {
@@ -14,91 +14,59 @@
       ],
       "to": [
         15,
-        10,
-        15
-      ],
-      "faces": {
-        "north": {
-          "texture": "#body"
-        },
-        "south": {
-          "texture": "#body"
-        },
-        "east": {
-          "texture": "#body"
-        },
-        "west": {
-          "texture": "#body"
-        },
-        "up": {
-          "texture": "#body"
-        },
-        "down": {
-          "texture": "#body"
-        }
-      }
-    },
-    {
-      "from": [
-        1,
-        10,
-        1
-      ],
-      "to": [
-        15,
-        14,
-        15
-      ],
-      "faces": {
-        "north": {
-          "texture": "#body"
-        },
-        "south": {
-          "texture": "#body"
-        },
-        "east": {
-          "texture": "#body"
-        },
-        "west": {
-          "texture": "#body"
-        },
-        "up": {
-          "texture": "#body"
-        },
-        "down": {
-          "texture": "#body"
-        }
-      }
-    },
-    {
-      "from": [
-        7,
         8,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#body"
+        },
+        "south": {
+          "texture": "#body"
+        },
+        "east": {
+          "texture": "#body"
+        },
+        "west": {
+          "texture": "#body"
+        },
+        "up": {
+          "texture": "#body"
+        },
+        "down": {
+          "texture": "#body"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        6,
         0
       ],
       "to": [
-        9,
-        12,
-        1
+        16,
+        13,
+        16
       ],
       "faces": {
         "north": {
-          "texture": "#latch"
+          "texture": "#lid"
         },
         "south": {
-          "texture": "#latch"
+          "texture": "#lid"
         },
         "east": {
-          "texture": "#latch"
+          "texture": "#lid"
         },
         "west": {
-          "texture": "#latch"
+          "texture": "#lid"
         },
         "up": {
-          "texture": "#latch"
+          "texture": "#lid"
         },
         "down": {
-          "texture": "#latch"
+          "texture": "#lid"
         }
       }
     }

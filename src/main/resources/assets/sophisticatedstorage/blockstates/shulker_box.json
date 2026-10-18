@@ -1,7 +1,30 @@
 {
-    "variants": {
-        "": {
-            "model": "sophisticatedstorage:block/shulker_box"
-        }
+  "variants": {
+    "facing=up": {
+      "model": "sophisticatedstorage:block/shulker_box"
+    },
+    "facing=down": {
+      "model": "sophisticatedstorage:block/shulker_box",
+      "x": 180
+    },
+    "facing=north": {
+      "model": "sophisticatedstorage:block/shulker_box",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "sophisticatedstorage:block/shulker_box",
+      "x": 90,
+      "y": 180
+    },
+    "facing=east": {
+      "model": "sophisticatedstorage:block/shulker_box",
+      "x": 90,
+      "y": 90
+    },
+    "facing=west": {
+      "model": "sophisticatedstorage:block/shulker_box",
+      "x": 90,
+      "y": 270
     }
+  }
 }
