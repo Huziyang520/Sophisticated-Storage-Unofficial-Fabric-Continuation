@@ -121,7 +121,8 @@ public class BarrelBlock extends WoodStorageBlockBase {
 	public InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
 		return WorldHelper.getBlockEntity(level, pos, WoodStorageBlockEntity.class).map(b -> {
 			if (b.isPacked()) {
-				return InteractionResult.PASS;
+				// 26.3：未处理必须返回 TRY_WITH_EMPTY_HAND，否则 ServerPlayerGameMode 不会继续调 useWithoutItem（开界面的入口）
+				return InteractionResult.TRY_WITH_EMPTY_HAND;
 			}
 			if (level.isClientSide() || hand == InteractionHand.OFF_HAND) {
 				return InteractionResult.SUCCESS;
@@ -130,8 +131,8 @@ public class BarrelBlock extends WoodStorageBlockBase {
 			if (tryItemInteraction(player, hand, b, stack, getFacing(state), hitResult)) {
 				return InteractionResult.SUCCESS;
 			}
-			return InteractionResult.PASS;
-		}).orElse(InteractionResult.PASS);
+			return InteractionResult.TRY_WITH_EMPTY_HAND;
+		}).orElse(InteractionResult.TRY_WITH_EMPTY_HAND);
 	}
 
 	@Override

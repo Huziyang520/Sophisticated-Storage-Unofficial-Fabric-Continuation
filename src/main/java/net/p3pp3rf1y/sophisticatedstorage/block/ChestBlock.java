@@ -271,8 +271,9 @@ public class ChestBlock extends WoodStorageBlockBase implements SimpleWaterlogge
 			if (tryItemInteraction(player, hand, b, stack, state.getValue(FACING), hitResult)) {
 				return InteractionResult.SUCCESS;
 			}
-			return InteractionResult.PASS;
-		}).orElse(InteractionResult.PASS);
+			// 26.3：未处理必须返回 TRY_WITH_EMPTY_HAND，才会回落到 useWithoutItem 打开界面
+			return InteractionResult.TRY_WITH_EMPTY_HAND;
+		}).orElse(InteractionResult.TRY_WITH_EMPTY_HAND);
 	}
 
 	@Override
