@@ -1,6 +1,11 @@
 package net.p3pp3rf1y.sophisticatedstorage.client;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.rendering.v1.ClientTooltipComponentCallback;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
+import net.p3pp3rf1y.sophisticatedstorage.item.StorageContentsTooltip;
+import org.jetbrains.annotations.Nullable;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.minecraft.resources.Identifier;
@@ -20,5 +25,19 @@ public class SophisticatedStorageClient implements ClientModInitializer {
 
 		HudElementRegistry.attachElementAfter(VanillaHudElements.OVERLAY_MESSAGE, Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "paintbrush_info"), PaintbrushOverlay.HUD_PAINTBRUSH_INFO);
 		HudElementRegistry.attachElementAfter(VanillaHudElements.OVERLAY_MESSAGE, Identifier.fromNamespaceAndPath(SophisticatedStorage.MOD_ID, "tool_info"), ToolInfoOverlay.HUD_TOOL_INFO);
+
+		// 26.3 resolves a tooltip component through ClientTooltipComponent.create, which only knows the vanilla ones;
+		// without this hook any tooltip carrying the storage contents component (and every JEI ingredient tooltip that
+		// inherits it) throws "Unknown TooltipComponent" and the client dies while drawing the tooltip.
+		ClientTooltipComponentCallback.EVENT.register(SophisticatedStorageClient::createTooltipComponent);
+	}
+
+	@Nullable
+	private static ClientTooltipComponent createTooltipComponent(TooltipComponent data) {
+		if (data instanceof StorageContentsTooltip storageContentsTooltip) {
+			return new net.p3pp3rf1y.sophisticatedstorage.client.render.ClientStorageContentsTooltip(storageContentsTooltip);
+		}
+
+		return null;
 	}
 }

@@ -25,6 +25,9 @@
     ],
     "modmenu": [
       "net.p3pp3rf1y.sophisticatedstorage.client.compat.ModMenuIntegration"
+    ],
+    "jei_mod_plugin": [
+      "net.p3pp3rf1y.sophisticatedstorage.compat.jei.StorageJeiPlugin"
     ]
   },
   "accessWidener": "${mod_id}.accesswidener",

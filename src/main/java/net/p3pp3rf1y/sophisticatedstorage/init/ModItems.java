@@ -216,8 +216,8 @@ public class ModItems {
 	public static final Supplier<ItemBase> STORAGE_TOOL = ITEMS.register("storage_tool", StorageToolItem::new);
 	public static final Supplier<ItemBase> DEBUG_TOOL = ITEMS.register("debug_tool", () -> new ItemBase(net.p3pp3rf1y.sophisticatedcore.platform.RegistryIdContext.applyToItem(new Item.Properties()).stacksTo(1)));
 	public static final Supplier<ItemBase> PAINTBRUSH = ITEMS.register("paintbrush", PaintbrushItem::new);
-	public static final Supplier<Item> INACCESSIBLE_SLOT = ITEMS.register("inaccessible_slot", () -> new Item(net.p3pp3rf1y.sophisticatedcore.platform.RegistryIdContext.applyToItem(new Item.Properties()).stacksTo(1)));
-	public static final Supplier<MapCodec<? extends LootItemFunction>> COPY_STORAGE_DATA = LOOT_FUNCTION_TYPES.register("copy_storage_data", () -> CopyStorageDataFunction.CODEC);
+
+	public static final Supplier<Item> INACCESSIBLE_SLOT = ITEMS.register("inaccessible_slot", () -> new Item(net.p3pp3rf1y.sophisticatedcore.platform.RegistryIdContext.applyToItem(new Item.Properties()).stacksTo(1)));	public static final Supplier<MapCodec<? extends LootItemFunction>> COPY_STORAGE_DATA = LOOT_FUNCTION_TYPES.register("copy_storage_data", () -> CopyStorageDataFunction.CODEC);
 
 	//private static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, SophisticatedStorage.MOD_ID);
 
