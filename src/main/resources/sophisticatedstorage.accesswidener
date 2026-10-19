@@ -28,3 +28,6 @@ accessible field net/minecraft/client/renderer/special/SpecialModelRenderers ID_
 # 26.3 把槽位坐标改成 final，容器界面按自身尺寸重排时需要写回
 mutable field net/minecraft/world/inventory/Slot x I
 mutable field net/minecraft/world/inventory/Slot y I
+
+# 潜影盒渲染直接用 vanilla 的模型（自建模型的原点与 vanilla 不一致，导致方块整体偏移半格）
+accessible class net/minecraft/client/renderer/blockentity/ShulkerBoxRenderer$ShulkerBoxModel

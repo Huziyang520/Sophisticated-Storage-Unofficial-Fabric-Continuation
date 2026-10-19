@@ -46,7 +46,7 @@ public class ShulkerBoxRenderer implements BlockEntityRenderer<ShulkerBoxBlockEn
 	private static final String NO_TINT = "no_tint";
 
 	private final SpriteGetter sprites;
-	private final StorageShulkerBoxModel model;
+	private final net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer.ShulkerBoxModel model;
 
 	public ShulkerBoxRenderer(BlockEntityRendererProvider.Context context) {
 		this(context.entityModelSet(), context.sprites());
@@ -58,7 +58,9 @@ public class ShulkerBoxRenderer implements BlockEntityRenderer<ShulkerBoxBlockEn
 	 */
 	public ShulkerBoxRenderer(EntityModelSet modelSet, SpriteGetter sprites) {
 		this.sprites = sprites;
-		model = new StorageShulkerBoxModel(modelSet.bakeLayer(ModelLayers.SHULKER_BOX));
+		// 用 vanilla 自己的 ShulkerBoxModel：几何、原点、开盖角度与方块变换天然一致，
+		// 不会像自建模型那样整体偏移半格
+		model = new net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer.ShulkerBoxModel(modelSet.bakeLayer(ModelLayers.SHULKER_BOX));
 	}
 
 	@Override
@@ -86,9 +88,6 @@ public class ShulkerBoxRenderer implements BlockEntityRenderer<ShulkerBoxBlockEn
 	@Override
 	public void submit(ShulkerRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
 		poseStack.pushPose();
-		// 自建模型的模型空间原点比 vanilla 的 ShulkerBoxModel 高半格（实机：视觉比碰撞箱上移 0.5 格），
-		// 这里按实机结果校准回来；换成按 vanilla LayerDefinition 重建模型后可以删掉这行
-		poseStack.translate(0, -0.5, 0);
 		poseStack.mulPose(net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer.modelTransform(state.direction));
 
 		if (state.mainColor == -1 || state.accentColor == -1) {
