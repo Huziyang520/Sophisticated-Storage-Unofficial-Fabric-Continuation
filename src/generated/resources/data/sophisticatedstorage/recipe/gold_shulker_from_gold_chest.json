@@ -1,10 +1,4 @@
 {
-  "fabric:load_conditions": [
-    {
-      "condition": "sophisticatedcore:item_enabled",
-      "itemRegistryName": "sophisticatedstorage:gold_shulker_box"
-    }
-  ],
   "type": "sophisticatedstorage:shulker_box_from_chest",
   "category": "misc",
   "key": {

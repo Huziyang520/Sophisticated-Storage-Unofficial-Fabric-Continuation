@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.client.render;
 
+import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.state.properties.WoodType;
 
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +42,12 @@ public final class StorageWoodColors {
 
 	/**
 	 * Tint colour of the given wood type, or {@code -1} (untinted) when the wood type is unknown / absent.
+	 * <p>
+	 * The value is ARGB with an <b>opaque</b> alpha channel - that is the contract of both
+	 * {@link net.minecraft.client.color.item.ItemTintSource} and {@link net.minecraft.client.color.block.BlockTintSource}
+	 * (see vanilla {@code ARGB.opaque} calls in {@code Potion}/{@code TeamColor}). A plain {@code 0xRRGGBB} value has
+	 * alpha 0, and the item renderer feeds the tint straight into {@code QuadInstance#setColor} - the tinted quads are
+	 * then drawn fully transparent, which is why the barrel item showed nothing but its untinted metal bands and handle.
 	 */
 	public static int tintFor(@Nullable WoodType woodType) {
 		if (woodType == null) {
@@ -56,7 +63,7 @@ public final class StorageWoodColors {
 
 	private record WoodColor(WoodType woodType, int red, int green, int blue) {
 		int tint() {
-			return (compensate(red) << 16) | (compensate(green) << 8) | compensate(blue);
+			return ARGB.opaque((compensate(red) << 16) | (compensate(green) << 8) | compensate(blue));
 		}
 
 		private static int compensate(int channel) {

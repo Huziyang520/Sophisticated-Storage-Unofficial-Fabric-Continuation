@@ -31,6 +31,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.WoodType;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
@@ -59,6 +60,17 @@ public class BarrelBlock extends WoodStorageBlockBase {
 	public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
 	public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
 	public static final BooleanProperty FLAT_TOP = BooleanProperty.create("flat_top");
+	/**
+	 * Index of the barrel's wood type in {@link WoodStorageBlockBase#WOOD_TYPES}.
+	 * <p>
+	 * The barrel model is shared by every wood type and is tinted from a {@code BlockTintSource}, which used to read the
+	 * wood type from the block entity. Right after placement the client block entity has not received its data packet
+	 * yet, so the tint fell back to "untinted" and the barrel rendered white (near white overlay texture) for the first
+	 * frames. The index travels in the block state instead (set from the placed item), so the state - which arrives with
+	 * the block itself - already carries the colour on the first frame. Dyes keep using the block entity because a
+	 * colour is not representable in a block state.
+	 */
+	public static final IntegerProperty WOOD = IntegerProperty.create("wood", 0, WoodStorageBlockBase.WOOD_TYPES.size() - 1);
 	private static final VoxelShape ITEM_ENTITY_COLLISION_SHAPE = box(0.05, 0.05, 0.05, 15.95, 15.95, 15.95);
 
 	public BarrelBlock(Supplier<Integer> numberOfInventorySlotsSupplier, Supplier<Integer> numberOfUpgradeSlotsSupplier, Properties properties) {
@@ -183,7 +195,7 @@ public class BarrelBlock extends WoodStorageBlockBase {
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(FACING, OPEN, TICKING, FLAT_TOP);
+		builder.add(FACING, OPEN, TICKING, FLAT_TOP, WOOD);
 	}
 
 	@Override
@@ -215,7 +227,9 @@ public class BarrelBlock extends WoodStorageBlockBase {
 	@Nullable
 	@Override
 	public BlockState getStateForPlacement(BlockPlaceContext blockPlaceContext) {
-		return defaultBlockState().setValue(FACING, blockPlaceContext.getNearestLookingDirection().getOpposite()).setValue(FLAT_TOP, BarrelBlockItem.isFlatTop(blockPlaceContext.getItemInHand()));
+		return defaultBlockState().setValue(FACING, blockPlaceContext.getNearestLookingDirection().getOpposite())
+				.setValue(FLAT_TOP, BarrelBlockItem.isFlatTop(blockPlaceContext.getItemInHand()))
+				.setValue(WOOD, WoodStorageBlockBase.woodTypeIndex(WoodStorageBlockItem.getWoodType(blockPlaceContext.getItemInHand()).orElse(null)));
 	}
 
 	@SuppressWarnings("deprecation")

@@ -221,6 +221,16 @@ public class StorageTierUpgradeItem extends ItemBase {
 			return super.getCountRequired(state);
 		}
 
+		/** Vanilla barrels have no wood property, so the wood type of this upgrade is written into the new state. */
+		@Override
+		protected BlockState getBlockState(BlockState state) {
+			BlockState newBlockState = super.getBlockState(state);
+			if (woodType != null && newBlockState.hasProperty(BarrelBlock.WOOD)) {
+				newBlockState = newBlockState.setValue(BarrelBlock.WOOD, WoodStorageBlockBase.woodTypeIndex(woodType));
+			}
+			return newBlockState;
+		}
+
 		public @Nullable WoodType woodType() {
 			return woodType;
 		}
@@ -349,6 +359,11 @@ public class StorageTierUpgradeItem extends ItemBase {
 			BlockState newBlockState = newBlock().defaultBlockState();
 			for (Property<?> property : getPropertiesToCopy()) {
 				newBlockState = setProperty(newBlockState, state, property);
+			}
+			// The barrel's wood colour is carried by the block state (see BarrelBlock#WOOD), so it has to survive the
+			// block swap - otherwise an upgraded spruce barrel would render acacia until the block entity syncs.
+			if (state.hasProperty(BarrelBlock.WOOD) && newBlockState.hasProperty(BarrelBlock.WOOD)) {
+				newBlockState = newBlockState.setValue(BarrelBlock.WOOD, state.getValue(BarrelBlock.WOOD));
 			}
 			return newBlockState;
 		}

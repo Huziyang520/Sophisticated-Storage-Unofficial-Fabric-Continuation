@@ -33,6 +33,7 @@ import net.p3pp3rf1y.sophisticatedstorage.item.StorageToolItem;
 import net.p3pp3rf1y.sophisticatedstorage.item.WoodStorageBlockItem;
 
 import org.jetbrains.annotations.Nullable;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -52,6 +53,27 @@ public abstract class WoodStorageBlockBase extends StorageBlockBase implements I
 			.put(WoodType.CHERRY, BlockFamilies.CHERRY_PLANKS)
 			.put(WoodType.BAMBOO, BlockFamilies.BAMBOO_PLANKS)
 			.build();
+
+	/**
+	 * Every wood type a wooden storage block can be made of, in the (stable) order of {@link #CUSTOM_TEXTURE_WOOD_TYPES}.
+	 * <p>
+	 * The barrel model is shared by all wood types and gets its colour from a tint source, so the tint has to know the
+	 * wood type. Reading it from the block entity gives a white barrel for the frames between the placement and the
+	 * block entity data packet (the client has no wood type yet). That is why the index of the wood type in this list is
+	 * mirrored into a block state property ({@code BarrelBlock#WOOD}): the state arrives together with the block itself,
+	 * so the very first rendered frame is already tinted correctly.
+	 */
+	public static final List<WoodType> WOOD_TYPES = List.copyOf(CUSTOM_TEXTURE_WOOD_TYPES.keySet());
+
+	/** index of the wood type in {@link #WOOD_TYPES}; unknown / absent wood types map to the first entry (acacia). */
+	public static int woodTypeIndex(@Nullable WoodType woodType) {
+		int index = woodType == null ? -1 : WOOD_TYPES.indexOf(woodType);
+		return index < 0 ? 0 : index;
+	}
+
+	public static WoodType woodTypeAt(int index) {
+		return WOOD_TYPES.get(Math.max(0, Math.min(index, WOOD_TYPES.size() - 1)));
+	}
 
 	protected WoodStorageBlockBase(Properties properties, Supplier<Integer> numberOfInventorySlotsSupplier, Supplier<Integer> numberOfUpgradeSlotsSupplier) {
 		super(properties, numberOfInventorySlotsSupplier, numberOfUpgradeSlotsSupplier);

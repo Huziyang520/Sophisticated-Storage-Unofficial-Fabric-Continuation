@@ -1,10 +1,4 @@
 {
-  "fabric:load_conditions": [
-    {
-      "condition": "sophisticatedcore:item_enabled",
-      "itemRegistryName": "sophisticatedstorage:iron_chest"
-    }
-  ],
   "type": "sophisticatedstorage:double_chest_tier_upgrade",
   "category": "misc",
   "key": {

@@ -5,6 +5,7 @@ import net.minecraft.client.color.item.ItemTintSource;
 import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.properties.WoodType;
@@ -68,11 +69,16 @@ public final class StorageItemTints {
 				int color = mainColor ? tintableBlockItem.getMainColor(stack).orElse(-1)
 						: tintableBlockItem.getAccentColor(stack).orElse(-1);
 				if (color != -1) {
-					return color;
+					// ARGB with alpha forced to 0xFF: the item renderer passes the value straight into the vertex colour,
+					// so a colour stored without alpha bits would render the quad fully transparent.
+					return ARGB.opaque(color);
 				}
 			}
-			WoodType woodType = WoodStorageBlockItem.getWoodType(stack).orElse(null);
-			return StorageWoodColors.tintFor(woodType);
+			// An undyed barrel always falls back to the colour of its wood; a barrel item without any wood type
+			// component (JEI's default stack, /give, older items) uses acacia, which is what the upstream models use
+			// as their default wood as well - never -1, otherwise the near white tintable overlay would show up as is.
+			WoodType woodType = WoodStorageBlockItem.getWoodType(stack).orElse(WoodType.ACACIA);
+			return ARGB.opaque(StorageWoodColors.tintFor(woodType));
 		}
 
 		@Override

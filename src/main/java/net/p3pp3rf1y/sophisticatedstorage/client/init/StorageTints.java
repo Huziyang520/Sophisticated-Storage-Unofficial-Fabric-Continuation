@@ -4,10 +4,13 @@ import net.fabricmc.fabric.api.client.rendering.v1.BlockColorRegistry;
 import net.minecraft.client.color.block.BlockTintSource;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.WoodType;
+import net.p3pp3rf1y.sophisticatedstorage.block.BarrelBlock;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageBlockEntity;
+import net.p3pp3rf1y.sophisticatedstorage.block.WoodStorageBlockBase;
 import net.p3pp3rf1y.sophisticatedstorage.block.WoodStorageBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.client.render.StorageItemTints;
 import net.p3pp3rf1y.sophisticatedstorage.client.render.StorageWoodColors;
@@ -54,34 +57,44 @@ public final class StorageTints {
 	private static final BlockTintSource MAIN_COLOR = new BlockTintSource() {
 		@Override
 		public int color(BlockState state) {
-			return -1;
+			return stateWoodColor(state);
 		}
 
 		@Override
 		public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
 			StorageBlockEntity be = WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).orElse(null);
 			if (be == null) {
-				return -1;
+				// First frame(s) after placement: the client block entity is not there yet. The wood type is mirrored
+				// into the block state, which arrives together with the block, so the barrel is already tinted.
+				return stateWoodColor(state);
 			}
 			int mainColor = be.getStorageWrapper().getMainColor();
-			return mainColor != -1 ? mainColor : woodColor(be);
+			if (mainColor != -1) {
+				return ARGB.opaque(mainColor);
+			}
+			int woodColor = woodColor(be);
+			return woodColor != -1 ? woodColor : stateWoodColor(state);
 		}
 	};
 
 	private static final BlockTintSource ACCENT_COLOR = new BlockTintSource() {
 		@Override
 		public int color(BlockState state) {
-			return -1;
+			return stateWoodColor(state);
 		}
 
 		@Override
 		public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
 			StorageBlockEntity be = WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).orElse(null);
 			if (be == null) {
-				return -1;
+				return stateWoodColor(state);
 			}
 			int accentColor = be.getStorageWrapper().getAccentColor();
-			return accentColor != -1 ? accentColor : woodColor(be);
+			if (accentColor != -1) {
+				return ARGB.opaque(accentColor);
+			}
+			int woodColor = woodColor(be);
+			return woodColor != -1 ? woodColor : stateWoodColor(state);
 		}
 	};
 
@@ -129,5 +142,16 @@ public final class StorageTints {
 		}
 		WoodType woodType = woodBe.getWoodType().orElse(null);
 		return StorageWoodColors.tintFor(woodType);
+	}
+
+	/**
+	 * Wood colour taken from the block state - available on the very first frame, unlike the block entity data.
+	 * Only barrels carry {@link BarrelBlock#WOOD}; other storage blocks (chests, shulker boxes) stay untinted here.
+	 */
+	private static int stateWoodColor(BlockState state) {
+		if (!state.hasProperty(BarrelBlock.WOOD)) {
+			return -1;
+		}
+		return StorageWoodColors.tintFor(WoodStorageBlockBase.woodTypeAt(state.getValue(BarrelBlock.WOOD)));
 	}
 }

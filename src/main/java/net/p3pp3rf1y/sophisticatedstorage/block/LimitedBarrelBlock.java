@@ -39,6 +39,7 @@ import net.p3pp3rf1y.sophisticatedstorage.common.gui.LimitedBarrelContainerMenu;
 import net.p3pp3rf1y.sophisticatedstorage.common.gui.StorageContainerMenu;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
 import net.p3pp3rf1y.sophisticatedstorage.item.BarrelBlockItem;
+import net.p3pp3rf1y.sophisticatedstorage.item.WoodStorageBlockItem;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -80,7 +81,7 @@ public class LimitedBarrelBlock extends BarrelBlock {
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(HORIZONTAL_FACING, VERTICAL_FACING, TICKING, FLAT_TOP);
+		builder.add(HORIZONTAL_FACING, VERTICAL_FACING, TICKING, FLAT_TOP, WOOD);
 	}
 
 	@Nullable
@@ -88,7 +89,9 @@ public class LimitedBarrelBlock extends BarrelBlock {
 	public BlockState getStateForPlacement(BlockPlaceContext blockPlaceContext) {
 		Direction direction = blockPlaceContext.getNearestLookingDirection().getOpposite();
 		Direction horizontalDirection = blockPlaceContext.getHorizontalDirection().getOpposite();
-		return defaultBlockState().setValue(HORIZONTAL_FACING, horizontalDirection).setValue(VERTICAL_FACING, VerticalFacing.fromDirection(direction)).setValue(FLAT_TOP, BarrelBlockItem.isFlatTop(blockPlaceContext.getItemInHand()));
+		return defaultBlockState().setValue(HORIZONTAL_FACING, horizontalDirection).setValue(VERTICAL_FACING, VerticalFacing.fromDirection(direction))
+				.setValue(FLAT_TOP, BarrelBlockItem.isFlatTop(blockPlaceContext.getItemInHand()))
+				.setValue(WOOD, WoodStorageBlockBase.woodTypeIndex(WoodStorageBlockItem.getWoodType(blockPlaceContext.getItemInHand()).orElse(null)));
 	}
 
 	@Override

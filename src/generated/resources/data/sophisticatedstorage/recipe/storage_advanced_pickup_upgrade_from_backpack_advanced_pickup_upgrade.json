@@ -1,16 +1,4 @@
 {
-  "fabric:load_conditions": [
-    {
-      "condition": "sophisticatedcore:item_enabled",
-      "itemRegistryName": "sophisticatedstorage:advanced_pickup_upgrade"
-    },
-    {
-      "condition": "fabric:all_mods_loaded",
-      "values": [
-        "sophisticatedbackpacks"
-      ]
-    }
-  ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
