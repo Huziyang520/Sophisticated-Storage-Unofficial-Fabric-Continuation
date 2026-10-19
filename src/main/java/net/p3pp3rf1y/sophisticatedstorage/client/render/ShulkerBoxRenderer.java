@@ -46,7 +46,12 @@ public class ShulkerBoxRenderer implements BlockEntityRenderer<ShulkerBoxBlockEn
 	private static final String NO_TINT = "no_tint";
 
 	private final SpriteGetter sprites;
-	private final net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer.ShulkerBoxModel model;
+	/**
+	 * 真正负责画的那一个：直接用 vanilla 的渲染器实例，连 pose 变换都不自己算。
+	 * 之前手写 submit / 手写模型导致的“方块整体偏半格”就是这么来的——模型空间、0.9995 缩放、
+	 * translate(0.5,0.5,0.5) 都在 modelTransform 里，任何一处手写都会积累误差。
+	 */
+	private final net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer vanilla;
 
 	public ShulkerBoxRenderer(BlockEntityRendererProvider.Context context) {
 		this(context.entityModelSet(), context.sprites());
@@ -58,9 +63,7 @@ public class ShulkerBoxRenderer implements BlockEntityRenderer<ShulkerBoxBlockEn
 	 */
 	public ShulkerBoxRenderer(EntityModelSet modelSet, SpriteGetter sprites) {
 		this.sprites = sprites;
-		// 用 vanilla 自己的 ShulkerBoxModel：几何、原点、开盖角度与方块变换天然一致，
-		// 不会像自建模型那样整体偏移半格
-		model = new net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer.ShulkerBoxModel(modelSet.bakeLayer(ModelLayers.SHULKER_BOX));
+		vanilla = new net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer(modelSet, sprites);
 	}
 
 	@Override
@@ -87,36 +90,23 @@ public class ShulkerBoxRenderer implements BlockEntityRenderer<ShulkerBoxBlockEn
 
 	@Override
 	public void submit(ShulkerRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-		poseStack.pushPose();
-		poseStack.mulPose(net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer.modelTransform(state.direction));
-
+		// 每一层都交给 vanilla 渲染器：它自己 push/pop、自己套 modelTransform，位置与开盖动画天然一致
 		if (state.mainColor == -1 || state.accentColor == -1) {
-			submitModel(state, poseStack, collector, sprite(NO_TINT), -1);
-			submitCrumblingOverlay(state, poseStack, collector, sprite(NO_TINT));
+			submitLayer(state, poseStack, collector, sprite(NO_TINT), -1);
 		}
 		if (state.mainColor != -1) {
-			submitModel(state, poseStack, collector, sprite(TINTABLE_MAIN), tint(state.mainColor));
+			submitLayer(state, poseStack, collector, sprite(TINTABLE_MAIN), tint(state.mainColor));
 		}
 		if (state.accentColor != -1) {
-			submitModel(state, poseStack, collector, sprite(TINTABLE_ACCENT), tint(state.accentColor));
+			submitLayer(state, poseStack, collector, sprite(TINTABLE_ACCENT), tint(state.accentColor));
 		}
 		if (state.showTier) {
-			submitModel(state, poseStack, collector, sprite(state.tierName), -1);
+			submitLayer(state, poseStack, collector, sprite(state.tierName), -1);
 		}
-
-		poseStack.popPose();
 	}
 
-	private void submitModel(ShulkerRenderState state, PoseStack poseStack, SubmitNodeCollector collector, SpriteId sprite, int color) {
-		collector.submitModel(model, state.progress, poseStack, state.lightCoords, OverlayTexture.NO_OVERLAY, color, sprite, sprites, 0);
-	}
-
-	private void submitCrumblingOverlay(ShulkerRenderState state, PoseStack poseStack, SubmitNodeCollector collector, SpriteId sprite) {
-		if (state.breakProgress == null) {
-			return;
-		}
-		collector.order(0).submitCrumblingOverlay(model, state.progress, poseStack, sprite.renderType(model.renderType()),
-				state.lightCoords, OverlayTexture.NO_OVERLAY, -1, state.breakProgress);
+	private void submitLayer(ShulkerRenderState state, PoseStack poseStack, SubmitNodeCollector collector, SpriteId sprite, int color) {
+		vanilla.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, state.progress, state.breakProgress, sprite, color);
 	}
 
 	private static int tint(int color) {
