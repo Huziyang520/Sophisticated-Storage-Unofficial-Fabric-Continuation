@@ -274,8 +274,9 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 
 	@Override
 	public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-		BlockEntity blockentity = level.getBlockEntity(pos);
-		return blockentity instanceof ShulkerBoxBlockEntity shulkerBoxBlockEntity ? Shapes.create(shulkerBoxBlockEntity.getBoundingBox(state)) : Shapes.block();
+		// 不能拿 BE 的开盖包围盒当轮廓：Shulker.getProgressAabb 返回的是以方块中心为原点的盒子，
+		// 直接 Shapes.create 会得到整体偏移半格的碰撞箱，与世界里的模型对不上。模型是整格立方体，轮廓就是整格。
+		return Shapes.block();
 	}
 
 	@SuppressWarnings("deprecation")

@@ -73,7 +73,7 @@ public class ShulkerBoxItemRenderer implements SpecialModelRenderer<ShulkerBoxIt
 		if (attributes == null) {
 			return;
 		}
-		shulkerBoxRenderer.submit(state(attributes, lightCoords), poseStack, collector, ITEM_CAMERA);
+		shulkerBoxRenderer.submitItem(state(attributes, lightCoords), poseStack, collector);
 	}
 
 	@Override

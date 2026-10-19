@@ -90,7 +90,23 @@ public class ShulkerBoxRenderer implements BlockEntityRenderer<ShulkerBoxBlockEn
 
 	@Override
 	public void submit(ShulkerRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-		// 每一层都交给 vanilla 渲染器：它自己 push/pop、自己套 modelTransform，位置与开盖动画天然一致
+		// 世界内的方块：vanilla 私有 submit 做的就是 push + modelTransform + 画 + pop。
+		// 这个变换里有 translate(0.5,0.5,0.5) 和 scale(1,-1,-1)，少了它盒子就会上下颠倒并偏半格。
+		poseStack.pushPose();
+		poseStack.mulPose(net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer.modelTransform(state.direction));
+		submitLayers(state, poseStack, collector);
+		poseStack.popPose();
+	}
+
+	/**
+	 * 物品形态：vanilla 的 special renderer 调的是不带方向的公开 submit，姿态由物品定义的
+	 * transformation 提供（translation 0.5 / 1.4995 / 0.5），这里不能再套 modelTransform，否则会二次变换。
+	 */
+	public void submitItem(ShulkerRenderState state, PoseStack poseStack, SubmitNodeCollector collector) {
+		submitLayers(state, poseStack, collector);
+	}
+
+	private void submitLayers(ShulkerRenderState state, PoseStack poseStack, SubmitNodeCollector collector) {
 		if (state.mainColor == -1 || state.accentColor == -1) {
 			submitLayer(state, poseStack, collector, sprite(NO_TINT), -1);
 		}
@@ -100,7 +116,7 @@ public class ShulkerBoxRenderer implements BlockEntityRenderer<ShulkerBoxBlockEn
 		if (state.accentColor != -1) {
 			submitLayer(state, poseStack, collector, sprite(TINTABLE_ACCENT), tint(state.accentColor));
 		}
-		if (state.showTier) {
+		if (state.showTier && !BASE_TIER.equals(state.tierName)) {
 			submitLayer(state, poseStack, collector, sprite(state.tierName), -1);
 		}
 	}
