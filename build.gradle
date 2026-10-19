@@ -57,6 +57,9 @@ dependencies {
 
     // ModMenu 配置入口 + Cloth Config 屏幕（本地 jar，离线可编译）
     compileOnly files("libs/modmenu-api.jar", "libs/cloth-config-api.jar")
+
+    // 可选兼容：Jade（26.3 的 Jade 只能从 Cursemaven 取，构建机网络不稳；把运行时 jar 放进 libs/ 做编译期依赖）
+    compileOnly files("libs/jade-api.jar")
 }
 
 processResources {

@@ -40,11 +40,9 @@ public class BarrelBlockEntity extends WoodStorageBlockEntity implements IMateri
 		}
 
 		public boolean isOwnContainer(Player player) {
-			if (player.containerMenu instanceof StorageContainerMenu storageContainerMenu) {
-				return storageContainerMenu.getStorageBlockEntity() == BarrelBlockEntity.this;
-			} else {
-				return false;
-			}
+			// the settings menu counts as "still looking at it" too, otherwise the scheduled recheck closes the barrel
+			// (and plays the close sound) a few ticks after the settings page is opened - see StorageBlockEntity#isMenuOf
+			return isCurrentMenuOf(player);
 		}
 	};
 

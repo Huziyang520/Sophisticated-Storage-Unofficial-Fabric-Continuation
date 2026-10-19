@@ -118,7 +118,9 @@ public class ShulkerBoxBlockEntity extends StorageBlockEntity {
 	private void moveCollidedEntities(Level level, BlockPos pos, BlockState state) {
 		if (state.getBlock() instanceof ShulkerBoxBlock) {
 			Direction direction = state.getValue(ShulkerBoxBlock.FACING);
-			AABB aabb = Shulker.getProgressDeltaAabb(1.0F, direction, progressOld, progress, Vec3.ZERO).move(pos);
+			// the same origin as {@code ShulkerBoxBlock#canOpen}: the delta box is centred on the position, so the
+			// corner would push it half a block towards -x/-z and the lid would shove entities out of the wrong cell
+			AABB aabb = Shulker.getProgressDeltaAabb(1.0F, direction, progressOld, progress, Vec3.atBottomCenterOf(pos));
 			List<Entity> list = level.getEntities(null, aabb);
 			if (!list.isEmpty()) {
 				for (Entity entity : list) {

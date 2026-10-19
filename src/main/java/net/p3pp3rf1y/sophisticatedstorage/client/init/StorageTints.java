@@ -4,9 +4,9 @@ import net.fabricmc.fabric.api.client.rendering.v1.BlockColorRegistry;
 import net.minecraft.client.color.block.BlockTintSource;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.WoodType;
 import net.p3pp3rf1y.sophisticatedstorage.block.BarrelBlock;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.block.WoodStorageBlockBase;
@@ -15,6 +15,8 @@ import net.p3pp3rf1y.sophisticatedstorage.client.render.StorageItemTints;
 import net.p3pp3rf1y.sophisticatedstorage.client.render.StorageWoodColors;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
+
+import org.jetbrains.annotations.Nullable;
 
 import java.util.AbstractList;
 import java.util.List;
@@ -62,16 +64,10 @@ public final class StorageTints {
 		@Override
 		public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
 			StorageBlockEntity be = WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).orElse(null);
-			if (be == null) {
-				// First frame(s) after placement: the client block entity is not there yet. The wood type is mirrored
-				// into the block state, which arrives together with the block, so the barrel is already tinted.
-				return stateWoodColor(state);
-			}
-			int mainColor = be.getStorageWrapper().getMainColor();
-			if (mainColor != -1) {
-				return ARGB.opaque(mainColor);
-			}
-			return woodTint(state, be);
+			// First frame(s) after placement: the client block entity is not there yet. The wood type is mirrored
+			// into the block state, which arrives together with the block, so the barrel is already tinted.
+			int tint = StorageWoodColors.resolve(be == null ? -1 : be.getStorageWrapper().getMainColor(), woodTypeOf(be));
+			return tint != -1 ? tint : stateWoodColor(state);
 		}
 	};
 
@@ -84,14 +80,8 @@ public final class StorageTints {
 		@Override
 		public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
 			StorageBlockEntity be = WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).orElse(null);
-			if (be == null) {
-				return stateWoodColor(state);
-			}
-			int accentColor = be.getStorageWrapper().getAccentColor();
-			if (accentColor != -1) {
-				return ARGB.opaque(accentColor);
-			}
-			return woodTint(state, be);
+			int tint = StorageWoodColors.resolve(be == null ? -1 : be.getStorageWrapper().getAccentColor(), woodTypeOf(be));
+			return tint != -1 ? tint : stateWoodColor(state);
 		}
 	};
 
@@ -130,22 +120,19 @@ public final class StorageTints {
 	}
 
 	/**
-	 * Colour of a barrel that is not dyed.
+	 * Wood type of a barrel that is not dyed, as stored on the block entity.
 	 * <p>
-	 * The block state wins whenever it carries {@link BarrelBlock#WOOD}: that value travels with the block itself and
-	 * can never be stale, while the block entity copy only arrives with a data packet. Before this order was flipped a
-	 * barrel always rendered with the wood type of its <i>block entity</i>, and since a missing {@code woodType} tag
-	 * used to be filled in as acacia, every freshly placed wooden barrel came out acacia.
+	 * The block entity copy is the authority for an existing block: it is written from the placed item
+	 * ({@code WoodStorageBlockBase#setPlacedBy}) and only ever holds a wood type that really was there. The
+	 * {@code WOOD} block state is <b>not</b> equivalent - it defaults to index 0 (acacia) and keeps that value for
+	 * every barrel whose item had no wood component (a dyed barrel) and for blocks that were placed before the
+	 * property existed. Preferring the state therefore painted such barrels in acacia, which is what made the whole
+	 * mod look like it used acacia as its base wood. The state is still the fallback for the first frame(s), when the
+	 * client block entity has not received its data packet yet (see {@link #stateWoodColor}).
 	 */
-	private static int woodTint(BlockState state, StorageBlockEntity be) {
-		int stateTint = stateWoodColor(state);
-		if (stateTint != -1) {
-			return stateTint;
-		}
-		if (be instanceof WoodStorageBlockEntity woodBe) {
-			return StorageWoodColors.tintFor(woodBe.getWoodType().orElse(null));
-		}
-		return -1;
+	@Nullable
+	private static WoodType woodTypeOf(@Nullable StorageBlockEntity be) {
+		return be instanceof WoodStorageBlockEntity woodBe ? woodBe.getWoodType().orElse(null) : null;
 	}
 
 	/**

@@ -1,7 +1,7 @@
 {
   "model": {
     "type": "sophisticatedstorage:barrel",
-    "model": "sophisticatedstorage:item/barrel",
+    "model": "sophisticatedstorage:item/limited_copper_barrel_1",
     "tints": [
       {
         "type": "sophisticatedstorage:barrel_main"

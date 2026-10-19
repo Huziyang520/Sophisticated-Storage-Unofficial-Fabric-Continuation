@@ -85,6 +85,7 @@ public class WoodStorageBlockItem extends StorageBlockItem {
             removeWoodType(storageStack);
         }
         super.setMainColor(storageStack, mainColor);
+        refreshItemName(storageStack);
     }
 
     @Override
@@ -93,6 +94,7 @@ public class WoodStorageBlockItem extends StorageBlockItem {
             removeWoodType(storageStack);
         }
         super.setAccentColor(storageStack, accentColor);
+        refreshItemName(storageStack);
     }
 
     private void removeWoodType(ItemStack storageStack) {
@@ -105,14 +107,32 @@ public class WoodStorageBlockItem extends StorageBlockItem {
 
     public static ItemStack setWoodType(ItemStack storageStack, WoodType woodType) {
         storageStack.sophisticatedCore_set(ModDataComponents.WOOD_TYPE, woodType);
-        storageStack.set(net.minecraft.core.component.DataComponents.ITEM_NAME,
-                getDisplayName(storageStack.getItem().getDescriptionId(), woodType));
+        refreshItemName(storageStack);
         return storageStack;
+    }
+
+    /**
+     * Keeps the hover name component in sync with the data components. 26.3's {@code Item.getName} is not consulted
+     * for the hover name any more (BlockItem pins {@code ITEM_NAME}), so every change to the wood type or the tint has
+     * to refresh it explicitly - otherwise a barrel keeps the name it had when it was created.
+     */
+    private static void refreshItemName(ItemStack stack) {
+        stack.set(net.minecraft.core.component.DataComponents.ITEM_NAME,
+                getDisplayName(stack.getItem().getDescriptionId(), isFullyTinted(stack) ? null : getWoodType(stack).orElse(null)));
     }
 
     @Override
     public Component getName(ItemStack stack) {
-        return getDisplayName(getDescriptionId(), getWoodType(stack).orElse(null));
+        return getDisplayName(getDescriptionId(), isFullyTinted(stack) ? null : getWoodType(stack).orElse(null));
+    }
+
+    /**
+     * A barrel that has both colours set is dyed, not wooden - it must not show a wood name. Same rule the block entity
+     * uses for its display name ({@code WoodStorageBlockEntity#resolveDisplayWoodType}), otherwise the item in the hand
+     * and the block in the world disagree about what the barrel is called.
+     */
+    private static boolean isFullyTinted(ItemStack stack) {
+        return getMainColorFromComponentHolder(stack).isPresent() && getAccentColorFromComponentHolder(stack).isPresent();
     }
 
     public static Component getDisplayName(String descriptionId, @Nullable WoodType woodType) {

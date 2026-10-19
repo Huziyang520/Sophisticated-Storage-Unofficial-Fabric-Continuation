@@ -169,6 +169,9 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 			// which a placed dyed shulker box keeps its undyed colours until something else updates the block
 			be.setUpdateBlockRender();
 			WorldHelper.notifyBlockUpdate(be);
+			// notifyBlockUpdate only marks the block for the next chunk broadcast - send the data packet right away so the
+			// very first frame and the first opened menu already see the colours (same as WoodStorageBlockBase#setPlacedBy)
+			StorageSync.syncToClients(be);
 		});
 	}
 
@@ -199,11 +202,22 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 		return storageStack;
 	}
 
+	/**
+	 * Same check as vanilla 26.3 ({@code ShulkerBoxBlock#canOpen}) - in particular it has to be fed
+	 * {@link Vec3#atBottomCenterOf} and not {@code atLowerCornerOf}.
+	 * <p>
+	 * {@code Shulker#getProgressDeltaAabb} builds a cube that is <b>centred</b> on the passed position in x/z
+	 * (-0.5..0.5) and starts at its y. With the block corner as origin that cube is shifted half a block towards
+	 * -x/-z, so it no longer covers the cell the shulker box opens into but straddles the four cells around the
+	 * corner. Opening upwards survived that (the cells above a freshly placed box are usually all air), every other
+	 * facing hit a neighbour that is not part of the swept volume at all - the box could be placed in any direction
+	 * but only the upwards one could still be opened.
+	 */
 	private static boolean canOpen(BlockState state, Level level, BlockPos pos, ShulkerBoxBlockEntity blockEntity) {
 		if (blockEntity.getAnimationStatus() != ShulkerBoxBlockEntity.AnimationStatus.CLOSED) {
 			return true;
 		} else {
-			AABB aabb = Shulker.getProgressDeltaAabb(1.0F, state.getValue(FACING), 0.0F, 0.5F, Vec3.ZERO).move(pos).deflate(1.0E-6D);
+			AABB aabb = Shulker.getProgressDeltaAabb(1.0F, state.getValue(FACING), 0.0F, 0.5F, Vec3.atBottomCenterOf(pos)).deflate(1.0E-6D);
 			return level.noCollision(aabb);
 		}
 	}

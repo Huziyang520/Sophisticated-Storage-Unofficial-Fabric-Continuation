@@ -75,7 +75,32 @@ public abstract class WoodStorageBlockEntity extends StorageBlockEntity {
 		if (displayName != null) {
 			return displayName;
 		}
-		return makeWoodStorageDescriptionId(getWoodType().orElse(null));
+		return makeWoodStorageDescriptionId(resolveDisplayWoodType());
+	}
+
+	/**
+	 * Wood type used for the block's name (Jade / the menu title), resolved the same way the item resolves its own
+	 * name: a fully dyed block has no wood name at all, otherwise the copied wood type wins and the block state is the
+	 * fallback.
+	 * <p>
+	 * The block state fallback matters because it always arrives with the block, while the block entity copy travels in
+	 * the update packet - without it a placed acacia limited barrel showed up as just "Limited Copper Barrel" in Jade.
+	 */
+	@Nullable
+	private WoodType resolveDisplayWoodType() {
+		StorageWrapper wrapper = getStorageWrapper();
+		if (wrapper.hasMainColor() && wrapper.hasAccentColor()) {
+			return null;
+		}
+		Optional<WoodType> storedWoodType = getWoodType();
+		if (storedWoodType.isPresent()) {
+			return storedWoodType.get();
+		}
+		BlockState state = getBlockState();
+		if (state.hasProperty(BarrelBlock.WOOD)) {
+			return WoodStorageBlockBase.woodTypeAt(state.getValue(BarrelBlock.WOOD));
+		}
+		return null;
 	}
 
 	private Component makeWoodStorageDescriptionId(@Nullable WoodType wt) {

@@ -30,6 +30,8 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
+import net.p3pp3rf1y.sophisticatedstorage.common.gui.StorageContainerMenu;
+import net.p3pp3rf1y.sophisticatedstorage.common.gui.StorageSettingsContainerMenu;
 import net.p3pp3rf1y.sophisticatedstorage.upgrades.INeighborChangeListenerUpgrade;
 
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +39,11 @@ import java.util.*;
 
 public abstract class StorageBlockEntity extends BlockEntity implements IControllableStorage, ILinkable, ILockable, Nameable, ITierDisplay, IUpgradeDisplay {
 	public static final String STORAGE_WRAPPER_TAG = "storageWrapper";
+	/**
+	 * Name of the tag that holds all of this block entity's own data. The chunk data and the block entity update packet
+	 * both nest it under this name and {@link #loadAdditional} always reads it from there - keep those two in sync.
+	 */
+	public static final String DATA_TAG = "sophisticatedstorage_data";
 	private final StorageWrapper storageWrapper;
 	@Nullable
 	protected Component displayName = null;
@@ -185,7 +192,7 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 		if (isLinkedToController) {
 			tag.putBoolean("isLinkedToController", isLinkedToController);
 		}
-			output.store("sophisticatedstorage_data", CompoundTag.CODEC, tag);
+			output.store(DATA_TAG, CompoundTag.CODEC, tag);
 	}
 
 	private void saveStorageWrapper(CompoundTag tag) {
@@ -225,9 +232,38 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 	}
 
 	public void stopOpen(Player player) {
-		if (!remove && !player.isSpectator() && level != null) {
+		// 26.3's ContainerOpenersCounter#decrementOpeners has no "> 0" guard any more (unlike older versions): it
+		// decrements and only fires onClose when the result is exactly 0. A single extra release therefore drives the
+		// count negative, and from then on neither incrementOpeners nor decrementOpeners crosses 0 again - the open and
+		// close sounds never play for that block again. Every menu releases exactly once (see the ownership flags in
+		// StorageContainerMenu / StorageSettingsContainerMenu), this is the second line of defence.
+		if (!remove && !player.isSpectator() && level != null && getOpenersCounter().getOpenerCount() > 0) {
 			getOpenersCounter().decrementOpeners(player, level, getBlockPos(), getBlockState());
 		}
+	}
+
+	/**
+	 * Whether the player is currently looking at {@code blockEntity}'s storage through one of its menus.
+	 * <p>
+	 * Used as {@link ContainerOpenersCounter#isOwnContainer}, which 26.3 consults when the scheduled recheck recounts
+	 * the openers. It has to cover the settings menu as well: while the settings page is open the storage menu is gone,
+	 * so a counter that only recognises {@link StorageContainerMenu} recounts to zero, closes the chest (and plays the
+	 * close sound) and then leaves the settings menu releasing an opener the counter no longer has - the negative count
+	 * described in {@link #stopOpen}.
+	 */
+	public static boolean isMenuOf(Player player, @Nullable StorageBlockEntity blockEntity) {
+		if (blockEntity == null) {
+			return false;
+		}
+		if (player.containerMenu instanceof StorageContainerMenu storageContainerMenu) {
+			return storageContainerMenu.getStorageBlockEntity() == blockEntity;
+		}
+		return player.containerMenu instanceof StorageSettingsContainerMenu settingsContainerMenu
+				&& settingsContainerMenu.getBlockPosition().equals(blockEntity.getBlockPos());
+	}
+
+	public boolean isCurrentMenuOf(Player player) {
+		return isMenuOf(player, this);
 	}
 
 	public void recheckOpen() {
@@ -249,7 +285,7 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 
 	@Override
 	public void loadAdditional(net.minecraft.world.level.storage.ValueInput input) {
-		CompoundTag tag = input.read("sophisticatedstorage_data", CompoundTag.CODEC).orElseGet(CompoundTag::new);
+		CompoundTag tag = input.read(DATA_TAG, CompoundTag.CODEC).orElseGet(CompoundTag::new);
 		super.loadAdditional(input);
 		HolderLookup.Provider registries = level == null ? net.minecraft.core.RegistryAccess.EMPTY : level.registryAccess();
 		loadStorageWrapper(tag, registries);
@@ -328,7 +364,25 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 
 	@Override
 	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+		// Vanilla feeds the returned tag straight into {@link #loadAdditional(ValueInput)} on the client
+		// ({@code ClientPacketListener#handleBlockEntityData} -> {@code BlockEntity#loadWithComponents}), so it has to
+		// have exactly the same shape as {@link #saveAdditional}. This used to write {@code storageWrapper} and the
+		// synchronised fields at the top level while {@code loadAdditional} only reads them from the nested
+		// {@link #DATA_TAG} tag - the client therefore loaded an empty tag from every update packet and never got the
+		// colours, the wood type, the render info (display items / slot counts) or the locked flag. That is why a dyed
+		// barrel lost its colour the moment it was placed and why the limited barrel never had any contents to draw.
 		CompoundTag tag = super.getUpdateTag(registries);
+		tag.put(DATA_TAG, createClientData());
+		return tag;
+	}
+
+	/**
+	 * Builds the block entity data that is synchronised to the client, in the same shape as
+	 * {@link #saveAdditional(net.minecraft.world.level.storage.ValueOutput)} writes it. Subclasses add their own
+	 * synchronised fields here (see {@code LimitedBarrelBlockEntity#createClientData}).
+	 */
+	protected CompoundTag createClientData() {
+		CompoundTag tag = new CompoundTag();
 		// Had to add a separate tag to distinguish between a normal load and an update packet
 		tag.putBoolean("updateTag", true);
 		saveStorageWrapperClientData(tag);

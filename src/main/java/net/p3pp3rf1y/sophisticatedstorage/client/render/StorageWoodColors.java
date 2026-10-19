@@ -41,6 +41,23 @@ public final class StorageWoodColors {
 	}
 
 	/**
+	 * The one colour resolver both sides use: the block tint sources ({@code StorageTints}) and the item tint
+	 * sources ({@link net.p3pp3rf1y.sophisticatedstorage.client.render.StorageItemTints}).
+	 * <p>
+	 * A dyed part keeps its dye; an undyed part falls back to the wood colour of the given wood type ({@code -1} =
+	 * untinted when there is none). Item and block used to resolve this separately - the item always fell back to
+	 * acacia, the block always took the {@code WOOD} block state (which is acacia for every dyed barrel, because a
+	 * dyed barrel item has no wood type component) - so the same barrel could look differently in the hand and in
+	 * the world.
+	 */
+	public static int resolve(int color, @Nullable WoodType woodType) {
+		if (color != -1) {
+			return ARGB.opaque(color);
+		}
+		return tintFor(woodType);
+	}
+
+	/**
 	 * Tint colour of the given wood type, or {@code -1} (untinted) when the wood type is unknown / absent.
 	 * <p>
 	 * The value is ARGB with an <b>opaque</b> alpha channel - that is the contract of both

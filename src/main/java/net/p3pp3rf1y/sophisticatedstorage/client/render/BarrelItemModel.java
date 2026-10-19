@@ -29,8 +29,14 @@ import java.util.Optional;
  * item definition would therefore need 1002 entries, 1000 of them unused.
  * <p>
  * So this model type takes the two useful tint sources and pads them into a 1002 element list before delegating to
- * the vanilla cuboid wrapper: index 0/1 (a model that remaps its tint indexes to the usual item range) and index
- * 1000/1001 (the current barrel model) both resolve to the main / accent colour, every other index stays untinted.
+ * the vanilla cuboid wrapper: index 1000/1001 (the current barrel model) resolve to the main / accent colour, every
+ * other index stays untinted.
+ * <p>
+ * Index 0 and 1 must stay untinted as well: a face without a {@code tintindex} in the model json bakes as tint index
+ * 0, and the barrel model's tier layer (the metal bands, the handle) is exactly those faces. Mapping index 0 onto the
+ * main colour - which this model used to do for models that remap their tint indexes to the item range - painted the
+ * metal bands with the wood/dye colour on the item while the block left them alone, which is the "the hoops are
+ * coloured in the hand but not in the world" mismatch.
  */
 public final class BarrelItemModel {
 	private static final Identifier ID = SophisticatedStorage.getRL("barrel");
@@ -78,8 +84,6 @@ public final class BarrelItemModel {
 
 		private List<ItemTintSource> paddedTints() {
 			List<ItemTintSource> padded = new ArrayList<>(Collections.nCopies(TINT_COUNT, StorageItemTints.NO_TINT));
-			setTint(padded, 0, 0);
-			setTint(padded, 1, 1);
 			setTint(padded, MAIN_TINT_INDEX, 0);
 			setTint(padded, ACCENT_TINT_INDEX, 1);
 			return padded;

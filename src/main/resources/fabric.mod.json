@@ -28,6 +28,9 @@
     ],
     "jei_mod_plugin": [
       "net.p3pp3rf1y.sophisticatedstorage.compat.jei.StorageJeiPlugin"
+    ],
+    "jade": [
+      "net.p3pp3rf1y.sophisticatedstorage.compat.jade.StorageJadePlugin"
     ]
   },
   "accessWidener": "${mod_id}.accesswidener",

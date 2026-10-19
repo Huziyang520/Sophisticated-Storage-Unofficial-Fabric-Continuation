@@ -5,7 +5,6 @@ import net.minecraft.client.color.item.ItemTintSource;
 import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.properties.WoodType;
@@ -65,20 +64,17 @@ public final class StorageItemTints {
 	private record BarrelColorTint(boolean mainColor) implements ItemTintSource {
 		@Override
 		public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
+			int color = -1;
 			if (stack.getItem() instanceof ITintableBlockItem tintableBlockItem) {
-				int color = mainColor ? tintableBlockItem.getMainColor(stack).orElse(-1)
+				color = mainColor ? tintableBlockItem.getMainColor(stack).orElse(-1)
 						: tintableBlockItem.getAccentColor(stack).orElse(-1);
-				if (color != -1) {
-					// ARGB with alpha forced to 0xFF: the item renderer passes the value straight into the vertex colour,
-					// so a colour stored without alpha bits would render the quad fully transparent.
-					return ARGB.opaque(color);
-				}
 			}
-			// An undyed barrel always falls back to the colour of its wood; a barrel item without any wood type
-			// component (JEI's default stack, /give, older items) uses acacia, which is what the upstream models use
-			// as their default wood as well - never -1, otherwise the near white tintable overlay would show up as is.
+			// Same resolver as the block tint sources - a dyed part keeps the dye, an undyed one uses the colour of
+			// its wood type. The wood type is only a *fallback* here: a barrel item that has no wood component (a
+			// dyed barrel drops it, and so does a stack from {@code /give}) has no wood colour to show, and the
+			// shared model is drawn with acacia as its default - exactly what upstream does.
 			WoodType woodType = WoodStorageBlockItem.getWoodType(stack).orElse(WoodType.ACACIA);
-			return ARGB.opaque(StorageWoodColors.tintFor(woodType));
+			return StorageWoodColors.resolve(color, woodType);
 		}
 
 		@Override

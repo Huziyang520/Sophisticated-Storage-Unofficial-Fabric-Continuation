@@ -52,6 +52,18 @@ public class LimitedBarrelBlockEntity extends BarrelBlockEntity implements ICoun
 		registerClientNotificationOnCountChange();
 	}
 
+	@Override
+	public void sophisticatedCore_onLoad() {
+		super.sophisticatedCore_onLoad();
+		// 旧存档里的限类桶可能是在没有 setupDefaultSettings 的版本放下的，展示槽一个都没选，
+		// 那样渲染数据里永远不会有物品（世界里就看不到内容）。放置时的设置只对新方块有效，
+		// 所以这里在每次载入时补一次（上游也是在 onLoad 里补这个固定设置）。只在服务端做：
+		// 客户端的展示物品是从服务端同步下来的，客户端重算会把它们清空。
+		if (level != null && !level.isClientSide() && getBlockState().getBlock() instanceof IStorageBlock storageBlock) {
+			LimitedBarrelBlock.setupDefaultSettings(getStorageWrapper(), storageBlock.getNumberOfInventorySlots());
+		}
+	}
+
 	private void registerUpgradeDefaults() {
 		getStorageWrapper().registerUpgradeDefaultsHandler(VoidUpgradeWrapper.class, VOID_UPGRADE_VOIDING_OVERFLOW_OF_EVERYTHING_BY_DEFAULT);
 	}
@@ -251,9 +263,11 @@ public class LimitedBarrelBlockEntity extends BarrelBlockEntity implements ICoun
 	}
 
 	@Override
-	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-		CompoundTag updateTag = super.getUpdateTag(registries);
-		List<Integer> sc = new ArrayList<>();
+	protected CompoundTag createClientData() {
+		// Same nested tag the client's loadAdditional reads (see StorageBlockEntity#createClientData); the slot counts
+		// and fill levels have to live inside it or the client never sees them.
+		CompoundTag updateTag = super.createClientData();
+		ArrayList<Integer> sc = new ArrayList<>();
 		ListTag sfl = new ListTag();
 		InventoryHelper.iterate(getStorageWrapper().getInventoryHandler(), (slot, stack) -> {
 			sc.add(slot, stack.getCount());

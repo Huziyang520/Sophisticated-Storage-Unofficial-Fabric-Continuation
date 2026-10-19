@@ -264,8 +264,22 @@ public class LimitedBarrelBlock extends BarrelBlock {
 
 	public static void setupDefaultSettings(IStorageWrapper storageWrapper, int numberOfInventorySlots) {
 		SettingsHandler settingsHandler = storageWrapper.getSettingsHandler();
-		settingsHandler.getTypeCategory(ItemDisplaySettingsCategory.class).selectSlots(0, numberOfInventorySlots);
-		settingsHandler.getTypeCategory(NoSortSettingsCategory.class).selectSlots(0, numberOfInventorySlots);
+		ItemDisplaySettingsCategory displayCategory = settingsHandler.getTypeCategory(ItemDisplaySettingsCategory.class);
+		// 幂等：这个方法既在放置时跑，也在方块实体载入时跑（修复旧存档里没选过展示槽的限类桶），
+		// 而 selectSlots 只会往后追加，所以槽位数量对上时不能再调一次。
+		if (displayCategory.getSlots().size() != numberOfInventorySlots) {
+			for (int slot : List.copyOf(displayCategory.getSlots())) {
+				displayCategory.unselectSlot(slot);
+			}
+			displayCategory.selectSlots(0, numberOfInventorySlots);
+		}
+		NoSortSettingsCategory noSortCategory = settingsHandler.getTypeCategory(NoSortSettingsCategory.class);
+		if (noSortCategory.getNoSortSlots().size() != numberOfInventorySlots) {
+			for (int slot : List.copyOf(noSortCategory.getNoSortSlots())) {
+				noSortCategory.unselectSlot(slot);
+			}
+			noSortCategory.selectSlots(0, numberOfInventorySlots);
+		}
 		settingsHandler.getTypeCategory(MemorySettingsCategory.class).setIgnoreNbt(false);
 	}
 

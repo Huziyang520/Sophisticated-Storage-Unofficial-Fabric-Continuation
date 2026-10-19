@@ -33,7 +33,16 @@ import java.util.Optional;
 public class StorageContainerMenu extends StorageContainerMenuBase<IStorageWrapper> implements ISyncedContainer {
 	private static final String SOURCE_CONTAINER_ID_TAG = "sourceContainerId";
 	private final StorageBlockEntity storageBlockEntity;
-	private boolean stopOpenersOnRemove = true;
+	/**
+	 * Whether this menu owns one opener of the block's counter and therefore has to release it when it closes.
+	 * <p>
+	 * Both sides count (the client needs the count for the chest lid animation), so both sides have to agree on who
+	 * owns it: a menu that replaced another one for the same block inherits the opener instead of starting a second
+	 * one, and the replaced menu hands it over ({@link #transferOpenersToSettingsMenu()}). Each menu releases at most
+	 * once, which is what keeps the count from drifting (26.3 decrements it without a guard, and a negative count never
+	 * crosses zero again, so the open/close sounds would be gone for good).
+	 */
+	private boolean holdsOpeners;
 
 	public StorageContainerMenu(int containerId, Player player, BlockPos pos) {
 		this(containerId, player, pos, false);
@@ -57,9 +66,18 @@ public class StorageContainerMenu extends StorageContainerMenuBase<IStorageWrapp
 		// Opener ownership: the server is what closes the block when the player leaves; the client counts the menu that was
 		// actually created (the settings/back menus are created from a buffer on the client, so they always count
 		// themselves) so its lid state follows the screens instead of drifting.
-		if (!openersAlreadyActive) {
+		//
+		// Only one menu per block exists at a time, so exactly one of them has to hold the opener: either this menu
+		// counts it itself, or it was handed over by the menu it replaces (settings tab, back-to-storage) and must
+		// count it out on close. The old <code>holdsOpeners = inherited || !openersAlreadyActive</code> dropped the
+		// ownership in the handed-over case: no increment and no decrement later on, so the block's counter stayed at
+		// 1 for the rest of its life. 26.3 only fires {@code onOpen} when the previous count was 0 - from that moment
+		// on the barrel/chest/shulker box never played an open or close sound again.
+		boolean openerAlreadyCounted = openersAlreadyActive || StorageBlockEntity.isMenuOf(player, storageBlockEntity);
+		if (!openerAlreadyCounted) {
 			storageBlockEntity.startOpen(player);
 		}
+		holdsOpeners = true;
 	}
 
 	public StorageBlockEntity getStorageBlockEntity() {
@@ -69,16 +87,21 @@ public class StorageContainerMenu extends StorageContainerMenuBase<IStorageWrapp
 	@Override
 	public void removed(Player player) {
 		super.removed(player);
-		// only the menu that actually counted the opener may decrement it - when the settings menu took the opener over
-		// this menu closing (which happens the moment the settings menu is opened) must not close the block
-		if (stopOpenersOnRemove) {
-			storageBlockEntity.stopOpen(player);
+		releaseOpeners(player);
+	}
+
+	/** Releases the opener at most once; a menu that handed it over owns nothing any more. */
+	private void releaseOpeners(Player player) {
+		if (!holdsOpeners) {
+			return;
 		}
+		holdsOpeners = false;
+		storageBlockEntity.stopOpen(player);
 	}
 
 	/** Hands the opener count over to the menu that replaces this one so the block does not see a close/open cycle. */
 	public void transferOpenersToSettingsMenu() {
-		stopOpenersOnRemove = false;
+		holdsOpeners = false;
 	}
 
 	private static IStorageWrapper getWrapper(Level level, BlockPos pos) {

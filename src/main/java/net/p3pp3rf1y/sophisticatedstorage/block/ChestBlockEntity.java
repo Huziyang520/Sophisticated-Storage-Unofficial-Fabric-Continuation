@@ -60,11 +60,8 @@ public class ChestBlockEntity extends WoodStorageBlockEntity {
 		}
 
 		public boolean isOwnContainer(Player player) {
-			if (player.containerMenu instanceof StorageContainerMenu storageContainerMenu) {
-				return storageContainerMenu.getStorageBlockEntity() == ChestBlockEntity.this;
-			} else {
-				return false;
-			}
+			// same rule as the barrel: the settings menu keeps the chest "open" for the opener recount
+			return isMenuOf(player, getMainChestBlockEntity());
 		}
 
 		@Override
