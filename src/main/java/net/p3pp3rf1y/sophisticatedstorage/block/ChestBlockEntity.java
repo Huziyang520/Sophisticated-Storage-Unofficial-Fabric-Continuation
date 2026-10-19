@@ -70,21 +70,35 @@ public class ChestBlockEntity extends WoodStorageBlockEntity {
 		@Override
 		public void incrementOpeners(LivingEntity opener, Level level, BlockPos pos, BlockState state, double interactionRange) {
 			super.incrementOpeners(opener, level, pos, state, interactionRange);
-			if (isMainChest()) {
-				runOnTheOtherPart(level, pos, state, (blockEntity, neighborPos) -> blockEntity.openersCounter.incrementOpeners(opener, level, neighborPos, level.getBlockState(neighborPos), interactionRange));
+			// 26.3：两半箱体如果都认为自己才是主箱（存档里 mainPos 缺失 / 复制粘贴过），
+			// 互相传播开箱计数会无限递归并 StackOverflow。传播期间加一个简单的重入保护。
+			if (isMainChest() && !propagatingOpeners) {
+				propagatingOpeners = true;
+				try {
+					runOnTheOtherPart(level, pos, state, (blockEntity, neighborPos) -> blockEntity.openersCounter.incrementOpeners(opener, level, neighborPos, level.getBlockState(neighborPos), interactionRange));
+				} finally {
+					propagatingOpeners = false;
+				}
 			}
 		}
 
 		@Override
 		public void decrementOpeners(LivingEntity opener, Level level, BlockPos pos, BlockState state) {
 			super.decrementOpeners(opener, level, pos, state);
-			if (isMainChest()) {
-				runOnTheOtherPart(level, pos, state, (blockEntity, neighborPos) -> blockEntity.openersCounter.decrementOpeners(opener, level, neighborPos, level.getBlockState(neighborPos)));
+			if (isMainChest() && !propagatingOpeners) {
+				propagatingOpeners = true;
+				try {
+					runOnTheOtherPart(level, pos, state, (blockEntity, neighborPos) -> blockEntity.openersCounter.decrementOpeners(opener, level, neighborPos, level.getBlockState(neighborPos)));
+				} finally {
+					propagatingOpeners = false;
+				}
 			}
 		}
 	};
 
 	private boolean isDestroyedByPlayer = false;
+	/** 开箱计数在主箱 ↔ 另一半之间传播时的重入保护（两半都认为自己是主箱时防无限递归） */
+	private boolean propagatingOpeners = false;
 	public void joinWithChest(ChestBlockEntity mainBE) {
 		setMainPos(mainBE.getBlockPos());
 		expandAndMoveItemsAndSettings(mainBE);
