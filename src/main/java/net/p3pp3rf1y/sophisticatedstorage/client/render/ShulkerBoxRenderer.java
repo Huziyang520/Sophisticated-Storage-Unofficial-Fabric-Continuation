@@ -33,6 +33,13 @@ import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
  * Geometry is the vanilla shulker box layer ({@link ModelLayers#SHULKER_BOX}, 64x64) driven by the open progress;
  * textures are resolved through {@link Sheets#SHULKER_MAPPER} into this mod's textures under
  * {@code textures/entity/shulker/}.
+ * <p>
+ * The layers are submitted through {@link SubmitNodeCollector#submitModel} directly instead of going through
+ * vanilla's {@code ShulkerBoxRenderer#submit(PoseStack, SubmitNodeCollector, int, int, float, CrumblingOverlay,
+ * SpriteId, int)} helper. In 26.3 that helper hardcodes the model tint to {@code -1} (white) and passes the
+ * caller's colour on as the <b>outline</b> colour, so every tintable layer came out untinted - a dyed box showed
+ * the near white {@code tintable_main} / {@code tintable_accent} textures (the white frame) and, since the colour
+ * was not 0, an extra outline pass was queued on top of it.
  */
 public class ShulkerBoxRenderer implements BlockEntityRenderer<ShulkerBoxBlockEntity, ShulkerBoxRenderer.ShulkerRenderState> {
 	private static final String BASE_TIER = "base_tier";
@@ -47,11 +54,10 @@ public class ShulkerBoxRenderer implements BlockEntityRenderer<ShulkerBoxBlockEn
 
 	private final SpriteGetter sprites;
 	/**
-	 * 真正负责画的那一个：直接用 vanilla 的渲染器实例，连 pose 变换都不自己算。
-	 * 之前手写 submit / 手写模型导致的“方块整体偏半格”就是这么来的——模型空间、0.9995 缩放、
-	 * translate(0.5,0.5,0.5) 都在 modelTransform 里，任何一处手写都会积累误差。
+	 * 自己烘一个和 vanilla 同一 layer 的模型：vanilla 的模型类是包私有的，而借它的 submit 画会丢掉 tint
+	 * （见类注释）。UV / 顶点布局与 vanilla 完全一致，所以贴图不用改。
 	 */
-	private final net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer vanilla;
+	private final StorageShulkerBoxModel model;
 
 	public ShulkerBoxRenderer(BlockEntityRendererProvider.Context context) {
 		this(context.entityModelSet(), context.sprites());
@@ -63,7 +69,7 @@ public class ShulkerBoxRenderer implements BlockEntityRenderer<ShulkerBoxBlockEn
 	 */
 	public ShulkerBoxRenderer(EntityModelSet modelSet, SpriteGetter sprites) {
 		this.sprites = sprites;
-		vanilla = new net.minecraft.client.renderer.blockentity.ShulkerBoxRenderer(modelSet, sprites);
+		this.model = new StorageShulkerBoxModel(modelSet.bakeLayer(ModelLayers.SHULKER_BOX));
 	}
 
 	@Override
@@ -119,10 +125,16 @@ public class ShulkerBoxRenderer implements BlockEntityRenderer<ShulkerBoxBlockEn
 		if (state.showTier && !BASE_TIER.equals(state.tierName)) {
 			submitLayer(state, poseStack, collector, sprite(state.tierName), -1);
 		}
+
+		if (state.breakProgress != null) {
+			SpriteId breakSprite = state.showTier ? sprite(state.tierName) : sprite(NO_TINT);
+			collector.order(1).submitCrumblingOverlay(model, state.progress, poseStack,
+					breakSprite.renderType(model.renderType()), state.lightCoords, OverlayTexture.NO_OVERLAY, -1, state.breakProgress);
+		}
 	}
 
 	private void submitLayer(ShulkerRenderState state, PoseStack poseStack, SubmitNodeCollector collector, SpriteId sprite, int color) {
-		vanilla.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, state.progress, state.breakProgress, sprite, color);
+		collector.submitModel(model, state.progress, poseStack, state.lightCoords, OverlayTexture.NO_OVERLAY, color, sprite, sprites, 0);
 	}
 
 	private static int tint(int color) {

@@ -322,6 +322,8 @@ public class ChestBlock extends WoodStorageBlockBase implements SimpleWaterlogge
 				setRenderBlockRenderProperties(stack, be);
 				be.setMainPos(pos);
 				be.tryToAddToController();
+				// 另一半必须知道“主箱在对面”，否则客户端会把它当成独立单箱（菜单里就是另一只空箱子）
+				StorageSync.syncToClients(be);
 			});
 		}
 

@@ -128,6 +128,10 @@ public class ChestBlockEntity extends WoodStorageBlockEntity {
 		copySettings(this, mainBE, 0, originalNumberOfSlots);
 		deleteSettingsFromSlot(this, 0);
 		WorldHelper.notifyBlockUpdate(mainBE);
+		// 合并后主箱的槽位翻倍、物品也搬进去了：客户端如果没收到这份数据，菜单会按合并前的槽位数建出来，
+		// 正好看不到刚搬进去的那一半（“双箱打开是空的”）。
+		StorageSync.syncToClients(mainBE);
+		StorageSync.syncToClients(this);
 	}
 
 	private void copySettings(ChestBlockEntity from, ChestBlockEntity to, int startFromSlot, int slotOffset) {

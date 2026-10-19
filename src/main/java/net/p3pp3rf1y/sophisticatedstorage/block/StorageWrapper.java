@@ -134,16 +134,34 @@ public abstract class StorageWrapper implements IStorageWrapper {
 				}
 
 			};
-			// 与库存同理：读回来的 contents NBT 里可能带 Size=0，会把升级槽缩成 0（界面上就没有升级栏）
+			// 读回来的 contents NBT 里可能带 Size=0，会把升级槽缩成 0（界面上就没有升级栏）；
+			// 另外方块实体可能在自己的方块状态就绪前就被问到槽数（那时默认值是 0），handler 会以 0 个槽建出来。
+			// 这里用 resizeTo 真调整（setSize 是 no-op，以前这行只是打印了一条“resizing”其实什么都没做）。
 			int expectedUpgradeSlots = getNumberOfUpgradeSlots();
 			if (expectedUpgradeSlots > 0 && upgradeHandler.getSlotCount() != expectedUpgradeSlots) {
 				SophisticatedCore.LOGGER.warn("upgrade handler size {} does not match the block's {} slots, resizing",
 						upgradeHandler.getSlotCount(), expectedUpgradeSlots);
-				upgradeHandler.setSize(expectedUpgradeSlots);
+				upgradeHandler.resizeTo(expectedUpgradeSlots);
 			}
 			upgradeDefaultsHandlers.forEach(this::registerUpgradeDefaultsHandlerInUpgradeHandler);
+		} else {
+			// handler 已经存在，但槽数可能停在早期算出来的 0 上（方块状态晚于 handler 就绪）。
+			// 打开界面时菜单按这个数建升级槽，所以每次取都要对齐一次，否则升级栏整列永久消失。
+			repairUpgradeHandlerSize();
 		}
 		return upgradeHandler;
+	}
+
+	private void repairUpgradeHandlerSize() {
+		if (upgradeHandler == null) {
+			return;
+		}
+		int expectedUpgradeSlots = getNumberOfUpgradeSlots();
+		if (expectedUpgradeSlots > 0 && upgradeHandler.getSlotCount() != expectedUpgradeSlots) {
+			SophisticatedCore.LOGGER.warn("upgrade handler size {} does not match the block's {} slots, resizing",
+					upgradeHandler.getSlotCount(), expectedUpgradeSlots);
+			upgradeHandler.resizeTo(expectedUpgradeSlots);
+		}
 	}
 
 	private <T extends IUpgradeWrapper> void registerUpgradeDefaultsHandlerInUpgradeHandler(Class<T> wrapperClass, Consumer<? extends IUpgradeWrapper> defaultsHandler) {

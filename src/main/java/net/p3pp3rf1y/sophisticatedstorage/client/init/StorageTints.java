@@ -7,7 +7,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.WoodType;
 import net.p3pp3rf1y.sophisticatedstorage.block.BarrelBlock;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.block.WoodStorageBlockBase;
@@ -72,8 +71,7 @@ public final class StorageTints {
 			if (mainColor != -1) {
 				return ARGB.opaque(mainColor);
 			}
-			int woodColor = woodColor(be);
-			return woodColor != -1 ? woodColor : stateWoodColor(state);
+			return woodTint(state, be);
 		}
 	};
 
@@ -93,8 +91,7 @@ public final class StorageTints {
 			if (accentColor != -1) {
 				return ARGB.opaque(accentColor);
 			}
-			int woodColor = woodColor(be);
-			return woodColor != -1 ? woodColor : stateWoodColor(state);
+			return woodTint(state, be);
 		}
 	};
 
@@ -133,15 +130,22 @@ public final class StorageTints {
 	}
 
 	/**
-	 * Colour of the barrel's wood type, or -1 (untinted) when the block has no wood type or the block entity is
-	 * not loaded yet.
+	 * Colour of a barrel that is not dyed.
+	 * <p>
+	 * The block state wins whenever it carries {@link BarrelBlock#WOOD}: that value travels with the block itself and
+	 * can never be stale, while the block entity copy only arrives with a data packet. Before this order was flipped a
+	 * barrel always rendered with the wood type of its <i>block entity</i>, and since a missing {@code woodType} tag
+	 * used to be filled in as acacia, every freshly placed wooden barrel came out acacia.
 	 */
-	private static int woodColor(StorageBlockEntity be) {
-		if (!(be instanceof WoodStorageBlockEntity woodBe)) {
-			return -1;
+	private static int woodTint(BlockState state, StorageBlockEntity be) {
+		int stateTint = stateWoodColor(state);
+		if (stateTint != -1) {
+			return stateTint;
 		}
-		WoodType woodType = woodBe.getWoodType().orElse(null);
-		return StorageWoodColors.tintFor(woodType);
+		if (be instanceof WoodStorageBlockEntity woodBe) {
+			return StorageWoodColors.tintFor(woodBe.getWoodType().orElse(null));
+		}
+		return -1;
 	}
 
 	/**

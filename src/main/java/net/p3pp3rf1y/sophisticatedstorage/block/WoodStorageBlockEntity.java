@@ -47,8 +47,11 @@ public abstract class WoodStorageBlockEntity extends StorageBlockEntity {
 	@Override
 	public void loadSynchronizedData(CompoundTag tag, HolderLookup.Provider registries) {
 		super.loadSynchronizedData(tag, registries);
+		// 没有 woodType 就是没有：以前这里在“没染色”时回落成 ACACIA，于是任何一次不带同步数据的加载
+		// （物品数据、方块实体首次同步、区块数据）都会把桶的木种改成金合欢。木种的正源是方块状态的 WOOD
+		// 属性（放置时从物品写入），方块实体这份只是给渲染/掉落物用的副本，缺失时保持 null 即可。
 		woodType = NBTHelper.getString(tag, "woodType").flatMap(woodTypeName -> WoodType.values().filter(wt -> wt.name().equals(woodTypeName)).findFirst())
-				.orElse(getStorageWrapper().hasMainColor() && getStorageWrapper().hasAccentColor() ? null : WoodType.ACACIA);
+				.orElse(null);
 		packed = tag.getBooleanOr(PACKED_TAG, false);
 		// 客户端是走 loadSynchronizedData 拿到 woodType 的（不经过 setWoodType），
 		// 必须让区块重画，否则方块颜色按“无染色”烘焙后一直是白的

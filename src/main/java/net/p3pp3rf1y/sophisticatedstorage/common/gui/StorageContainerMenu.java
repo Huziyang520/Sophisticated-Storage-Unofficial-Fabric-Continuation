@@ -10,6 +10,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.ChestType;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.ISyncedContainer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SophisticatedMenuProvider;
@@ -19,6 +21,8 @@ import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
+import net.p3pp3rf1y.sophisticatedstorage.block.ChestBlock;
+import net.p3pp3rf1y.sophisticatedstorage.block.ChestBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.block.WoodStorageBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.client.gui.StorageTranslationHelper;
@@ -45,7 +49,7 @@ public class StorageContainerMenu extends StorageContainerMenuBase<IStorageWrapp
 
 	public StorageContainerMenu(MenuType<?> menuType, int containerId, Player player, BlockPos pos, boolean openersAlreadyActive) {
 		super(menuType, containerId, player, getWrapper(player.level(), pos), NoopStorageWrapper.INSTANCE, -1, false);
-		storageBlockEntity = WorldHelper.getBlockEntity(player.level(), pos, StorageBlockEntity.class).orElseThrow(() -> new IllegalArgumentException("Incorrect block entity at " + pos + " exptected to find StorageBlockEntity"));
+		storageBlockEntity = resolveStorageBlockEntity(player.level(), pos).orElseThrow(() -> new IllegalArgumentException("Incorrect block entity at " + pos + " exptected to find StorageBlockEntity"));
 		// breadcrumb for the port: the menu exists on both sides, the screen may still fail to appear
 		net.p3pp3rf1y.sophisticatedstorage.SophisticatedStorage.LOGGER.info("storage menu created at {} (id {}) side={} slots={} upgrades={} be={} state={}",
 				pos, containerId, player.level().isClientSide(), getNumberOfStorageInventorySlots(), getNumberOfUpgradeSlots(),
@@ -78,7 +82,43 @@ public class StorageContainerMenu extends StorageContainerMenuBase<IStorageWrapp
 	}
 
 	private static IStorageWrapper getWrapper(Level level, BlockPos pos) {
-		return WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).map(be -> (IStorageWrapper) be.getStorageWrapper()).orElse(NoopStorageWrapper.INSTANCE);
+		return resolveStorageBlockEntity(level, pos).map(be -> (IStorageWrapper) be.getStorageWrapper()).orElse(NoopStorageWrapper.INSTANCE);
+	}
+
+	/**
+	 * Resolves the block entity whose wrapper actually holds the items.
+	 * <p>
+	 * A double chest is two block entities: only the "main" half owns the storage, the other half has a
+	 * {@code doubleMainPos} pointing at it. Opening the second half used to create the menu on its own, empty wrapper,
+	 * so a double chest looked completely empty. The client copy of {@code doubleMainPos} can also lag behind the join,
+	 * so the block state (which is always in sync) is used as a fallback and the half with the larger inventory wins -
+	 * that is always the main one.
+	 */
+	private static Optional<StorageBlockEntity> resolveStorageBlockEntity(Level level, BlockPos pos) {
+		Optional<StorageBlockEntity> blockEntity = WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class);
+		if (blockEntity.isEmpty() || !(blockEntity.get() instanceof ChestBlockEntity chest)) {
+			return blockEntity;
+		}
+
+		ChestBlockEntity mainChest = chest.getMainChestBlockEntity();
+		if (mainChest != null && mainChest != chest) {
+			return Optional.of(mainChest);
+		}
+
+		BlockState state = level.getBlockState(pos);
+		if (state.getBlock() instanceof ChestBlock && state.hasProperty(ChestBlock.TYPE) && state.getValue(ChestBlock.TYPE) != ChestType.SINGLE) {
+			BlockPos otherPos = pos.relative(ChestBlock.getConnectedDirection(state));
+			if (level.getBlockEntity(otherPos) instanceof StorageBlockEntity other
+					&& inventorySlots(other) > inventorySlots(chest)) {
+				return Optional.of(other);
+			}
+		}
+
+		return blockEntity;
+	}
+
+	private static int inventorySlots(StorageBlockEntity blockEntity) {
+		return blockEntity.getStorageWrapper().getInventoryHandler().getSlotCount();
 	}
 
 	public static StorageContainerMenu fromBuffer(int windowId, Inventory playerInventory, FriendlyByteBuf buffer) {

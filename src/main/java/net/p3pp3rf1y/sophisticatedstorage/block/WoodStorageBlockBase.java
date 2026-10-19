@@ -17,6 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.WoodType;
 import net.minecraft.world.phys.BlockHitResult;
@@ -35,6 +36,7 @@ import net.p3pp3rf1y.sophisticatedstorage.item.WoodStorageBlockItem;
 import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -124,7 +126,24 @@ public abstract class WoodStorageBlockBase extends StorageBlockBase implements I
 		if (wbe.hasCustomName()) {
 			stack.sophisticatedCore_set(DataComponents.CUSTOM_NAME, wbe.getCustomName());
 		}
-		wbe.getWoodType().ifPresent(n -> WoodStorageBlockItem.setWoodType(stack, n));
+		// 方块实体里没有木种（旧存档 / 同步数据缺失）时，退回方块状态的 WOOD：掉落物不该因为这份副本缺失就变回默认木种。
+		// 染色的桶不写木种（颜色比木种优先），和放置时 setRenderBlockRenderProperties 的判断保持一致。
+		getWoodTypeOrState(wbe).ifPresent(n -> WoodStorageBlockItem.setWoodType(stack, n));
+	}
+
+	private static Optional<WoodType> getWoodTypeOrState(WoodStorageBlockEntity wbe) {
+		Optional<WoodType> woodType = wbe.getWoodType();
+		if (woodType.isPresent()) {
+			return woodType;
+		}
+		if (wbe.getStorageWrapper().hasMainColor() && wbe.getStorageWrapper().hasAccentColor()) {
+			return Optional.empty();
+		}
+		BlockState state = wbe.getBlockState();
+		if (!state.hasProperty(BarrelBlock.WOOD)) {
+			return Optional.empty();
+		}
+		return Optional.of(WoodStorageBlockBase.woodTypeAt(state.getValue(BarrelBlock.WOOD)));
 	}
 
 	@Override
@@ -209,14 +228,30 @@ public abstract class WoodStorageBlockBase extends StorageBlockBase implements I
 	}
 
 	protected void setRenderBlockRenderProperties(ItemStack stack, WoodStorageBlockEntity be) {
-		WoodStorageBlockItem.getWoodType(stack).ifPresent(be::setWoodType);
+		WoodStorageBlockItem.getWoodType(stack).ifPresent(woodType -> {
+			be.setWoodType(woodType);
+			// 方块状态里的 WOOD 是“第一帧”就要用的颜色来源（方块实体数据要等一个包才会到客户端）。
+			// getStateForPlacement 已经写过一次，这里再兜一次底：如果物品的木种组件在某个端口上没被
+			// 读到（或者别的代码路径改了状态），至少保证状态和方块实体不会各说各话。
+			Level level = be.getLevel();
+			BlockState state = be.getBlockState();
+			if (level != null && !level.isClientSide() && state.hasProperty(BarrelBlock.WOOD)) {
+				int index = WoodStorageBlockBase.woodTypeIndex(woodType);
+				if (state.getValue(BarrelBlock.WOOD) != index) {
+					level.setBlock(be.getBlockPos(), state.setValue(BarrelBlock.WOOD, index), Block.UPDATE_ALL);
+				}
+			}
+		});
 		be.getStorageWrapper().setColors(StorageBlockItem.getMainColorFromComponentHolder(stack).orElse(-1), StorageBlockItem.getAccentColorFromComponentHolder(stack).orElse(-1));
 		// 26.3: the colour is read from the block entity while rendering, but the client only gets it with a block entity
-		// update. Without these two calls a freshly placed dyed barrel keeps painting the wood colour that the block state
+		// update. Without these calls a freshly placed dyed barrel keeps painting the wood colour that the block state
 		// carries (a dyed barrel has no wood type, so that is acacia) until some unrelated block update happens - which is
 		// exactly "the item is dyed, the placed block is wood coloured".
 		be.setUpdateBlockRender();
 		WorldHelper.notifyBlockUpdate(be);
+		// notifyBlockUpdate alone only marks the block for the next chunk broadcast; send the data packet explicitly so
+		// the first open/menu (and the first rendered frame) already sees the colours, wood type and slot count.
+		StorageSync.syncToClients(be);
 	}
 
 	@Override
