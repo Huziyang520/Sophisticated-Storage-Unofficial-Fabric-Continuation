@@ -3,8 +3,7 @@
     "type": "minecraft:special",
     "base": "sophisticatedstorage:item/shulker_box",
     "model": {
-      "type": "minecraft:shulker_box",
-      "texture": "sophisticatedstorage:gold_tier"
+      "type": "sophisticatedstorage:shulker_box"
     },
     "transformation": {
       "left_rotation": [

@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorage.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
@@ -59,10 +60,18 @@ public class ChestRenderer implements BlockEntityRenderer<ChestBlockEntity, Ches
 	private final Map<ChestType, ChestModels> models = new EnumMap<>(ChestType.class);
 
 	public ChestRenderer(BlockEntityRendererProvider.Context context) {
-		sprites = context.sprites();
-		models.put(ChestType.SINGLE, createModels(context, ModelLayers.CHEST));
-		models.put(ChestType.LEFT, createModels(context, ModelLayers.DOUBLE_CHEST_LEFT));
-		models.put(ChestType.RIGHT, createModels(context, ModelLayers.DOUBLE_CHEST_RIGHT));
+		this(context.entityModelSet(), context.sprites());
+	}
+
+	/**
+	 * Used by {@link ChestItemRenderer}: the item side has no block entity renderer context, only the entity model set
+	 * and the sprite getter handed to a special model renderer when it is baked.
+	 */
+	public ChestRenderer(EntityModelSet modelSet, SpriteGetter sprites) {
+		this.sprites = sprites;
+		models.put(ChestType.SINGLE, createModels(modelSet, ModelLayers.CHEST));
+		models.put(ChestType.LEFT, createModels(modelSet, ModelLayers.DOUBLE_CHEST_LEFT));
+		models.put(ChestType.RIGHT, createModels(modelSet, ModelLayers.DOUBLE_CHEST_RIGHT));
 	}
 
 	/**
@@ -70,11 +79,11 @@ public class ChestRenderer implements BlockEntityRenderer<ChestBlockEntity, Ches
 	 * that only draws the latch. {@code submitModel} defers the actual drawing, so part visibility has to be baked
 	 * into separate model trees instead of being toggled per submission.
 	 */
-	private static ChestModels createModels(BlockEntityRendererProvider.Context context, ModelLayerLocation layer) {
-		ModelPart bodyRoot = context.bakeLayer(layer);
+	private static ChestModels createModels(EntityModelSet modelSet, ModelLayerLocation layer) {
+		ModelPart bodyRoot = modelSet.bakeLayer(layer);
 		bodyRoot.getChild(LOCK).visible = false;
 
-		ModelPart lockRoot = context.bakeLayer(layer);
+		ModelPart lockRoot = modelSet.bakeLayer(layer);
 		lockRoot.getChild(LID).visible = false;
 		lockRoot.getChild(BOTTOM).visible = false;
 
@@ -174,7 +183,8 @@ public class ChestRenderer implements BlockEntityRenderer<ChestBlockEntity, Ches
 		return wood.name();
 	}
 
-	private static String tierName(Block block) {
+	/** shared with {@link ChestItemRenderer}, which has to resolve the same tier sprite for an item stack */
+	static String tierName(Block block) {
 		if (block == ModBlocks.COPPER_CHEST.get()) {
 			return COPPER_TIER;
 		} else if (block == ModBlocks.IRON_CHEST.get()) {

@@ -134,6 +134,13 @@ public abstract class StorageWrapper implements IStorageWrapper {
 				}
 
 			};
+			// 与库存同理：读回来的 contents NBT 里可能带 Size=0，会把升级槽缩成 0（界面上就没有升级栏）
+			int expectedUpgradeSlots = getNumberOfUpgradeSlots();
+			if (expectedUpgradeSlots > 0 && upgradeHandler.getSlotCount() != expectedUpgradeSlots) {
+				SophisticatedCore.LOGGER.warn("upgrade handler size {} does not match the block's {} slots, resizing",
+						upgradeHandler.getSlotCount(), expectedUpgradeSlots);
+				upgradeHandler.setSize(expectedUpgradeSlots);
+			}
 			upgradeDefaultsHandlers.forEach(this::registerUpgradeDefaultsHandlerInUpgradeHandler);
 		}
 		return upgradeHandler;

@@ -3,8 +3,7 @@
     "type": "minecraft:special",
     "base": "sophisticatedstorage:item/chest",
     "model": {
-      "type": "minecraft:chest",
-      "texture": "sophisticatedstorage:diamond_tier"
+      "type": "sophisticatedstorage:chest"
     }
   }
 }

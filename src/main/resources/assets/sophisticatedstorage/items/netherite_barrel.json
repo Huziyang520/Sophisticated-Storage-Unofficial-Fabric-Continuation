@@ -1,6 +1,14 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "sophisticatedstorage:item/netherite_barrel"
+    "type": "sophisticatedstorage:barrel",
+    "model": "sophisticatedstorage:item/barrel",
+    "tints": [
+      {
+        "type": "sophisticatedstorage:barrel_main"
+      },
+      {
+        "type": "sophisticatedstorage:barrel_accent"
+      }
+    ]
   }
 }

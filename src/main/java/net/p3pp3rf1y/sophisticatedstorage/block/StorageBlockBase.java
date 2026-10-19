@@ -144,14 +144,9 @@ public abstract class StorageBlockBase extends BlockBase implements IStorageBloc
 
 	@Override
 	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean isMoving) {
-		WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).ifPresent(b -> {
-			b.removeFromController();
-			if (b.shouldDropContents()) {
-				b.dropContents();
-			}
-			level.updateNeighbourForOutputSignal(pos, this);
-		});
-
+		// 注意：这个钩子在 26.3 里是「方块实体已经从区块摘掉之后」才调用的，
+		// 所以这里不能再通过 level.getBlockEntity(pos) 去拿实体做投放（拿不到）。
+		// 内容物投放/解除控制器绑定已移到 StorageBlockEntity#preRemoveSideEffects。
 		super.affectNeighborsAfterRemoval(state, level, pos, isMoving);
 	}
 

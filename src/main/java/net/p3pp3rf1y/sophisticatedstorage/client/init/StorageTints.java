@@ -9,6 +9,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.WoodType;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.block.WoodStorageBlockEntity;
+import net.p3pp3rf1y.sophisticatedstorage.client.render.StorageItemTints;
+import net.p3pp3rf1y.sophisticatedstorage.client.render.StorageWoodColors;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
@@ -36,30 +38,6 @@ public final class StorageTints {
 	/** tint index of the accent colour faces of a barrel model */
 	private static final int ACCENT_TINT_INDEX = 1001;
 	private static final int BARREL_TINT_COUNT = ACCENT_TINT_INDEX + 1;
-
-	/**
-	 * Average brightness of the tintable overlay textures (barrel_side_tintable_main / _accent are near white
-	 * because they are meant to be multiplied by a dye colour). Wood colours are divided by this so a tinted
-	 * barrel ends up at the brightness of the wood's own barrel texture instead of 16% darker.
-	 */
-	private static final float OVERLAY_BRIGHTNESS = 215F / 255F;
-
-	/**
-	 * Mean RGB of sophisticatedstorage:block/&lt;wood&gt;_barrel_side, measured from the mod's own textures.
-	 * Used as the "not dyed" tint so the shared static model still renders each wood type in its own colour.
-	 */
-	private static final List<WoodColor> WOOD_COLORS = List.of(
-			new WoodColor(WoodType.OAK, 134, 109, 72),
-			new WoodColor(WoodType.SPRUCE, 108, 81, 50),
-			new WoodColor(WoodType.BIRCH, 147, 139, 100),
-			new WoodColor(WoodType.JUNGLE, 132, 100, 78),
-			new WoodColor(WoodType.ACACIA, 134, 79, 49),
-			new WoodColor(WoodType.DARK_OAK, 63, 45, 26),
-			new WoodColor(WoodType.MANGROVE, 88, 48, 39),
-			new WoodColor(WoodType.CHERRY, 146, 108, 105),
-			new WoodColor(WoodType.BAMBOO, 155, 139, 78),
-			new WoodColor(WoodType.CRIMSON, 96, 49, 67),
-			new WoodColor(WoodType.WARPED, 48, 100, 100));
 
 	private static final BlockTintSource NO_TINT = new BlockTintSource() {
 		@Override
@@ -137,6 +115,8 @@ public final class StorageTints {
 				ModBlocks.CHESTS.stream().map(Supplier::get).toArray(Block[]::new));
 		BlockColorRegistry.register(List.of(MAIN_COLOR),
 				ModBlocks.SHULKER_BOXES.stream().map(Supplier::get).toArray(Block[]::new));
+		// 26.3 has no registry for ItemTintSource types, so the barrel item tints are registered by id instead
+		StorageItemTints.register();
 	}
 
 	/**
@@ -148,24 +128,6 @@ public final class StorageTints {
 			return -1;
 		}
 		WoodType woodType = woodBe.getWoodType().orElse(null);
-		if (woodType == null) {
-			return -1;
-		}
-		for (WoodColor woodColor : WOOD_COLORS) {
-			if (woodColor.woodType().equals(woodType)) {
-				return woodColor.tint();
-			}
-		}
-		return -1;
-	}
-
-	private record WoodColor(WoodType woodType, int red, int green, int blue) {
-		int tint() {
-			return (compensate(red) << 16) | (compensate(green) << 8) | compensate(blue);
-		}
-
-		private static int compensate(int channel) {
-			return Math.min(255, Math.round(channel / OVERLAY_BRIGHTNESS));
-		}
+		return StorageWoodColors.tintFor(woodType);
 	}
 }

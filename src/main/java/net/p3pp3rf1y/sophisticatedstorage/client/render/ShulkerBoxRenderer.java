@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedstorage.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.Model;
+import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.Sheets;
@@ -48,8 +49,16 @@ public class ShulkerBoxRenderer implements BlockEntityRenderer<ShulkerBoxBlockEn
 	private final StorageShulkerBoxModel model;
 
 	public ShulkerBoxRenderer(BlockEntityRendererProvider.Context context) {
-		sprites = context.sprites();
-		model = new StorageShulkerBoxModel(context.bakeLayer(ModelLayers.SHULKER_BOX));
+		this(context.entityModelSet(), context.sprites());
+	}
+
+	/**
+	 * Used by {@link ShulkerBoxItemRenderer}: the item side has no block entity renderer context, only the entity
+	 * model set and the sprite getter handed to a special model renderer when it is baked.
+	 */
+	public ShulkerBoxRenderer(EntityModelSet modelSet, SpriteGetter sprites) {
+		this.sprites = sprites;
+		model = new StorageShulkerBoxModel(modelSet.bakeLayer(ModelLayers.SHULKER_BOX));
 	}
 
 	@Override
@@ -112,7 +121,8 @@ public class ShulkerBoxRenderer implements BlockEntityRenderer<ShulkerBoxBlockEn
 		return 0xFF_000000 | color;
 	}
 
-	private static String tierName(Block block) {
+	/** shared with {@link ShulkerBoxItemRenderer}, which has to resolve the same tier sprite for an item stack */
+	static String tierName(Block block) {
 		if (block == ModBlocks.COPPER_SHULKER_BOX.get()) {
 			return COPPER_TIER;
 		} else if (block == ModBlocks.IRON_SHULKER_BOX.get()) {

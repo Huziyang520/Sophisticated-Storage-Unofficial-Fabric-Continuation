@@ -380,6 +380,23 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 		isDroppingContents = false;
 	}
 
+	/**
+	 * 26.3 里方块被移除时，{@code LevelChunk.setBlockState} 的调用顺序是：
+	 * {@code BlockEntity.preRemoveSideEffects} → {@code removeBlockEntity} → {@code Block.affectNeighborsAfterRemoval}。
+	 * 也就是说方块侧的 {@code affectNeighborsAfterRemoval} 跑的时候方块实体已经从区块里摘掉了，
+	 * 在那里用 {@code level.getBlockEntity(pos)} 取实体永远是 null（原来 {@link StorageBlockBase} 的写法），
+	 * 于是未打包的箱子/木桶被破坏时里面的东西既没进掉落物、也没被撒出来，直接消失。
+	 * 投放必须在实体还活着的时候做，所以搬到这里。
+	 */
+	@Override
+	public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+		super.preRemoveSideEffects(pos, state);
+		removeFromController();
+		if (shouldDropContents()) {
+			dropContents();
+		}
+	}
+
 	public void setCustomName(Component customName) {
 		displayName = customName;
 		setChanged();
