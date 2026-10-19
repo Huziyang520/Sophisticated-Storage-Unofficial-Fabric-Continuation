@@ -2,8 +2,10 @@ package net.p3pp3rf1y.sophisticatedstorage.compat.jei;
 
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.registration.IExtraIngredientRegistration;
+import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.resources.Identifier;
@@ -79,6 +81,11 @@ public class StorageJeiPlugin implements IModPlugin {
 			}
 		}
 		registration.addExtraItemStacks(variants);
+	}
+
+	@Override
+	public void registerRecipes(IRecipeRegistration registration) {
+		registration.addRecipes(RecipeTypes.CRAFTING, DyeRecipesMaker.getRecipes(registration.getVanillaRecipeFactory()));
 	}
 
 	@Override

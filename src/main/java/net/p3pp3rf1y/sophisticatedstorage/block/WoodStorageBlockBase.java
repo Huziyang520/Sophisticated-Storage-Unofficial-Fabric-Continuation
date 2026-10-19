@@ -211,6 +211,12 @@ public abstract class WoodStorageBlockBase extends StorageBlockBase implements I
 	protected void setRenderBlockRenderProperties(ItemStack stack, WoodStorageBlockEntity be) {
 		WoodStorageBlockItem.getWoodType(stack).ifPresent(be::setWoodType);
 		be.getStorageWrapper().setColors(StorageBlockItem.getMainColorFromComponentHolder(stack).orElse(-1), StorageBlockItem.getAccentColorFromComponentHolder(stack).orElse(-1));
+		// 26.3: the colour is read from the block entity while rendering, but the client only gets it with a block entity
+		// update. Without these two calls a freshly placed dyed barrel keeps painting the wood colour that the block state
+		// carries (a dyed barrel has no wood type, so that is acacia) until some unrelated block update happens - which is
+		// exactly "the item is dyed, the placed block is wood coloured".
+		be.setUpdateBlockRender();
+		WorldHelper.notifyBlockUpdate(be);
 	}
 
 	@Override

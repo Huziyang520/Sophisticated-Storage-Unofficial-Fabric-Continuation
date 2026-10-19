@@ -165,6 +165,10 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 			}
 
 			be.setChanged();
+			// the colours live in the block entity and the client only learns about them from a block entity update, without
+			// which a placed dyed shulker box keeps its undyed colours until something else updates the block
+			be.setUpdateBlockRender();
+			WorldHelper.notifyBlockUpdate(be);
 		});
 	}
 

@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedstorage.common.gui;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
@@ -26,20 +27,35 @@ import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
 import java.util.Optional;
 
 public class StorageContainerMenu extends StorageContainerMenuBase<IStorageWrapper> implements ISyncedContainer {
+	private static final String SOURCE_CONTAINER_ID_TAG = "sourceContainerId";
 	private final StorageBlockEntity storageBlockEntity;
+	private boolean stopOpenersOnRemove = true;
 
 	public StorageContainerMenu(int containerId, Player player, BlockPos pos) {
-		this(ModBlocks.STORAGE_CONTAINER_TYPE.get(), containerId, player, pos);
+		this(containerId, player, pos, false);
+	}
+
+	public StorageContainerMenu(int containerId, Player player, BlockPos pos, boolean openersAlreadyActive) {
+		this(ModBlocks.STORAGE_CONTAINER_TYPE.get(), containerId, player, pos, openersAlreadyActive);
 	}
 
 	public StorageContainerMenu(MenuType<?> menuType, int containerId, Player player, BlockPos pos) {
+		this(menuType, containerId, player, pos, false);
+	}
+
+	public StorageContainerMenu(MenuType<?> menuType, int containerId, Player player, BlockPos pos, boolean openersAlreadyActive) {
 		super(menuType, containerId, player, getWrapper(player.level(), pos), NoopStorageWrapper.INSTANCE, -1, false);
 		storageBlockEntity = WorldHelper.getBlockEntity(player.level(), pos, StorageBlockEntity.class).orElseThrow(() -> new IllegalArgumentException("Incorrect block entity at " + pos + " exptected to find StorageBlockEntity"));
 		// breadcrumb for the port: the menu exists on both sides, the screen may still fail to appear
 		net.p3pp3rf1y.sophisticatedstorage.SophisticatedStorage.LOGGER.info("storage menu created at {} (id {}) side={} slots={} upgrades={} be={} state={}",
 				pos, containerId, player.level().isClientSide(), getNumberOfStorageInventorySlots(), getNumberOfUpgradeSlots(),
 				storageBlockEntity.getClass().getSimpleName(), storageBlockEntity.getBlockState().getBlock());
-		storageBlockEntity.startOpen(player);
+		// Opener ownership: the server is what closes the block when the player leaves; the client counts the menu that was
+		// actually created (the settings/back menus are created from a buffer on the client, so they always count
+		// themselves) so its lid state follows the screens instead of drifting.
+		if (!openersAlreadyActive) {
+			storageBlockEntity.startOpen(player);
+		}
 	}
 
 	public StorageBlockEntity getStorageBlockEntity() {
@@ -49,7 +65,16 @@ public class StorageContainerMenu extends StorageContainerMenuBase<IStorageWrapp
 	@Override
 	public void removed(Player player) {
 		super.removed(player);
-		storageBlockEntity.stopOpen(player);
+		// only the menu that actually counted the opener may decrement it - when the settings menu took the opener over
+		// this menu closing (which happens the moment the settings menu is opened) must not close the block
+		if (stopOpenersOnRemove) {
+			storageBlockEntity.stopOpen(player);
+		}
+	}
+
+	/** Hands the opener count over to the menu that replaces this one so the block does not see a close/open cycle. */
+	public void transferOpenersToSettingsMenu() {
+		stopOpenersOnRemove = false;
 	}
 
 	private static IStorageWrapper getWrapper(Level level, BlockPos pos) {
@@ -86,15 +111,42 @@ public class StorageContainerMenu extends StorageContainerMenuBase<IStorageWrapp
 	@Override
 	public void openSettings() {
 		if (isClientSide()) {
-			sendToServer(data -> data.putString(ACTION_TAG, "openSettings"));
+			// the client lays claim to the opener as well - the settings menu takes over the count instead of this menu
+			// releasing it, otherwise the client closes the lid while the settings screen is open
+			transferOpenersToSettingsMenu();
+			sendToServer(data -> {
+				data.putString(ACTION_TAG, "openSettings");
+				data.putInt(SOURCE_CONTAINER_ID_TAG, containerId);
+			});
 			return;
 		}
-		getBlockPosition().ifPresent(pos -> player.sophisticatedCore_openMenu(new SophisticatedMenuProvider((w, p, pl) -> instantiateSettingsContainerMenu(w, pl, pos),
-				Component.translatable(StorageTranslationHelper.INSTANCE.translGui("settings.title")), false), storageBlockEntity.getBlockPos()));
+		if (!stillValid(player)) {
+			return;
+		}
+		getBlockPosition().ifPresent(pos -> {
+			// the settings menu replaces this menu, so it has to inherit the opener instead of the block seeing
+			// "closed" (settings opened) immediately followed by "opened" again
+			transferOpenersToSettingsMenu();
+			player.sophisticatedCore_openMenu(new SophisticatedMenuProvider((w, p, pl) -> instantiateSettingsContainerMenu(w, pl, pos, true),
+					Component.translatable(StorageTranslationHelper.INSTANCE.translGui("settings.title")), false), storageBlockEntity.getBlockPos());
+		});
+	}
+
+	@Override
+	public void handlePacket(CompoundTag data) {
+		if ("openSettings".equals(data.getStringOr(ACTION_TAG, "")) && data.getIntOr(SOURCE_CONTAINER_ID_TAG, -1) != containerId) {
+			// a stale request from a menu that was already replaced - acting on it would open a second settings menu
+			return;
+		}
+		super.handlePacket(data);
 	}
 
 	protected StorageSettingsContainerMenu instantiateSettingsContainerMenu(int windowId, Player player, BlockPos pos) {
-		return new StorageSettingsContainerMenu(windowId, player, pos);
+		return instantiateSettingsContainerMenu(windowId, player, pos, false);
+	}
+
+	protected StorageSettingsContainerMenu instantiateSettingsContainerMenu(int windowId, Player player, BlockPos pos, boolean openersAlreadyActive) {
+		return new StorageSettingsContainerMenu(windowId, player, pos, openersAlreadyActive);
 	}
 
 	@Override

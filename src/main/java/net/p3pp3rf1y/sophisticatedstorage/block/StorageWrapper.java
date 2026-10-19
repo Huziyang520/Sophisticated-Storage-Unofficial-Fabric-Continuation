@@ -315,12 +315,18 @@ public abstract class StorageWrapper implements IStorageWrapper {
 	}
 
 	private int getNumberOfUpgradeSlots() {
-		if (numberOfUpgradeSlots > -1) {
+		if (numberOfUpgradeSlots > 0) {
 			return numberOfUpgradeSlots;
 		}
-		numberOfUpgradeSlots = getDefaultNumberOfUpgradeSlots();
-		save();
-
+		// 26.3：方块实体刚建好时 getBlockState() 还可能不是存储方块，此时 getDefaultNumberOfUpgradeSlots() 返回 0。
+		// 旧写法只要“读到的值 > -1”就直接采信并 save()，于是把这个 0 写进存档，
+		// 之后无论方块配置几个升级槽都读到 0 —— 界面左侧升级栏整列消失。
+		// 这里只在“默认值本身也确实是 0”时才接受 0，其它情况用方块默认值纠正并幂等回写。
+		int defaultSlots = getDefaultNumberOfUpgradeSlots();
+		if (numberOfUpgradeSlots != defaultSlots) {
+			numberOfUpgradeSlots = defaultSlots;
+			save();
+		}
 		return numberOfUpgradeSlots;
 	}
 

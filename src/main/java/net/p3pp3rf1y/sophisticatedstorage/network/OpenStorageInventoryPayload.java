@@ -15,6 +15,7 @@ import net.p3pp3rf1y.sophisticatedstorage.block.LimitedBarrelBlock;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.common.gui.LimitedBarrelContainerMenu;
 import net.p3pp3rf1y.sophisticatedstorage.common.gui.StorageContainerMenu;
+import net.p3pp3rf1y.sophisticatedstorage.common.gui.StorageSettingsContainerMenu;
 
 public record OpenStorageInventoryPayload(BlockPos pos) implements CustomPacketPayload {
 	public static final Type<OpenStorageInventoryPayload> TYPE = new Type<>(SophisticatedStorage.getRL("open_storage_inventory"));
@@ -29,9 +30,18 @@ public record OpenStorageInventoryPayload(BlockPos pos) implements CustomPacketP
 	}
 
 	public static void handlePayload(OpenStorageInventoryPayload payload, ServerPlayNetworking.Context context) {
-		context.player().sophisticatedCore_openMenu(
+		Player player = context.player();
+		// coming back from the settings menu: it is the menu that currently holds the block's opener, so it hands it over
+		// instead of releasing it - otherwise the block closes and immediately re-opens here
+		boolean openersAlreadyActive = false;
+		if (player.containerMenu instanceof StorageSettingsContainerMenu settingsMenu && payload.pos.equals(settingsMenu.getBlockPosition())) {
+			settingsMenu.transferOpenersToStorageMenu();
+			openersAlreadyActive = true;
+		}
+		boolean inheritedOpener = openersAlreadyActive;
+		player.sophisticatedCore_openMenu(
 				new SophisticatedMenuProvider(
-						(w, p, pl) -> instantiateContainerMenu(w, pl, payload.pos),
+						(w, p, pl) -> instantiateContainerMenu(w, pl, payload.pos, inheritedOpener),
 						WorldHelper.getBlockEntity(context.player().level(), payload.pos, StorageBlockEntity.class).map(StorageBlockEntity::getDisplayName).orElse(Component.empty()),
 						false
 				),
@@ -39,11 +49,11 @@ public record OpenStorageInventoryPayload(BlockPos pos) implements CustomPacketP
 		);
 	}
 
-	private static StorageContainerMenu instantiateContainerMenu(int windowId, Player player, BlockPos pos) {
+	private static StorageContainerMenu instantiateContainerMenu(int windowId, Player player, BlockPos pos, boolean openersAlreadyActive) {
 		if (player.level().getBlockState(pos).getBlock() instanceof LimitedBarrelBlock) {
-			return new LimitedBarrelContainerMenu(windowId, player, pos);
+			return new LimitedBarrelContainerMenu(windowId, player, pos, openersAlreadyActive);
 		} else {
-			return new StorageContainerMenu(windowId, player, pos);
+			return new StorageContainerMenu(windowId, player, pos, openersAlreadyActive);
 		}
 	}
 }
