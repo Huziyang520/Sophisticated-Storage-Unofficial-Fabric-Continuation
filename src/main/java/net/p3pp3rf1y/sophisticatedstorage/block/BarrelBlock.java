@@ -44,6 +44,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
+import net.p3pp3rf1y.sophisticatedstorage.Config;
 import net.p3pp3rf1y.sophisticatedstorage.common.gui.StorageContainerMenu;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
 import net.p3pp3rf1y.sophisticatedstorage.item.BarrelBlockItem;
@@ -133,15 +134,20 @@ public class BarrelBlock extends WoodStorageBlockBase {
 	public InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
 		return WorldHelper.getBlockEntity(level, pos, WoodStorageBlockEntity.class).map(b -> {
 			if (b.isPacked()) {
-				// 26.3：未处理必须返回 TRY_WITH_EMPTY_HAND，否则 ServerPlayerGameMode 不会继续调 useWithoutItem（开界面的入口）
-				return InteractionResult.TRY_WITH_EMPTY_HAND;
+				// 打包后的木桶不能再打开：以前返回 TRY_WITH_EMPTY_HAND 会回落到 useWithoutItem 直接开界面。
+				return InteractionResult.FAIL;
 			}
-			if (level.isClientSide() || hand == InteractionHand.OFF_HAND) {
+			if (hand == InteractionHand.OFF_HAND) {
 				return InteractionResult.SUCCESS;
+			}
+			if (level.isClientSide()) {
+				// 客户端与服务端做同一个判定，胶带要能预测出「挥臂 + 已处理」，
+				// 否则客户端先短路成 SUCCESS（不挥臂）而服务端又改了胶带耐久，就是玩家说的「音效错、指针异常」。
+				return isPackingTape(stack) ? InteractionResult.CONSUME : InteractionResult.SUCCESS;
 			}
 
 			if (tryItemInteraction(player, hand, b, stack, getFacing(state), hitResult)) {
-				return InteractionResult.SUCCESS;
+				return itemInteractionResult(stack);
 			}
 			return InteractionResult.TRY_WITH_EMPTY_HAND;
 		}).orElse(InteractionResult.TRY_WITH_EMPTY_HAND);
@@ -149,6 +155,10 @@ public class BarrelBlock extends WoodStorageBlockBase {
 
 	@Override
 	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+		// 打包后的木桶不能再打开（useItemOn 对已打包返回 FAIL，这里兜住空手右键）
+		if (WorldHelper.getBlockEntity(level, pos, WoodStorageBlockEntity.class).map(WoodStorageBlockEntity::isPacked).orElse(false)) {
+			return InteractionResult.PASS;
+		}
 		player.awardStat(Stats.OPEN_BARREL);
 		player.sophisticatedCore_openMenu(
 				new SimpleMenuProvider(

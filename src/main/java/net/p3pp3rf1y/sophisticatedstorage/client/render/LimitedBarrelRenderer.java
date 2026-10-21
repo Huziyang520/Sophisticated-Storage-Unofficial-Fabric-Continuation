@@ -24,6 +24,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -122,6 +123,7 @@ public class LimitedBarrelRenderer implements BlockEntityRenderer<LimitedBarrelB
 		state.fillCount = 0;
 		state.showsCounts = barrel.shouldShowCounts();
 		state.showsFillLevels = barrel.shouldShowFillLevels();
+		state.lightCoords = frontLightCoords(barrel, state);
 
 		RenderInfo.ItemDisplayRenderInfo displayInfo = barrel.getStorageWrapper().getRenderInfo().getItemDisplayRenderInfo();
 		if (!state.packed) {
@@ -233,6 +235,24 @@ public class LimitedBarrelRenderer implements BlockEntityRenderer<LimitedBarrelB
 		for (int slot = 0; slot < state.fillCount; slot++) {
 			state.fillLevels[slot] = Mth.clamp(fillLevels.get(slot), 0, 1);
 		}
+	}
+
+	/**
+	 * Light for everything the renderer draws on the front face, sampled in the <b>air block in front of</b> the face
+	 * (upstream does the same).
+	 * <p>
+	 * {@link BlockEntityRenderState#extractBase} samples the block entity's own position instead, and a barrel is a
+	 * light occluding full block: the sky light inside it is 0 and, unless the block glows, so is the block light. The
+	 * packed light therefore ended up as 0, and the light map coordinate (0, 0) is black - every display item, every
+	 * block item and the count text were drawn pure black (the black icons / the black square on the barrel front in
+	 * the bug report). The air block in front of the face carries the light the player actually sees the barrel in.
+	 */
+	private static int frontLightCoords(LimitedBarrelBlockEntity barrel, LimitedBarrelRenderState state) {
+		if (barrel.getLevel() == null) {
+			return LightCoordsUtil.FULL_BRIGHT;
+		}
+		Direction front = state.verticalFacing != VerticalFacing.NO ? state.verticalFacing.getDirection() : state.horizontalFacing;
+		return LightCoordsUtil.getLightCoords(barrel.getLevel(), barrel.getBlockPos().relative(front));
 	}
 
 	@Override

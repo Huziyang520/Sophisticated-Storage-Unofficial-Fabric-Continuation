@@ -176,6 +176,32 @@ public class LimitedBarrelBlockEntity extends BarrelBlockEntity implements ICoun
 		return slotColors.getOrDefault(slot, DyeColor.WHITE).getTextColor();
 	}
 
+	/**
+	 * Whether the display slot holds something, <b>on both sides</b> - the left click take has to be recognised the
+	 * same way on the server (which takes the item) and on the client (which decides whether to draw the destroy
+	 * overlay), see {@code LimitedBarrelBlock#getDestroyProgress}.
+	 * <p>
+	 * The server reads the inventory handler; that copy is never sent to clients. The client therefore uses the two
+	 * copies of the contents it does get: the synchronised slot counts ({@link #getSlotCounts()}, sent with every block
+	 * entity update) and the render info display items (sent with the storage data). Either one is enough - if neither
+	 * has arrived yet the barrel shows no contents either, so treating the slot as empty is consistent with what is
+	 * drawn.
+	 */
+	public boolean hasItemsInSlot(int slot) {
+		if (slot < 0) {
+			return false;
+		}
+		if (level != null && !level.isClientSide()) {
+			InventoryHandler handler = getStorageWrapper().getInventoryHandler();
+			return slot < handler.getSlotCount() && !handler.getStackInSlot(slot).isEmpty();
+		}
+		if (slot < slotCounts.size() && slotCounts.get(slot) > 0) {
+			return true;
+		}
+		return getStorageWrapper().getRenderInfo().getItemDisplayRenderInfo().getDisplayItems().stream()
+				.anyMatch(displayItem -> displayItem.getSlotIndex() == slot && !displayItem.getItem().isEmpty());
+	}
+
 	public boolean depositItem(Player player, InteractionHand hand, ItemStack stackInHand, int slot) {
 		//noinspection ConstantConditions
 		long gameTime = getLevel().getGameTime();

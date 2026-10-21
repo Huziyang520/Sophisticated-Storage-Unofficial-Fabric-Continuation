@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedstorage.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
@@ -35,7 +36,15 @@ public final class StorageSync {
 
 		BlockPos pos = blockEntity.getBlockPos();
 		ClientboundBlockEntityDataPacket packet = ClientboundBlockEntityDataPacket.create(blockEntity);
+		// The client drops a data packet whose block entity it does not have yet
+		// ({@code ClientPacketListener#handleBlockEntityData} looks the block entity up and does nothing when it is
+		// missing). This method is called from {@code setPlacedBy}, which runs before the chunk broadcast that carries
+		// the new block, so without this block update first the data packet - the colours, the wood type, the render
+		// info - could be thrown away and the client would keep rendering the barrel from the block state alone until
+		// some unrelated update arrived. Both packets go out on the same connection, so the order is preserved.
+		ClientboundBlockUpdatePacket blockUpdatePacket = new ClientboundBlockUpdatePacket(pos, blockEntity.getBlockState());
 		for (ServerPlayer player : serverLevel.getChunkSource().chunkMap.getPlayers(ChunkPos.containing(pos), false)) {
+			player.connection.send(blockUpdatePacket);
 			player.connection.send(packet);
 		}
 	}

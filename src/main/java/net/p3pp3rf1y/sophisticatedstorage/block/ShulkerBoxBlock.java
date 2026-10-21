@@ -52,6 +52,7 @@ import net.p3pp3rf1y.sophisticatedstorage.init.ModItems;
 import net.p3pp3rf1y.sophisticatedstorage.item.ShulkerBoxItem;
 import net.p3pp3rf1y.sophisticatedstorage.item.StorageBlockItem;
 import net.p3pp3rf1y.sophisticatedstorage.item.StorageToolItem;
+import net.p3pp3rf1y.sophisticatedstorage.util.StorageDataHelper;
 
 import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
@@ -105,7 +106,7 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 
 		return WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).map(b -> {
 			if (tryItemInteraction(player, hand, b, player.getItemInHand(hand), getFacing(state), hitResult)) {
-				return InteractionResult.SUCCESS;
+				return itemInteractionResult(player.getItemInHand(hand));
 			}
 			// 26.3：未处理必须返回 TRY_WITH_EMPTY_HAND，才会回落到 useWithoutItem 打开界面
 			return InteractionResult.TRY_WITH_EMPTY_HAND;
@@ -138,23 +139,11 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 	@Override
 	public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
 		WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).ifPresent(be -> {
-			UUID storageUuid = stack.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID);
-			if (storageUuid != null) {
-				ItemContentsStorage itemContentsStorage = ItemContentsStorage.get();
-				net.p3pp3rf1y.sophisticatedstorage.util.NbtTransferHelper.loadAdditional(be, itemContentsStorage.getOrCreateStorageContents(storageUuid), level.registryAccess());
-				itemContentsStorage.removeStorageContents(storageUuid);
-			}
+			// 唯一的读入口：内容、颜色、木种、槽数、升级、打包状态都从物品组件/BE 数据里读回来。
+			StorageDataHelper.readStorageDataFromStack(stack, be);
 
 			if (stack.has(DataComponents.CUSTOM_NAME)) {
 				be.setCustomName(stack.get(DataComponents.CUSTOM_NAME));
-			}
-			if (stack.getItem() instanceof ShulkerBoxItem shulkerBoxItem) {
-				StorageWrapper storageWrapper = be.getStorageWrapper();
-				storageWrapper.setColors(shulkerBoxItem.getMainColor(stack).orElse(-1), shulkerBoxItem.getAccentColor(stack).orElse(-1));
-				InventoryHandler inventoryHandler = storageWrapper.getInventoryHandler();
-				UpgradeHandler upgradeHandler = storageWrapper.getUpgradeHandler();
-				storageWrapper.changeSize(shulkerBoxItem.getNumberOfInventorySlots(level.registryAccess(), stack) - inventoryHandler.getSlotCount(),
-						shulkerBoxItem.getNumberOfUpgradeSlots(level.registryAccess(), stack) - upgradeHandler.getSlotCount());
 			}
 
 			be.getStorageWrapper().onInit();
@@ -255,35 +244,13 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 		addShulkerContentsToStack(stack, be);
 	}
 
+	/**
+	 * 潜影盒的内容永远跟着物品走（{@code shouldDropContents()} 为 false，不存在「撒出来」的路径），
+	 * 所以这里无条件写全量数据：内容、升级、颜色、槽数、名字、层级显示。
+	 */
 	private void addShulkerContentsToStack(ItemStack stack, StorageBlockEntity be) {
-		StorageWrapper storageWrapper = be.getStorageWrapper();
-		UUID shulkerBoxUuid = storageWrapper.getContentsUuid().orElse(UUID.randomUUID());
-		CompoundTag shulkerContents = be.saveWithoutMetadata(be.getLevel().registryAccess());
-		shulkerContents.remove(IControllerBoundable.CONTROLLER_POS_TAG);
-		if (!shulkerContents.isEmpty()) {
-			ItemContentsStorage.get().setStorageContents(shulkerBoxUuid, shulkerContents);
-			stack.sophisticatedCore_set(ModCoreDataComponents.STORAGE_UUID, shulkerBoxUuid);
-		}
-		addBasicPropertiesToStack(stack, be, storageWrapper);
+		StorageDataHelper.writeStorageDataToStack(stack, be);
 		StorageBlockItem.setShowsTier(stack, be.shouldShowTier());
-	}
-
-	private void addBasicPropertiesToStack(ItemStack stack, StorageBlockEntity be, StorageWrapper storageWrapper) {
-		if (be.hasCustomName()) {
-			stack.sophisticatedCore_set(DataComponents.CUSTOM_NAME, be.getCustomName());
-		}
-		if (stack.getItem() instanceof ShulkerBoxItem shulkerBoxItem) {
-			int mainColor = storageWrapper.getMainColor();
-			if (mainColor != -1) {
-				shulkerBoxItem.setMainColor(stack, mainColor);
-			}
-			int accentColor = storageWrapper.getAccentColor();
-			if (accentColor != -1) {
-				shulkerBoxItem.setAccentColor(stack, accentColor);
-			}
-			StorageBlockItem.setNumberOfInventorySlots(stack, storageWrapper.getInventoryHandler().getSlotCount());
-			StorageBlockItem.setNumberOfUpgradeSlots(stack, storageWrapper.getUpgradeHandler().getSlotCount());
-		}
 	}
 
 	@Override
@@ -297,10 +264,9 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 	@Override
 	protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
 		ItemStack stack = super.getCloneItemStack(level, pos, state, false);
-		WorldHelper.getBlockEntity(level, pos, ShulkerBoxBlockEntity.class).ifPresent(be -> {
-			StorageWrapper storageWrapper = be.getStorageWrapper();
-			addBasicPropertiesToStack(stack, be, storageWrapper);
-		});
+		// 创造取物必须拿到和掉落物一样的数据（含内容），否则「中键拿一个装满的盒子，放下去是空的」
+		WorldHelper.getBlockEntity(level, pos, ShulkerBoxBlockEntity.class)
+				.ifPresent(be -> StorageDataHelper.writeStorageDataToStack(stack, be));
 		return stack;
 	}
 

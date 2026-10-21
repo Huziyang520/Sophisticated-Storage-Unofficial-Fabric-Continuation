@@ -123,6 +123,10 @@ public class ShulkerBoxItem extends StorageBlockItem implements IStashStorageIte
 			return super.overrideStackedOnOther(storageStack, slot, action, player);
 		}
 
+		if (player.level().isClientSide()) {
+			return predictHandled();
+		}
+
 		ItemStack stackToStash = slot.getItem();
 		ItemStack stashResult = stash(player.level().registryAccess(), storageStack, stackToStash, true);
 		if (stashResult.getCount() != stackToStash.getCount()) {
@@ -141,14 +145,31 @@ public class ShulkerBoxItem extends StorageBlockItem implements IStashStorageIte
 			return super.overrideOtherStackedOnMe(storageStack, otherStack, slot, action, player, carriedAccess);
 		}
 
+		if (player.level().isClientSide()) {
+			return predictHandled();
+		}
+
 		ItemStack result = stash(player.level().registryAccess(), storageStack, otherStack, false);
 		if (result.getCount() != otherStack.getCount()) {
 			carriedAccess.set(result);
-			slot.set(storageStack);
 			return true;
 		}
 
 		return super.overrideOtherStackedOnMe(storageStack, otherStack, slot, action, player, carriedAccess);
+	}
+
+	/**
+	 * 客户端只预测「这次右键被处理了」，绝不写容器内容。
+	 * <p>
+	 * 26.3 的 {@code MultiPlayerGameMode#handleInventoryMouseClick} 会先在本机跑一遍 {@code menu.clicked}，
+	 * 再把这个点击发给服务端。以前这里在客户端也真的把物品塞进 {@code StackStorageWrapper}：
+	 * 物品从光标上消失、客户端本地副本多出一份、物品上还被写了一个只存在于客户端的随机 uuid。
+	 * 服务端随后用**另一个** uuid 重做一次；只要服务端这次点击被丢弃（失步重同步 / 距离校验），
+	 * 客户端已经空了而服务端从未收到 —— 玩家看到的就是「GUI 内右键放入容器，物品直接消失」。
+	 * 改成纯预测后，内容只由服务端写，客户端等槽位广播。
+	 */
+	private boolean predictHandled() {
+		return true;
 	}
 
 	private boolean hasCreativeScreenContainerOpen(Player player) {

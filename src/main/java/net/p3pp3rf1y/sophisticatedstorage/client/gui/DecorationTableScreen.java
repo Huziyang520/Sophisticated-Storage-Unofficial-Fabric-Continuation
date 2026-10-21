@@ -104,6 +104,12 @@ public class DecorationTableScreen extends AbstractContainerScreen<DecorationTab
 	private ColorPicker colorPicker;
 
 	private final List<Component> resultPartsNeededTooltip = new ArrayList<>();
+	/**
+	 * 26.3 的 {@code ContainerEventHandler.mouseClicked} 只要命中子控件就返回 true（即使控件自己没处理）。
+	 * 这里的 {@link BlockPreview}、部件提示图标都盖在结果槽/存储槽上方，于是结果永远拿不出来（“只能开 UI”）。
+	 * 自己按最上层优先派发一次，交给父类走槽位逻辑时把 getChildAt 关掉。
+	 */
+	private boolean suppressChildHit = false;
 
 	public DecorationTableScreen(DecorationTableMenu menu, Inventory playerInventory, Component title) {
 		super(menu, playerInventory, title, GUI_WIDTH, GUI_HEIGHT);
@@ -124,7 +130,10 @@ public class DecorationTableScreen extends AbstractContainerScreen<DecorationTab
 		int lastDyeSlotIndex = getMenu().getDyeSlotRange().firstSlot() + getMenu().getDyeSlotRange().numberOfSlots() - 1;
 		Slot lastDyeSlot = getMenu().getSlot(lastDyeSlotIndex);
 		Slot resultSlot = menu.getResultSlot();
-		blockPreview = new BlockPreview(new Position(leftPos + lastDyeSlot.x + 16 + 1 + 8 + 1, topPos + lastDyeSlot.y), new Dimension(80, resultSlot.y - lastDyeSlot.y + 16 + 4));
+		// 预览框必须摆在结果槽右边：之前从染料槽右侧起算，框体正好压住结果槽（结果看不见、也点不到）
+		int previewX = resultSlot.x + 20;
+		blockPreview = new BlockPreview(new Position(leftPos + previewX, topPos + lastDyeSlot.y),
+				new Dimension(Math.max(32, imageWidth - previewX - 4), resultSlot.y - lastDyeSlot.y + 16 + 4));
 		updatePreviewStacks();
 
 		addRenderableWidget(blockPreview);
@@ -350,7 +359,43 @@ public class DecorationTableScreen extends AbstractContainerScreen<DecorationTab
 			widgetBase.setFocused(false);
 		}
 
-		return super.mouseClicked(event, isDoubleClick);
+		// 最上层优先、只有真正处理了才算命中：预览框/部件图标盖在结果槽上时，不能把点击吞掉
+		List<? extends GuiEventListener> children = children();
+		for (int i = children.size() - 1; i >= 0; i--) {
+			GuiEventListener child = children.get(i);
+			if (!child.isMouseOver(mouseX, mouseY)) {
+				continue;
+			}
+			if (child.mouseClicked(event, isDoubleClick)) {
+				setFocused(child);
+				if (event.button() == 0) {
+					setDragging(true);
+				}
+				return true;
+			}
+		}
+
+		suppressChildHit = true;
+		try {
+			return super.mouseClicked(event, isDoubleClick);
+		} finally {
+			suppressChildHit = false;
+		}
+	}
+
+	@Override
+	public Optional<GuiEventListener> getChildAt(double mouseX, double mouseY) {
+		if (suppressChildHit) {
+			return Optional.empty();
+		}
+		List<? extends GuiEventListener> children = children();
+		for (int i = children.size() - 1; i >= 0; i--) {
+			GuiEventListener child = children.get(i);
+			if (child.isMouseOver(mouseX, mouseY)) {
+				return Optional.of(child);
+			}
+		}
+		return Optional.empty();
 	}
 
 	@Override

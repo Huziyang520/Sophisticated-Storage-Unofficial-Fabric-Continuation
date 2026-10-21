@@ -15,6 +15,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
@@ -235,6 +236,44 @@ public class LimitedBarrelBlock extends BarrelBlock {
 		}
 
 		tryToTakeItem(state, level, pos, player);
+	}
+
+	/**
+	 * Keeps the left click that takes an item out of the front face out of the destroy path.
+	 * <p>
+	 * Vanilla runs {@code Block#attack} and then <b>unconditionally</b> starts destroying the block
+	 * ({@code ServerPlayerGameMode#handleBlockBreakAction}: {@code state.attack(...)} followed by
+	 * {@code destroyBlockProgress(...)}). So a take click used to play the barrel's break sound, spawn its break
+	 * particles and - when the button was held or the click was fast - actually break the barrel, which is what made
+	 * the barrel lose its dye (the colour lives in the block entity) and drop the item the player had just put in.
+	 * <p>
+	 * Returning 0 for exactly that click removes the click from the destroy flow on both sides: the server computes a
+	 * progress of 0 (and {@code getDestroyProgress} of 0 never accumulates to the 0.7 that destroys a block), and the
+	 * client - which uses the same method for its crack overlay - shows no overlay and plays no break sound or
+	 * particles. Any other face, an empty slot or a packed barrel still breaks normally, so the barrel stays
+	 * breakable; only the take click on a filled, unpacked slot is affected.
+	 */
+	@Override
+	protected float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
+		if (isTakeClick(state, level, pos, player)) {
+			return 0F;
+		}
+		return super.getDestroyProgress(state, player, level, pos);
+	}
+
+	private boolean isTakeClick(BlockState state, BlockGetter level, BlockPos pos, Player player) {
+		// creative destroys a block without ever calling attack, so a creative click is not a take
+		if (player.isCreative()) {
+			return false;
+		}
+		return getHitResult(player).map(blockHitResult -> {
+			if (!blockHitResult.getBlockPos().equals(pos) || blockHitResult.getDirection() != getFacing(state)) {
+				return false;
+			}
+			int slot = getInteractionSlot(pos, state, blockHitResult);
+			return WorldHelper.getBlockEntity(level, pos, LimitedBarrelBlockEntity.class)
+					.map(barrel -> !barrel.isPacked() && barrel.hasItemsInSlot(slot)).orElse(false);
+		}).orElse(false);
 	}
 
 	public boolean tryToTakeItem(BlockState state, Level level, BlockPos pos, Player player) {

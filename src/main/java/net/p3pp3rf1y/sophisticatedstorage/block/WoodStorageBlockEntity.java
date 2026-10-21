@@ -113,7 +113,12 @@ public abstract class WoodStorageBlockEntity extends StorageBlockEntity {
 	}
 
 	public void setPacked(boolean packed) {
+		if (this.packed == packed) {
+			return;
+		}
 		this.packed = packed;
+		// 打包状态存在 synchronized data 里，必须标脏才会进存档；否则「打包后挖掉再放下」会读回未打包状态。
+		setChanged();
 	}
 
 	@Override

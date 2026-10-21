@@ -100,6 +100,12 @@ public class DecorationTableBlockEntity extends BlockEntity {
 	public void updateResultAndSetChanged() {
 		updateResult();
 		setChanged();
+		// 结果只存在方块实体里，客户端要点/看它就必须收到一次方块更新包：
+		// 之前这里只有 setChanged()（只标脏存档），客户端那份 result 永远是空的，
+		// 玩家看到结果槽空着、点也没反应 —— “装饰台只能开 UI”。
+		if (level != null && !level.isClientSide()) {
+			WorldHelper.notifyBlockUpdate(this);
+		}
 	}
 
 	private final ItemStackHandler storageBlock = new ItemStackHandler(1) {

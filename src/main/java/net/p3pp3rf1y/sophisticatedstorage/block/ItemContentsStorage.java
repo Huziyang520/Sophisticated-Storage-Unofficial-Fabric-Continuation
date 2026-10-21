@@ -89,6 +89,12 @@ public class ItemContentsStorage extends SavedData {
 		});
 	}
 
+	/** 该 uuid 的内容是否已经在本侧（服务端存档 / 客户端同步副本）里，决定快捷提示显示内容还是「同步中」。 */
+	public boolean hasStorageContents(UUID storageUuid) {
+		CompoundTag contents = storageContents.get(storageUuid);
+		return contents != null && !contents.isEmpty();
+	}
+
 	public void removeStorageContents(UUID storageUuid) {
 		storageContents.remove(storageUuid);
 		setDirty();

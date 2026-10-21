@@ -264,12 +264,16 @@ public class ChestBlock extends WoodStorageBlockBase implements SimpleWaterlogge
 			if (b.isPacked()) {
 				return InteractionResult.FAIL;
 			}
-			if (level.isClientSide() || hand == InteractionHand.OFF_HAND) {
+			if (hand == InteractionHand.OFF_HAND) {
 				return InteractionResult.SUCCESS;
+			}
+			if (level.isClientSide()) {
+				// 客户端与服务端同一个判定：胶带预测成「已处理 + 挥臂」，其余物品仍按 SUCCESS 短路（不预测放置）。
+				return isPackingTape(stack) ? InteractionResult.CONSUME : InteractionResult.SUCCESS;
 			}
 
 			if (tryItemInteraction(player, hand, b, stack, state.getValue(FACING), hitResult)) {
-				return InteractionResult.SUCCESS;
+				return itemInteractionResult(stack);
 			}
 			// 26.3：未处理必须返回 TRY_WITH_EMPTY_HAND，才会回落到 useWithoutItem 打开界面
 			return InteractionResult.TRY_WITH_EMPTY_HAND;
@@ -406,14 +410,18 @@ public class ChestBlock extends WoodStorageBlockBase implements SimpleWaterlogge
 
 	@Override
 	protected void packStorage(Player player, InteractionHand hand, WoodStorageBlockEntity b, ItemStack stackInHand) {
-		super.packStorage(player, hand, b, stackInHand);
+		// 双箱两半都要打包，但胶带只该掉一点耐久：以前这里调了两次 super.packStorage → 一次右键两点耐久。
+		if (!player.isCreative()) {
+			stackInHand.hurtAndBreak(1, player, hand);
+		}
+		packStorageEntity(player, b);
 
 		if (b.getBlockState().getValue(TYPE) == ChestType.SINGLE) {
 			return;
 		}
 
 		player.level().getBlockEntity(b.getBlockPos().relative(getConnectedDirection(b.getBlockState())), ModBlocks.CHEST_BLOCK_ENTITY_TYPE.get())
-				.ifPresent(be -> super.packStorage(player, hand, be, stackInHand));
+				.ifPresent(be -> packStorageEntity(player, be));
 	}
 
 	@Nullable

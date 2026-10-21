@@ -264,4 +264,23 @@ public abstract class StorageBlockBase extends BlockBase implements IStorageBloc
 	public List<BlockPos> getNeighborPos(BlockState state, BlockPos origin, Direction facing) {
 		return List.of(origin.relative(facing));
 	}
+
+	/**
+	 * 交互成功时该返回什么：打包带要用 {@code CONSUME}（已处理 + 挥臂），其它物品仍是 {@code SUCCESS}。
+	 * 以前统一返回 SUCCESS（不挥臂），加上客户端先短路，玩家看到的就是「点了没反应 / 手持物异常」。
+	 */
+	protected static net.minecraft.world.InteractionResult itemInteractionResult(ItemStack stackInHand) {
+		return stackInHand.getItem() == net.p3pp3rf1y.sophisticatedstorage.init.ModItems.PACKING_TAPE.get()
+				? net.minecraft.world.InteractionResult.CONSUME
+				: net.minecraft.world.InteractionResult.SUCCESS;
+	}
+
+	/**
+	 * 手持打包带且配置允许打包时为 true。客户端也要用它做同一个判定，否则客户端会先短路成 SUCCESS，
+	 * 服务端却按胶带处理（改耐久、打包方块），两边结果不一致。
+	 */
+	protected static boolean isPackingTape(ItemStack stackInHand) {
+		return stackInHand.getItem() == net.p3pp3rf1y.sophisticatedstorage.init.ModItems.PACKING_TAPE.get()
+				&& !Boolean.TRUE.equals(net.p3pp3rf1y.sophisticatedstorage.Config.COMMON.dropPacked.get());
+	}
 }

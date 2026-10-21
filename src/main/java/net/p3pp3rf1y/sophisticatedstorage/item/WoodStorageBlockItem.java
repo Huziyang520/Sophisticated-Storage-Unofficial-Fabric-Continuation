@@ -98,6 +98,11 @@ public class WoodStorageBlockItem extends StorageBlockItem {
     }
 
     private void removeWoodType(ItemStack storageStack) {
+        removeWoodTypeComponent(storageStack);
+    }
+
+    /** 染满的（主色+副色都有）容器不带木种；掉落/创造取物写物品时也要按这条规则清掉。 */
+    public static void removeWoodTypeComponent(ItemStack storageStack) {
         storageStack.sophisticatedCore_remove(ModDataComponents.WOOD_TYPE);
     }
 
