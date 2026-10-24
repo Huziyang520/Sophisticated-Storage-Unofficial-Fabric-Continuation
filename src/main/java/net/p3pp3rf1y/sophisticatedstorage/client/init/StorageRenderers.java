@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedstorage.client.init;
 
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import net.p3pp3rf1y.sophisticatedstorage.block.BarrelBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.block.ChestBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.block.LimitedBarrelBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.block.ShulkerBoxBlockEntity;
@@ -9,6 +10,7 @@ import net.p3pp3rf1y.sophisticatedstorage.client.render.BarrelItemModel;
 import net.p3pp3rf1y.sophisticatedstorage.client.render.ChestItemRenderer;
 import net.p3pp3rf1y.sophisticatedstorage.client.render.ChestRenderer;
 import net.p3pp3rf1y.sophisticatedstorage.client.render.LimitedBarrelRenderer;
+import net.p3pp3rf1y.sophisticatedstorage.client.render.PackedBarrelRenderer;
 import net.p3pp3rf1y.sophisticatedstorage.client.render.ShulkerBoxItemRenderer;
 import net.p3pp3rf1y.sophisticatedstorage.client.render.ShulkerBoxRenderer;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
@@ -31,6 +33,9 @@ public final class StorageRenderers {
 				(BlockEntityRendererProvider<ChestBlockEntity, ChestRenderer.ChestRenderState>) ChestRenderer::new);
 		BlockEntityRenderers.register(ModBlocks.SHULKER_BOX_BLOCK_ENTITY_TYPE.get(),
 				(BlockEntityRendererProvider<ShulkerBoxBlockEntity, ShulkerBoxRenderer.ShulkerRenderState>) ShulkerBoxRenderer::new);
+		// 打包态外观：木桶本体是静态模型，打包后由这个渲染器在最外层再画一层纸板盒（不改方块状态，见类注释）
+		BlockEntityRenderers.register(ModBlocks.BARREL_BLOCK_ENTITY_TYPE.get(),
+				(BlockEntityRendererProvider<BarrelBlockEntity, PackedBarrelRenderer.PackedBarrelRenderState>) PackedBarrelRenderer::new);
 		BlockEntityRenderers.register(ModBlocks.LIMITED_BARREL_BLOCK_ENTITY_TYPE.get(),
 				(BlockEntityRendererProvider<LimitedBarrelBlockEntity, LimitedBarrelRenderer.LimitedBarrelRenderState>) LimitedBarrelRenderer::new);
 

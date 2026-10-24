@@ -268,6 +268,9 @@
   "gui.sophisticatedstorage.buttons.upgrade_switch_disabled": "OFF",
   "gui.sophisticatedstorage.buttons.decoration_inheritance_on": "Reuse Material",
   "gui.sophisticatedstorage.buttons.decoration_inheritance_off": "Don't Reuse Material",
+  "gui.sophisticatedstorage.decoration_table.preview_title": "プレビュー",
+  "gui.sophisticatedstorage.decoration_table.preview_empty": "ストレージブロックを入れると装飾結果をプレビューできます",
+  "gui.sophisticatedstorage.decoration_table.preview_cycle": "クリックでプレビュー結果を切り替え",
   "gui.sophisticatedstorage.buttons.pick_color": "Click to Pick Color",
   "gui.sophisticatedstorage.settings.buttons.context_storage": "個別に適用",
   "gui.sophisticatedstorage.settings.buttons.context_storage.tooltip": "チェストごとに設定",
@@ -281,5 +284,9 @@
   "gui.sophisticatedstorage.tooltip.parts_stored": "Parts Stored",
   "keybind.sophisticatedstorage.cycle_tool_mode": "Cycle Storage Tool Mode",
   "key.category.sophisticatedstorage.main": "Sophisticated Storage",
-  "item.sophisticatedstorage.inaccessible_slot": "Inaccessible Slot"
+  "item.sophisticatedstorage.inaccessible_slot": "Inaccessible Slot",
+  "item.sophisticatedstorage.storage_tool.overlay.linked_to_controller": "x:%s y:%s z:%s のコントローラーに接続しました",
+  "item.sophisticatedstorage.storage_tool.overlay.link_failed": "このブロックは接続できません",
+  "item.sophisticatedstorage.storage_tool.overlay.locked": "コンテナを施錠しました",
+  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "コンテナの鍵を外しました"
 }

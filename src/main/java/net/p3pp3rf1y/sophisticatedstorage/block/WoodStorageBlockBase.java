@@ -279,9 +279,7 @@ public abstract class WoodStorageBlockBase extends StorageBlockBase implements I
 						)) {
 							ItemStack drop = new ItemStack(this);
 							addDropData(drop, wbe);
-							ItemEntity itementity = new ItemEntity(level, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, drop);
-							itementity.setDefaultPickUpDelay();
-							level.addFreshEntity(itementity);
+							spawnStorageDrop(level, pos, drop);
 						}
 					}
 				});

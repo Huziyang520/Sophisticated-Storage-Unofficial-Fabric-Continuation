@@ -6,6 +6,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.item.ItemStack;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedstorage.SophisticatedStorage;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModItems;
 import net.p3pp3rf1y.sophisticatedstorage.item.StorageToolItem;
@@ -26,6 +27,8 @@ public record ScrolledToolPayload(boolean next) implements CustomPacketPayload {
 		ItemStack stack = context.player().getMainHandItem();
 		if (stack.getItem() == ModItems.STORAGE_TOOL.get()) {
 			StorageToolItem.cycleMode(stack, payload.next);
+			// 回执：客户端 HUD 读的是本地组件，不回包的话它会一直显示旧模式（第 5 轮第 15 条）
+			PacketDistributor.sendToPlayer(context.player(), new ToolModePayload(StorageToolItem.getMode(stack).ordinal()));
 		}
 	}
 }

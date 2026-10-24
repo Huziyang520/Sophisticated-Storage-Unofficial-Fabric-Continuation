@@ -268,6 +268,9 @@
   "gui.sophisticatedstorage.buttons.upgrade_switch_disabled": "꺼짐",
   "gui.sophisticatedstorage.buttons.decoration_inheritance_on": "Reuse Material",
   "gui.sophisticatedstorage.buttons.decoration_inheritance_off": "Don't Reuse Material",
+  "gui.sophisticatedstorage.decoration_table.preview_title": "미리보기",
+  "gui.sophisticatedstorage.decoration_table.preview_empty": "저장 블록을 넣으면 장식 결과를 미리 볼 수 있습니다",
+  "gui.sophisticatedstorage.decoration_table.preview_cycle": "클릭하여 미리보기 결과 전환",
   "gui.sophisticatedstorage.buttons.pick_color": "Click to Pick Color",
   "gui.sophisticatedstorage.settings.buttons.context_storage": "저장소",
   "gui.sophisticatedstorage.settings.buttons.context_storage.tooltip": "이 저장소의 설정",
@@ -281,5 +284,9 @@
   "gui.sophisticatedstorage.tooltip.parts_stored": "Parts Stored",
   "keybind.sophisticatedstorage.cycle_tool_mode": "Cycle Storage Tool Mode",
   "key.category.sophisticatedstorage.main": "Sophisticated Storage",
-  "item.sophisticatedstorage.inaccessible_slot": "Inaccessible Slot"
+  "item.sophisticatedstorage.inaccessible_slot": "Inaccessible Slot",
+  "item.sophisticatedstorage.storage_tool.overlay.linked_to_controller": "x:%s y:%s z:%s 의 컨트롤러에 연결되었습니다",
+  "item.sophisticatedstorage.storage_tool.overlay.link_failed": "이 블록은 연결할 수 없습니다",
+  "item.sophisticatedstorage.storage_tool.overlay.locked": "컨테이너를 잠갔습니다",
+  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "컨테이너의 잠금을 풀었습니다"
 }

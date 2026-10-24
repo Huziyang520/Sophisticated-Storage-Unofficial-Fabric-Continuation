@@ -11,10 +11,9 @@ import net.p3pp3rf1y.sophisticatedcore.util.BlockItemBase;
 import net.p3pp3rf1y.sophisticatedstorage.block.ITintableBlockItem;
 import net.p3pp3rf1y.sophisticatedstorage.block.StorageWrapper;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModDataComponents;
+import net.p3pp3rf1y.sophisticatedstorage.util.StorageDataHelper;
 
 import java.util.Optional;
-
-import static net.p3pp3rf1y.sophisticatedstorage.block.StorageBlockEntity.STORAGE_WRAPPER_TAG;
 
 public class StorageBlockItem extends BlockItemBase implements ITintableBlockItem {
 
@@ -22,6 +21,17 @@ public class StorageBlockItem extends BlockItemBase implements ITintableBlockIte
 		super(block, properties);
 	}
 
+	/**
+	 * 物品自带的方块实体数据里那一层「storageWrapper」。
+	 * <p>
+	 * 层级必须和写入端一致：{@link net.p3pp3rf1y.sophisticatedstorage.util.StorageDataHelper#writeStorageDataToStack}
+	 * 写的是方块实体的整块数据（{@code BlockEntity#saveWithoutMetadata}），它的形状与
+	 * {@code StorageBlockEntity#saveAdditional} 相同，即
+	 * {@code {sophisticatedstorage_data:{storageWrapper:{...}}}}。
+	 * 旧实现直接在顶层找 {@code storageWrapper}，永远取不到东西 —— 快捷提示、{@code StackStorageWrapper}、
+	 * {@link net.p3pp3rf1y.sophisticatedstorage.util.StorageDataHelper#hasStorageDataInStack} 因此全都认为
+	 * 「盒子是空的」（审计缺陷 2 的确证部分）。
+	 */
 	public static Optional<CompoundTag> getEntityWrapperTagFromStack(SophisticatedDataComponentHolder componentHolder) {
 		// 26.3：核心的 sophisticatedCore_get 泛型推断在此处过于严格，直接走原版 DataComponentHolder
 		net.minecraft.world.item.component.TypedEntityData<net.minecraft.world.level.block.entity.BlockEntityType<?>> entityData =
@@ -29,7 +39,8 @@ public class StorageBlockItem extends BlockItemBase implements ITintableBlockIte
 		if (entityData == null) {
 			return Optional.empty();
 		}
-		return Optional.of(entityData.copyTagWithoutId().getCompoundOrEmpty(STORAGE_WRAPPER_TAG));
+		CompoundTag storageDataTag = entityData.copyTagWithoutId();
+		return StorageDataHelper.getStorageWrapperTag(storageDataTag);
 	}
 
 	public static Optional<Integer> getMainColorFromComponentHolder(SophisticatedDataComponentHolder componentHolder) {

@@ -118,6 +118,8 @@ public class LimitedBarrelRenderer implements BlockEntityRenderer<LimitedBarrelB
 			state.scales[slot] = FLAT_ITEM_SCALE;
 			state.zOffsets[slot] = -LITTLE_OUTSIDE_FACE;
 			state.rotations[slot] = 0;
+			// 槽位文字颜色只来自方块实体的 slotColors（{@link LimitedBarrelBlockEntity#getSlotColor}），
+			// 与「这个槽里现在有没有物品」无关：物品被取空时颜色仍然保留，不会退回未染色。
 			state.colors[slot] = barrel.getSlotColor(slot);
 		}
 		state.fillCount = 0;
@@ -133,7 +135,8 @@ public class LimitedBarrelRenderer implements BlockEntityRenderer<LimitedBarrelB
 		}
 
 		if (DIAGNOSTIC_LOGGED.compareAndSet(false, true)) {
-			SophisticatedStorage.LOGGER.info("[limited-barrel-ber] extract pos={} packed={} slots={} displayItems={} counts={} light={}",
+			// 渲染路径里不能留 info 级日志（每帧都可能命中，且字符串拼接昂贵）：降为 debug
+			SophisticatedStorage.LOGGER.debug("[limited-barrel-ber] extract pos={} packed={} slots={} displayItems={} counts={} light={}",
 					barrel.getBlockPos(), state.packed, state.slotCount, displayInfo.getDisplayItems().size(),
 					List.of(state.counts[0], state.counts[1], state.counts[2], state.counts[3]), state.lightCoords);
 		}
@@ -258,6 +261,10 @@ public class LimitedBarrelRenderer implements BlockEntityRenderer<LimitedBarrelB
 	@Override
 	public void submit(LimitedBarrelRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
 		if (state.packed || state.slotCount <= 0) {
+			if (state.packed) {
+				// 打包后内容全部隐藏，但打包外观必须看得出来（同一个 BE 只能有一个渲染器，所以由这里代画）
+				PackedBarrelRenderer.submitOverlay(poseStack, collector, state.lightCoords, state.flatTop);
+			}
 			return;
 		}
 		boolean hasItems = false;

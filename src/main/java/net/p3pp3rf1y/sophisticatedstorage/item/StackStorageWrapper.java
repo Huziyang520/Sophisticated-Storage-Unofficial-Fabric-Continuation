@@ -11,6 +11,7 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.StorageWrapperRepository;
 import net.p3pp3rf1y.sophisticatedcore.util.BlockItemBase;
 import net.p3pp3rf1y.sophisticatedstorage.Config;
 import net.p3pp3rf1y.sophisticatedstorage.block.*;
+import net.p3pp3rf1y.sophisticatedstorage.util.StorageDataHelper;
 
 import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
@@ -33,8 +34,9 @@ public class StackStorageWrapper extends StorageWrapper {
 		StackStorageWrapper stackStorageWrapper = StorageWrapperRepository.getStorageWrapper(stack, StackStorageWrapper.class, StackStorageWrapper::new);
 		UUID uuid = stack.sophisticatedCore_get(ModCoreDataComponents.STORAGE_UUID);
 		if (uuid != null) {
-			CompoundTag compoundtag = ItemContentsStorage.get().getOrCreateStorageContents(uuid).getCompoundOrEmpty(StorageBlockEntity.STORAGE_WRAPPER_TAG);
-			stackStorageWrapper.load(compoundtag);
+			// uuid 副本里存的是方块实体的整块数据（与物品自带的 BLOCK_ENTITY_DATA 同一形状），
+			// 所以必须走 StorageDataHelper 的同一个层级读取，不能在顶层找 storageWrapper
+			StorageDataHelper.getStorageWrapperTag(ItemContentsStorage.get().getOrCreateStorageContents(uuid)).ifPresent(stackStorageWrapper::load);
 			stackStorageWrapper.setContentsUuid(uuid); //setting here because client side the uuid isn't in contentsnbt before this data is synced from server and it would create a new one otherwise
 		}
 
@@ -63,10 +65,13 @@ public class StackStorageWrapper extends StorageWrapper {
 			storageStack.sophisticatedCore_set(ModCoreDataComponents.STORAGE_UUID, contentsUuid);
 			ItemContentsStorage itemContentsStorage = ItemContentsStorage.get();
 			CompoundTag storageContents = itemContentsStorage.getOrCreateStorageContents(contentsUuid);
-			if (!storageContents.contains(StorageBlockEntity.STORAGE_WRAPPER_TAG)) {
+			// 与 StorageDataHelper#writeStorageDataToStack 写的一致：包在 sophisticatedstorage_data 里
+			if (StorageDataHelper.getStorageWrapperTag(storageContents).isEmpty()) {
 				CompoundTag storageWrapperTag = new CompoundTag();
 				storageWrapperTag.put(CONTENTS_TAG, new CompoundTag());
-				storageContents.put(StorageBlockEntity.STORAGE_WRAPPER_TAG, storageWrapperTag);
+				CompoundTag dataTag = storageContents.getCompoundOrEmpty(StorageBlockEntity.DATA_TAG).copy();
+				dataTag.put(StorageBlockEntity.STORAGE_WRAPPER_TAG, storageWrapperTag);
+				storageContents.put(StorageBlockEntity.DATA_TAG, dataTag);
 			}
 
 			onContentsNbtUpdated();
@@ -79,7 +84,9 @@ public class StackStorageWrapper extends StorageWrapper {
 			if (contentsUuid == null) {
 				contentsUuid = getNewUuid();
 			}
-			return ItemContentsStorage.get().getOrCreateStorageContents(contentsUuid).getCompound(StorageBlockEntity.STORAGE_WRAPPER_TAG).map(wrapperTag -> wrapperTag.getCompoundOrEmpty(CONTENTS_TAG)).orElseGet(CompoundTag::new);
+			CompoundTag storageContents = ItemContentsStorage.get().getOrCreateStorageContents(contentsUuid);
+			return StorageDataHelper.getStorageWrapperTag(storageContents)
+					.map(wrapperTag -> wrapperTag.getCompoundOrEmpty(CONTENTS_TAG)).orElseGet(CompoundTag::new);
 		});
 	}
 

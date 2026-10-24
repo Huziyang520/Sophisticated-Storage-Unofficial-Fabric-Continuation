@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedstorage.client.gui;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -20,7 +21,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ColorButton;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ColorPicker;
@@ -52,9 +52,20 @@ import java.util.function.Supplier;
 
 /**
  * 26.3 的 GUI 采用「提取渲染状态」模型：所有绘制方法都叫 extractXxx(GuiGraphicsExtractor, ...)，
- * 没有 ItemRenderer/bufferSource/PoseStack，因此原来的 3D 旋转预览与自定义物品渲染器预览无法保留，
- * 这里退化为平面物品预览（见 {@link BlockPreview}）。容器槽位、染料槽覆盖色、继承箭头、颜色选择器、
- * 部件提示与结果槽 tooltip 全部保留。
+ * 没有 ItemRenderer/bufferSource/PoseStack。
+ * <p>
+ * 本屏按原模组的**结构**（不是抄代码）重建了装饰台：左侧 4 行 trim 升级链 + 右侧 3 行 core 升级链
+ * （与 {@code DecorationTableBlockEntity#getSlotInheritedFrom} 的继承关系一一对应），行间是 ↓ 继承开关，
+ * 两组之间是横向继承开关与 + 连接符，底行是 存储 → (▶) → 结果，右侧是预览框。
+ * 槽位数量与语义完全沿用菜单（7 材料 + 3 染料 + 1 存储 + 1 结果），配方与继承逻辑未改。
+ * <p>
+ * 已知未实现：**真正的 3D 方块模型预览**。26.3 的 {@link GuiGraphicsExtractor} 只提供物品 / 实体 / 书 /
+ * 旗帜图案等固定种类的 RenderState 提交入口（pip 包下只有 GuiBannerResult、GuiBookModel、GuiEntity、
+ * GuiProfilerChart、GuiSkin、OversizedItem、PictureInPicture），**没有通用方块模型入口**，所以预览框
+ * 目前是「深色框 + 放大绘制的装饰结果物品」（见 {@link BlockPreview}），不是原模组的旋转方块模型。
+ * 恢复路线：自建 {@code DecorationTablePreviewRenderState}（实现 {@code PictureInPictureRenderState}）
+ * + 自己的 {@code PictureInPictureRenderer}（注册到 26.3 的 pip 渲染器表），在渲染器里提交方块模型，
+ * 再把 {@link BlockPreview#renderDecoratedStack} 换成 pip 提交。
  */
 public class DecorationTableScreen extends AbstractContainerScreen<DecorationTableMenu> {
 	public static final Identifier GUI_BACKGROUND = SophisticatedStorage.getRL("textures/gui/decoration_table.png");
@@ -64,6 +75,20 @@ public class DecorationTableScreen extends AbstractContainerScreen<DecorationTab
 	private static final Dimension BACKGROUND_TEXTURE_SIZE = new Dimension(256, 256);
 	private static final int GUI_WIDTH = 250;
 	private static final int GUI_HEIGHT = 226;
+
+	/** 两列材料槽之间的连接符中心 x（相对 GUI 内容区），正好落在 trim 列右沿与 core 列部件图标之间。 */
+	private static final int CONNECTOR_CENTER_X = DecorationTableMenu.CORE_COLUMN_X - 22;
+	private static final int CONNECTOR_COLOR = 0xFF_6E6E6E;
+	/** 预览框紧贴结果槽右侧，纵向覆盖整个材料区（对应原模组右上那块黑色大框）。 */
+	private static final int PREVIEW_X = 178;
+	private static final int PREVIEW_WIDTH = GUI_WIDTH - PREVIEW_X - 6;
+	private static final int PREVIEW_ITEM_SCALE = 3;
+	private static final int PART_HINT_OFFSET_X = -18;
+	/** 空槽底纹：半透明内嵌阴影 + 1px 高光/暗边，替代原模组贴图里的槽位底。 */
+	private static final int INLAY_FILL = 0x40_202020;
+	private static final int INLAY_HIGHLIGHT = 0x40_FFFFFF;
+	private static final int INLAY_SHADOW = 0x40_000000;
+	private static final int DYE_MARKER_COLOR = 0x99;
 
 	public static final TextureBlitData TOP_INNER_TRIM_HIGHLIGHT = new TextureBlitData(GUI_DECORATION_TABLE_ELEMENTS, SQUARE_64, new UV(0, 0), Dimension.SQUARE_16);
 	public static final TextureBlitData TOP_TRIM_HIGHLIGHT = new TextureBlitData(GUI_DECORATION_TABLE_ELEMENTS, SQUARE_64, new UV(0, 16), Dimension.SQUARE_16);
@@ -127,13 +152,11 @@ public class DecorationTableScreen extends AbstractContainerScreen<DecorationTab
 	protected void init() {
 		super.init();
 		inventoryLabelY = getMenu().getSlot(DecorationTableBlockEntity.BOTTOM_TRIM_SLOT).y + 18 + 2;
-		int lastDyeSlotIndex = getMenu().getDyeSlotRange().firstSlot() + getMenu().getDyeSlotRange().numberOfSlots() - 1;
-		Slot lastDyeSlot = getMenu().getSlot(lastDyeSlotIndex);
 		Slot resultSlot = menu.getResultSlot();
-		// 预览框必须摆在结果槽右边：之前从染料槽右侧起算，框体正好压住结果槽（结果看不见、也点不到）
-		int previewX = resultSlot.x + 20;
-		blockPreview = new BlockPreview(new Position(leftPos + previewX, topPos + lastDyeSlot.y),
-				new Dimension(Math.max(32, imageWidth - previewX - 4), resultSlot.y - lastDyeSlot.y + 16 + 4));
+		Slot topSlot = getMenu().getSlot(DecorationTableBlockEntity.TOP_INNER_TRIM_SLOT);
+		// 预览框摆在结果槽右侧、纵向覆盖整个材料区：之前从染料槽右侧起算的窄框既压住结果槽又看着像空占位
+		blockPreview = new BlockPreview(new Position(leftPos + PREVIEW_X, topPos + topSlot.y),
+				new Dimension(PREVIEW_WIDTH, resultSlot.y + 16 - topSlot.y), () -> menu.getResultSlot().getItem());
 		updatePreviewStacks();
 
 		addRenderableWidget(blockPreview);
@@ -141,7 +164,8 @@ public class DecorationTableScreen extends AbstractContainerScreen<DecorationTab
 		addVerticalInheritanceArrow(DecorationTableBlockEntity.SIDE_TRIM_SLOT);
 		addVerticalInheritanceArrow(DecorationTableBlockEntity.BOTTOM_TRIM_SLOT);
 
-		addInheritanceArrow(DecorationTableBlockEntity.TOP_CORE_SLOT, -11, 4, HORIZONTAL_INHERITANCE_ARROW);
+		// top_trim → top_core 的横向继承开关，落在两列之间（与手绘的 + 连接符同一列）
+		addInheritanceArrow(DecorationTableBlockEntity.TOP_CORE_SLOT, -26, 4, HORIZONTAL_INHERITANCE_ARROW);
 
 		addVerticalInheritanceArrow(DecorationTableBlockEntity.SIDE_CORE_SLOT);
 		addVerticalInheritanceArrow(DecorationTableBlockEntity.BOTTOM_CORE_SLOT);
@@ -154,8 +178,8 @@ public class DecorationTableScreen extends AbstractContainerScreen<DecorationTab
 		addPartHint(DecorationTableBlockEntity.SIDE_CORE_SLOT, SIDE_CORE_HIGHLIGHT, "side");
 		addPartHint(DecorationTableBlockEntity.BOTTOM_CORE_SLOT, BOTTOM_CORE_HIGHLIGHT, "bottom");
 
-		Slot slot = menu.getSlot(DecorationTableBlockEntity.TOP_INNER_TRIM_SLOT);
-		addRenderableWidget(new PartStorageInfo(new Position(leftPos + slot.x + 57, topPos + slot.y), menu::getPartsStored));
+		// 已存材料提示图标：放在预览框左侧、与染料行同高
+		addRenderableWidget(new PartStorageInfo(new Position(leftPos + PREVIEW_X - 18, topPos + topSlot.y), menu::getPartsStored));
 
 		addDyeElements();
 
@@ -215,7 +239,8 @@ public class DecorationTableScreen extends AbstractContainerScreen<DecorationTab
 	@Override
 	public void extractContents(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
 		GuiHelper.blit(guiGraphics, leftPos, topPos, GUI_BACKGROUND_BLIT);
-		renderDyeSlotsOverlays(guiGraphics);
+		renderEmptySlotInlays(guiGraphics);
+		renderTreeConnectors(guiGraphics);
 	}
 
 	@Override
@@ -242,26 +267,65 @@ public class DecorationTableScreen extends AbstractContainerScreen<DecorationTab
 		}
 	}
 
-	private void renderDyeSlotsOverlays(GuiGraphicsExtractor guiGraphics) {
-		Matrix3x2fStack pose = guiGraphics.pose();
-		pose.pushMatrix();
-		pose.translate(leftPos, topPos);
-		Slot redSlot = getMenu().getSlot(getMenu().getDyeSlotRange().firstSlot());
-		renderSlotOverlay(guiGraphics, redSlot, 0x33_FF0000);
-		Slot greenSlot = getMenu().getSlot(getMenu().getDyeSlotRange().firstSlot() + 1);
-		renderSlotOverlay(guiGraphics, greenSlot, 0x33_00FF00);
-		Slot blueSlot = getMenu().getSlot(getMenu().getDyeSlotRange().firstSlot() + 2);
-		renderSlotOverlay(guiGraphics, blueSlot, 0x33_0000FF);
-		pose.popMatrix();
+	/**
+	 * 空槽底纹：半透明内嵌阴影 + 1px 高光/暗边，替代原模组贴图里自带的槽位底。
+	 * 只画给装饰台自己的 12 个槽（材料 / 染料 / 存储 / 结果），玩家背包槽位由背景贴图自带。同时给空染料槽右下角
+	 * 画一个 5×5 的小色点，取代原来整格 16×16 的红/绿/蓝纯色块。
+	 */
+	private void renderEmptySlotInlays(GuiGraphicsExtractor guiGraphics) {
+		int firstDye = getMenu().getDyeSlotRange().firstSlot();
+		int lastContentSlot = Math.max(getMenu().getResultSlot().index, getMenu().getStorageSlot().index);
+		for (int i = 0; i <= lastContentSlot; i++) {
+			Slot slot = getMenu().getSlot(i);
+			if (!slot.getItem().isEmpty()) {
+				continue;
+			}
+			int x = leftPos + slot.x;
+			int y = topPos + slot.y;
+			guiGraphics.fill(x, y, x + 16, y + 16, INLAY_FILL);
+			guiGraphics.fill(x, y, x + 16, y + 1, INLAY_HIGHLIGHT);
+			guiGraphics.fill(x, y, x + 1, y + 16, INLAY_HIGHLIGHT);
+			guiGraphics.fill(x, y + 15, x + 16, y + 16, INLAY_SHADOW);
+			guiGraphics.fill(x + 15, y, x + 16, y + 16, INLAY_SHADOW);
+		}
+		renderDyeSlotMarkers(guiGraphics, firstDye);
 	}
 
-	private void renderSlotOverlay(GuiGraphicsExtractor guiGraphics, Slot slot, int slotColor) {
-		guiGraphics.fill(slot.x, slot.y, slot.x + 16, slot.y + 16, slotColor);
+	private void renderDyeSlotMarkers(GuiGraphicsExtractor guiGraphics, int firstDyeSlot) {
+		int[] colors = {0xFF_FF4040, 0xFF_40C040, 0xFF_4060FF};
+		for (int i = 0; i < colors.length; i++) {
+			Slot slot = getMenu().getSlot(firstDyeSlot + i);
+			if (!slot.getItem().isEmpty()) {
+				continue;
+			}
+			int x = leftPos + slot.x + 10;
+			int y = topPos + slot.y + 10;
+			guiGraphics.fill(x, y, x + 5, y + 5, (DYE_MARKER_COLOR << 24) | (colors[i] & 0x00FF_FFFF));
+		}
+	}
+
+	/**
+	 * 手绘的连接符：两列材料槽之间的 + 与存储→结果之间的 ▶。
+	 * 行间 ↓ 与 top_core 的横向继承箭头是真实控件（{@link ToggleButton}），这里只补不承载交互的视觉符号。
+	 */
+	private void renderTreeConnectors(GuiGraphicsExtractor guiGraphics) {
+		int plusCenterX = leftPos + CONNECTOR_CENTER_X;
+		int plusCenterY = topPos + getMenu().getSlot(DecorationTableBlockEntity.SIDE_TRIM_SLOT).y + 8;
+		guiGraphics.fill(plusCenterX - 4, plusCenterY - 1, plusCenterX + 5, plusCenterY + 1, CONNECTOR_COLOR);
+		guiGraphics.fill(plusCenterX - 1, plusCenterY - 4, plusCenterX + 1, plusCenterY + 5, CONNECTOR_COLOR);
+
+		Slot storageSlot = getMenu().getStorageSlot();
+		int arrowX = leftPos + storageSlot.x + 18 + 2;
+		int arrowCenterY = topPos + storageSlot.y + 8;
+		for (int i = 0; i < 7; i++) {
+			int halfHeight = 6 - i;
+			guiGraphics.fill(arrowX + i, arrowCenterY - halfHeight, arrowX + i + 1, arrowCenterY + halfHeight + 1, CONNECTOR_COLOR);
+		}
 	}
 
 	private void addPartHint(int slotIndex, TextureBlitData texture, String barrelPart) {
 		Slot slot = menu.getSlot(slotIndex);
-		addRenderableWidget(new PartIcon(new Position(leftPos + slot.x + 18, topPos + slot.y), texture, Component.translatable(StorageTranslationHelper.INSTANCE.translGui("barrel_part." + barrelPart))));
+		addRenderableWidget(new PartIcon(new Position(leftPos + slot.x + PART_HINT_OFFSET_X, topPos + slot.y), texture, Component.translatable(StorageTranslationHelper.INSTANCE.translGui("barrel_part." + barrelPart))));
 	}
 
 	@Override
@@ -489,95 +553,124 @@ public class DecorationTableScreen extends AbstractContainerScreen<DecorationTab
 		}
 	}
 
-	private static class StackButton extends ButtonBase {
-		private static final TextureBlitData BUTTON_HOVER = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(63, 42), Dimension.SQUARE_18);
-		private final Supplier<ItemStack> stackSupplier;
-
-		protected StackButton(Position position, IntConsumer onClick, Supplier<ItemStack> stackSupplier) {
-			super(position, Dimension.SQUARE_18, onClick);
-			this.stackSupplier = stackSupplier;
-		}
-
-		@Override
-		protected void extractContents(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
-			ItemStack stack = stackSupplier.get();
-			if (stack.isEmpty()) {
-				return;
-			}
-
-			GuiHelper.renderItemInGUI(guiGraphics, minecraft, stack, x + 1, y + 1);
-			if (isMouseOver(mouseX, mouseY)) {
-				GuiHelper.blit(guiGraphics, x, y, BUTTON_HOVER);
-			}
-		}
-
-		@Override
-		protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
-			//noop
-		}
-	}
-
 	/**
-	 * 26.3 的 GUI 提取阶段没有 PoseStack / BufferSource，无法再做 3D 模型旋转预览，
-	 * 这里改为在深色框内以物品图标展示当前选中的预览结果，多结果时底部提供切换按钮。
+	 * 预览框：深色底框 + 放大绘制的「装饰后结果」物品，空的时候给一行可翻译提示。
+	 * <p>
+	 * **真正的 3D 方块模型预览尚未实现**：26.3 的 GUI 只有提取渲染状态管线，{@link GuiGraphicsExtractor} 只提供
+	 * 物品 / 实体 / 书 / 旗帜图案 / 玩家皮肤等固定种类的提交入口（pip 包下共 7 种 RenderState），**没有通用的
+	 * 方块模型提交入口**，所以这里只能画物品图标（原模组是旋转的容器模型）。恢复路线：自建
+	 * {@code DecorationTablePreviewRenderState implements PictureInPictureRenderState} + 自己的
+	 * {@code PictureInPictureRenderer}（注册进 26.3 的 pip 渲染器表），在渲染器里用方块模型渲染目标物品，
+	 * 再把 {@link #renderDecoratedStack} 改成提交该 RenderState。
 	 */
 	private static class BlockPreview extends CompositeWidgetBase<WidgetBase> {
-		private final List<ItemStack> previewStacks = new ArrayList<>();
-		private int selectedPreview = 0;
-		private final List<StackButton> previewStackButtons = new ArrayList<>();
+		private static final int ITEM_SIZE = 16;
+		private static final int TITLE_HEIGHT = 12;
+		private static final Component TITLE = Component.translatable(StorageTranslationHelper.INSTANCE.translGui("decoration_table.preview_title"));
+		private static final Component EMPTY_HINT = Component.translatable(StorageTranslationHelper.INSTANCE.translGui("decoration_table.preview_empty"));
+		private static final Component CYCLE_HINT = Component.translatable(StorageTranslationHelper.INSTANCE.translGui("decoration_table.preview_cycle"));
 
-		protected BlockPreview(Position position, Dimension dimension) {
+		private final List<ItemStack> previewStacks = new ArrayList<>();
+		private final Supplier<ItemStack> fallbackStack;
+		private int selectedPreview = 0;
+
+		protected BlockPreview(Position position, Dimension dimension, Supplier<ItemStack> fallbackStack) {
 			super(position, dimension);
+			this.fallbackStack = fallbackStack;
 		}
 
 		public void setPreviewStacks(List<ItemStack> previewStacks) {
 			this.previewStacks.clear();
 			this.previewStacks.addAll(previewStacks);
 			this.selectedPreview = 0;
-			updatePreviewStackButtons();
 		}
 
-		private void updatePreviewStackButtons() {
-			previewStackButtons.forEach(this.children::remove);
-			previewStackButtons.clear();
-
-			if (previewStacks.size() < 2) {
-				return;
+		private ItemStack getPreviewStack() {
+			if (previewStacks.isEmpty()) {
+				return fallbackStack.get();
 			}
-
-			int startX = this.x + (this.getWidth() - previewStacks.size() * (18 + 2)) / 2;
-			for (int i = 0; i < previewStacks.size(); i++) {
-				ItemStack stack = previewStacks.get(i);
-				int finalI = i;
-				previewStackButtons.add(new StackButton(new Position(startX + i * 20, y + getHeight() - 19), button -> selectedPreview = finalI, () -> stack));
-			}
-			previewStackButtons.forEach(this::addChild);
+			return previewStacks.get(Math.min(selectedPreview, previewStacks.size() - 1));
 		}
 
 		@Override
 		public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+			// 底框在 extractContents 里画，物品/文字/指示点在这里画（26.3 的「底」「面」两段式）
 			super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
-			// 组合控件子控件需要显式提取渲染状态（见 DecorationTableScreen#renderColorPicker）
-			for (WidgetBase child : children) {
-				child.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
-			}
-			renderPreviewStack(guiGraphics);
+			guiGraphics.text(font, TITLE, x + 4, y + 4, 0xFF_9A9A9A, false);
+			renderDecoratedStack(guiGraphics);
+			renderSelectionDots(guiGraphics);
 		}
 
-		private void renderPreviewStack(GuiGraphicsExtractor guiGraphics) {
-			if (previewStacks.isEmpty()) {
-				return;
-			}
-
-			ItemStack previewStack = previewStacks.get(Math.min(selectedPreview, previewStacks.size() - 1));
+		/**
+		 * 把装饰结果物品放大 {@link DecorationTableScreen#PREVIEW_ITEM_SCALE} 倍画在框中央。
+		 * 26.3 的 {@code GuiGraphicsExtractor#item} 会把当前 pose 矩阵复制进 GuiItemRenderState，
+		 * 因此 pushMatrix + translate + scale 对物品同样生效。
+		 */
+		private void renderDecoratedStack(GuiGraphicsExtractor guiGraphics) {
+			ItemStack previewStack = getPreviewStack();
 			if (previewStack.isEmpty()) {
+				guiGraphics.textWithWordWrap(font, EMPTY_HINT, x + 6, y + TITLE_HEIGHT + 8, getWidth() - 12, 0xFF_808080);
 				return;
 			}
 
-			int usableHeight = getHeight() - (previewStackButtons.isEmpty() ? 0 : 20);
-			int itemX = x + (getWidth() - 16) / 2;
-			int itemY = y + (usableHeight - 16) / 2;
-			GuiHelper.renderItemInGUI(guiGraphics, minecraft, previewStack, itemX, itemY);
+			int itemSize = ITEM_SIZE * DecorationTableScreen.PREVIEW_ITEM_SCALE;
+			int bottomReserve = previewStacks.size() > 1 ? 10 : 2;
+			int itemX = x + (getWidth() - itemSize) / 2;
+			int itemY = y + TITLE_HEIGHT + Math.max(0, (getHeight() - TITLE_HEIGHT - bottomReserve - itemSize) / 2);
+			Matrix3x2fStack pose = guiGraphics.pose();
+			pose.pushMatrix();
+			pose.translate(itemX, itemY);
+			pose.scale(DecorationTableScreen.PREVIEW_ITEM_SCALE, DecorationTableScreen.PREVIEW_ITEM_SCALE);
+			guiGraphics.item(previewStack, 0, 0);
+			pose.popMatrix();
+		}
+
+		private void renderSelectionDots(GuiGraphicsExtractor guiGraphics) {
+			int count = previewStacks.size();
+			if (count < 2 || count > 8) {
+				return;
+			}
+			int dotY = y + getHeight() - 7;
+			int totalWidth = count * 6 - 2;
+			int startX = x + (getWidth() - totalWidth) / 2;
+			for (int i = 0; i < count; i++) {
+				int dotColor = i == selectedPreview ? 0xFF_E0E0E0 : 0xFF_5A5A5A;
+				guiGraphics.fill(startX + i * 6, dotY, startX + i * 6 + 4, dotY + 4, dotColor);
+			}
+		}
+
+		@Override
+		public boolean mouseClicked(MouseButtonEvent event, boolean isDoubleClick) {
+			if (!isMouseOver(event.x(), event.y()) || previewStacks.size() < 2) {
+				return false;
+			}
+			// 26.3 的鼠标键位常量，禁止裸数字
+			if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
+				selectedPreview = (selectedPreview + 1) % previewStacks.size();
+				return true;
+			} else if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
+				selectedPreview = (selectedPreview - 1 + previewStacks.size()) % previewStacks.size();
+				return true;
+			}
+			return false;
+		}
+
+		@Override
+		public void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+			if (!isMouseOver(mouseX, mouseY)) {
+				return;
+			}
+			List<Component> tooltip = new ArrayList<>();
+			ItemStack previewStack = getPreviewStack();
+			if (previewStack.isEmpty()) {
+				tooltip.add(EMPTY_HINT);
+			} else {
+				tooltip.add(previewStack.getHoverName().copy().withStyle(ChatFormatting.WHITE));
+				if (previewStacks.size() > 1) {
+					tooltip.add(CYCLE_HINT.copy().withStyle(ChatFormatting.GRAY));
+				}
+			}
+			guiGraphics.setComponentTooltipForNextFrame(font, tooltip, mouseX, mouseY);
 		}
 
 		@Override
@@ -588,11 +681,13 @@ public class DecorationTableScreen extends AbstractContainerScreen<DecorationTab
 			guiGraphics.fill(x, y + getHeight() - 1, x + getWidth(), y + getHeight(), border);
 			guiGraphics.fill(x, y, x + 1, y + getHeight(), border);
 			guiGraphics.fill(x + getWidth() - 1, y, x + getWidth(), y + getHeight(), border);
+			// 标题栏底 + 分隔线，让「预览」区看起来是一块独立面板
+			guiGraphics.fill(x + 1, y + 1, x + getWidth() - 1, y + TITLE_HEIGHT, 0xFF_1C1C1C);
 		}
 
 		@Override
 		protected void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
-			//noop
+			//noop —— 子控件为空，物品/文字在 extractRenderState 里画
 		}
 	}
 }

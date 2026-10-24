@@ -21,6 +21,8 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.api.IUpgradeRenderer;
@@ -34,7 +36,9 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.util.BlockBase;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
+import net.p3pp3rf1y.sophisticatedstorage.SophisticatedStorage;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModItems;
+import net.p3pp3rf1y.sophisticatedstorage.util.StorageDataHelper;
 import org.joml.Vector3f;
 
 import org.jetbrains.annotations.Nullable;
@@ -155,6 +159,74 @@ public abstract class StorageBlockBase extends BlockBase implements IStorageBloc
 		super.playerWillDestroy(level, pos, state, player);
 		WorldHelper.getBlockEntity(level, pos, StorageBlockEntity.class).ifPresent(IControllableStorage::removeFromController);
 		return state;
+	}
+
+	/**
+	 * 掉落物的「容器数据必须随物品走」保证。
+	 * <p>
+	 * 生存模式挖方块的掉落完全由战利品表产生（{@code Block.playerDestroy → Level.destroyBlock →
+	 * dropResources}），条目里的 {@code sophisticatedstorage:copy_storage_data} 再回调
+	 * {@link IAdditionalDropDataBlock#addDropData}。这条链上任何一环没跑到（战利品表没加载、函数顺序变化、
+	 * 新的掉落来源），玩家看到的就是「掉落物没有内容 / 什么都没掉」。这里是那一层的兜底：
+	 * 只要方块实体本来就要把内容交给物品（打包态、潜影盒），掉落物就必须带
+	 * {@link net.minecraft.core.component.DataComponents#BLOCK_ENTITY_DATA}，缺失时用
+	 * {@link StorageDataHelper#writeStorageDataToStack} 这个唯一的写入口补上，并留下一条 error 日志，
+	 * 让「数据丢失」变成可诊断的事件而不是静默的空盒子。
+	 */
+	@Override
+	protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+		List<ItemStack> drops = super.getDrops(state, params);
+		if (!(params.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof StorageBlockEntity storageBlockEntity)) {
+			return drops;
+		}
+		if (drops.isEmpty()) {
+			// 战利品表没跑：多数情况是数据包被判不兼容（pack.mcmeta 的 data 版本号），留痕便于定位
+			SophisticatedStorage.LOGGER.warn("[storage-data] no drops generated for {} at {}", state.getBlock(), storageBlockEntity.getBlockPos());
+			return drops;
+		}
+		if (this instanceof IAdditionalDropDataBlock additionalDropDataBlock) {
+			ensureStorageDataInDrops(additionalDropDataBlock, drops, storageBlockEntity);
+		}
+		return drops;
+	}
+
+	private static void ensureStorageDataInDrops(IAdditionalDropDataBlock dropDataSource, List<ItemStack> drops, StorageBlockEntity blockEntity) {
+		boolean contentsHaveToGoIntoTheItem = !blockEntity.shouldDropContents();
+		for (ItemStack drop : drops) {
+			if (drop.isEmpty()) {
+				continue;
+			}
+			// 正常路径（战利品表的 copy_storage_data）已经写过数据，这里只在缺失时补，
+			// 避免同一条路径被跑两遍（第二次对双箱、打包状态都不是幂等的）
+			boolean hasStorageData = StorageDataHelper.getEntityDataTag(drop, blockEntity.getType()).isPresent();
+			if (!hasStorageData) {
+				dropDataSource.addDropData(drop, blockEntity);
+				hasStorageData = StorageDataHelper.getEntityDataTag(drop, blockEntity.getType()).isPresent();
+			}
+			if (!contentsHaveToGoIntoTheItem || hasStorageData) {
+				continue;
+			}
+			SophisticatedStorage.LOGGER.error("[storage-data] drop of {} at {} has no container data, writing it explicitly",
+					drop.getItem(), blockEntity.getBlockPos());
+			StorageDataHelper.writeStorageDataToStack(drop, blockEntity);
+		}
+	}
+
+	/**
+	 * 在方块位置生成一个可立即拾取的掉落物。
+	 * <p>
+	 * 手工投放（创造模式打包掉落、潜影盒）不能用 {@code Block.popResource}：那条路每次都会重新算一次
+	 * 「同 tick 合并」，两个内容不同的容器掉在同一个方块里时会被合并成一份，被合并掉的那份
+	 * {@code BLOCK_ENTITY_DATA} 就没了 —— 玩家看到的就是「掉落物不见了」。这里统一走
+	 * {@link ItemEntity#setDefaultPickUpDelay()}（10 tick，与原版一致），并且只投这一份。
+	 */
+	protected static void spawnStorageDrop(Level level, BlockPos pos, ItemStack stack) {
+		if (level.isClientSide() || stack.isEmpty()) {
+			return;
+		}
+		ItemEntity itemEntity = new ItemEntity(level, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, stack);
+		itemEntity.setDefaultPickUpDelay();
+		level.addFreshEntity(itemEntity);
 	}
 
 	@Override

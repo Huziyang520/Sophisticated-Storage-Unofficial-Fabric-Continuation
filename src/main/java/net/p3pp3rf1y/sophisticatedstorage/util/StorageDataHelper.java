@@ -75,7 +75,7 @@ public final class StorageDataHelper {
 		UUID contentsUuid = storageWrapper.getContentsUuid().orElseGet(UUID::randomUUID);
 
 		CompoundTag dataTag = toStorageTag(blockEntity, registries);
-		dataTag.remove(IControllerBoundable.CONTROLLER_POS_TAG);
+		removeControllerPos(dataTag);
 
 		// 1) 物品自带的方块实体数据（客户端可读、放置时原版自动回灌）
 		stack.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(blockEntity.getType(), dataTag));
@@ -144,7 +144,7 @@ public final class StorageDataHelper {
 	 */
 	public static CompoundTag snapshotContents(StorageBlockEntity blockEntity) {
 		CompoundTag tag = blockEntity.saveWithoutMetadata(registriesOf(blockEntity));
-		tag.remove(IControllerBoundable.CONTROLLER_POS_TAG);
+		removeControllerPos(tag);
 		if (tag.getCompound(StorageBlockEntity.DATA_TAG).isPresent()) {
 			CompoundTag dataTag = tag.getCompoundOrEmpty(StorageBlockEntity.DATA_TAG).copy();
 			dataTag.remove(PACKED_TAG);
@@ -153,6 +153,40 @@ public final class StorageDataHelper {
 			tag.put(StorageBlockEntity.DATA_TAG, dataTag);
 		}
 		return tag;
+	}
+
+	/**
+	 * 从一份「方块实体整块数据」里取出 {@code storageWrapper} 那一层。
+	 * <p>
+	 * 规范形状是 {@code {sophisticatedstorage_data:{storageWrapper:{...}}}}（{@code StorageBlockEntity#saveAdditional}
+	 * 把整块数据塞进 {@link StorageBlockEntity#DATA_TAG}）。早先 {@code StackStorageWrapper#setContentsUuid}
+	 * 给新 uuid 写的却是顶层 {@code storageWrapper}，所以这里同时接受旧形状，读的时候不再两套代码各找一处
+	 * （审计缺陷 2：写入层级与读取层级不一致）。
+	 */
+	public static Optional<CompoundTag> getStorageWrapperTag(CompoundTag storageDataTag) {
+		CompoundTag nested = storageDataTag.getCompoundOrEmpty(StorageBlockEntity.DATA_TAG);
+		if (!nested.isEmpty()) {
+			CompoundTag wrapperTag = nested.getCompoundOrEmpty(StorageBlockEntity.STORAGE_WRAPPER_TAG);
+			if (!wrapperTag.isEmpty()) {
+				return Optional.of(wrapperTag);
+			}
+		}
+		CompoundTag legacy = storageDataTag.getCompoundOrEmpty(StorageBlockEntity.STORAGE_WRAPPER_TAG);
+		return legacy.isEmpty() ? Optional.empty() : Optional.of(legacy);
+	}
+
+	/**
+	 * 删控制坐标。坐标由 {@code StorageBlockEntity#saveControllerPos} 写进<b>内层</b>
+	 * {@code sophisticatedstorage_data} tag，所以只删顶层等于没删 —— 掉落物会带着「我是某个控制器的一部分」
+	 * 的坐标落地，放回去时 {@code loadControllerPos} 会把它重新挂到那个控制器上（审计缺陷 2 的第 2 点）。
+	 */
+	private static void removeControllerPos(CompoundTag tag) {
+		tag.remove(IControllerBoundable.CONTROLLER_POS_TAG);
+		if (tag.contains(StorageBlockEntity.DATA_TAG)) {
+			CompoundTag dataTag = tag.getCompoundOrEmpty(StorageBlockEntity.DATA_TAG).copy();
+			dataTag.remove(IControllerBoundable.CONTROLLER_POS_TAG);
+			tag.put(StorageBlockEntity.DATA_TAG, dataTag);
+		}
 	}
 
 	/**

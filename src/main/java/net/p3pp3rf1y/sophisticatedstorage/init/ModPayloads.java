@@ -21,8 +21,10 @@ public class ModPayloads {
 		registerC2S(RequestPlayerSettingsPayload.TYPE, RequestPlayerSettingsPayload.STREAM_CODEC, (payload, context) -> RequestPlayerSettingsPayload.handlePayload(context));
 
 		PayloadTypeRegistry.clientboundPlay().register(StorageContentsPayload.TYPE, StorageContentsPayload.STREAM_CODEC);
+		PayloadTypeRegistry.clientboundPlay().register(ToolModePayload.TYPE, ToolModePayload.STREAM_CODEC);
 		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
 			ClientPlayNetworking.registerGlobalReceiver(StorageContentsPayload.TYPE, StorageContentsPayload::handlePayload);
+			ClientPlayNetworking.registerGlobalReceiver(ToolModePayload.TYPE, ToolModePayload::handlePayload);
 		}
 	}
 

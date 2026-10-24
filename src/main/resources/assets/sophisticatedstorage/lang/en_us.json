@@ -268,6 +268,9 @@
   "gui.sophisticatedstorage.buttons.upgrade_switch_disabled": "OFF",
   "gui.sophisticatedstorage.buttons.decoration_inheritance_on": "Reuse Material",
   "gui.sophisticatedstorage.buttons.decoration_inheritance_off": "Don't Reuse Material",
+  "gui.sophisticatedstorage.decoration_table.preview_title": "Preview",
+  "gui.sophisticatedstorage.decoration_table.preview_empty": "Place a storage block to preview the decoration",
+  "gui.sophisticatedstorage.decoration_table.preview_cycle": "Click to switch between preview results",
   "gui.sophisticatedstorage.buttons.pick_color": "Click to Pick Color",
   "gui.sophisticatedstorage.settings.buttons.context_storage": "Storage",
   "gui.sophisticatedstorage.settings.buttons.context_storage.tooltip": "This Storage's settings",
@@ -535,5 +538,9 @@
   "sophisticatedcore.link.feedback": "Backup Feedback",
   "keybind.sophisticatedstorage.cycle_tool_mode": "Cycle Storage Tool Mode",
   "key.category.sophisticatedstorage.main": "Sophisticated Storage",
-  "item.sophisticatedstorage.inaccessible_slot": "Inaccessible Slot"
+  "item.sophisticatedstorage.inaccessible_slot": "Inaccessible Slot",
+  "item.sophisticatedstorage.storage_tool.overlay.linked_to_controller": "Linked to controller at x:%s y:%s z:%s",
+  "item.sophisticatedstorage.storage_tool.overlay.link_failed": "Cannot link this block",
+  "item.sophisticatedstorage.storage_tool.overlay.locked": "Container locked",
+  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "Container unlocked"
 }

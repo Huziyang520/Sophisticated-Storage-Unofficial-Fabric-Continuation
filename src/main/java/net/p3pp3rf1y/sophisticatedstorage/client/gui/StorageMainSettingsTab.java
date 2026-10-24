@@ -19,6 +19,6 @@ public class StorageMainSettingsTab extends MainSettingsTab<MainSettingsContaine
 	public StorageMainSettingsTab(MainSettingsContainer container, Position position, SettingsScreen screen) {
 		super(container, position, screen, CONTEXT_TOOLTIP, Component.translatable(StorageTranslationHelper.INSTANCE.translSettingsButton("context_storage")),
 				StorageTranslationHelper.INSTANCE.translSettings("storage"), StorageTranslationHelper.INSTANCE.translSettingsTooltip("storage"),
-				onTabIconClicked -> new ItemButton(new Position(position.x() + 1, position.y() + 4), onTabIconClicked, container.getSettingsContainer().getStorageWrapper().getWrappedStorageStack(), Component.translatable("gui.sophisticatedstorage.narrate.global_tab_button")));
+				onTabIconClicked -> new ItemButton(new Position(position.x() + 1, position.y() + 3), onTabIconClicked, container.getSettingsContainer().getStorageWrapper().getWrappedStorageStack(), Component.translatable("gui.sophisticatedstorage.narrate.global_tab_button")));
 	}
 }

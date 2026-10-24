@@ -293,53 +293,50 @@ public class LimitedBarrelBlockEntity extends BarrelBlockEntity implements ICoun
 		// Same nested tag the client's loadAdditional reads (see StorageBlockEntity#createClientData); the slot counts
 		// and fill levels have to live inside it or the client never sees them.
 		CompoundTag updateTag = super.createClientData();
-		ArrayList<Integer> sc = new ArrayList<>();
-		ListTag sfl = new ListTag();
+		List<Integer> slotCountsList = new ArrayList<>();
+		ListTag slotFillLevelsTag = new ListTag();
+		// 顺序写入（append）而不是 add(index, …)：按下标插入只有在遍历顺序恰好 0..n-1 时才对，
+		// 一旦 InventoryHelper.iterate 改了遍历方式（跳过空槽 / 从后往前）整张表就会错位（审计缺陷 1 的第 5 点）。
 		InventoryHelper.iterate(getStorageWrapper().getInventoryHandler(), (slot, stack) -> {
-			sc.add(slot, stack.getCount());
-			sfl.add(slot, FloatTag.valueOf(stack.getCount() / (float) getStorageWrapper().getInventoryHandler().getStackLimit(slot, stack)));
+			slotCountsList.add(stack.getCount());
+			slotFillLevelsTag.add(FloatTag.valueOf(stack.getCount() / (float) getStorageWrapper().getInventoryHandler().getStackLimit(slot, stack)));
 		});
-		int[] slotCountsArray = new int[sc.size()];
-		for (int i = 0; i < sc.size(); i++) {
-			slotCountsArray[i] = sc.get(i);
+		int[] slotCountsArray = new int[slotCountsList.size()];
+		for (int i = 0; i < slotCountsList.size(); i++) {
+			slotCountsArray[i] = slotCountsList.get(i);
 		}
 		updateTag.putIntArray(SLOT_COUNTS_TAG, slotCountsArray);
-		updateTag.put(SLOT_FILL_LEVELS_TAG, sfl);
+		updateTag.put(SLOT_FILL_LEVELS_TAG, slotFillLevelsTag);
 		return updateTag;
 	}
 
 	@Override
 	public void loadSynchronizedData(CompoundTag tag, HolderLookup.Provider registries) {
 		super.loadSynchronizedData(tag, registries);
+		// 「缺键 = 保持现状」，不是「缺键 = 清空」：更新包里的这几项是条件写入的
+		// （saveSynchronizedData 只在有值时写 slotColors；createClientData 的槽计数是另一个包），
+		// 任何一次「这一包没带这个键」都不该被解读成「这个桶现在没有内容 / 没有染色」——
+		// 旧写法 orElseGet(HashMap::new) 一缺键就把整个染色表清空，于是「取 1 个 → 掉色」。
 		if (tag.contains(SLOT_COUNTS_TAG)) {
 			int[] countsArray = tag.getIntArray(SLOT_COUNTS_TAG).orElse(new int[0]);
-			if (slotCounts.size() != countsArray.length) {
-				slotCounts.clear();
-				for (int i = 0; i < countsArray.length; i++) {
-					slotCounts.add(i, countsArray[i]);
-				}
-			} else {
-				for (int i = 0; i < countsArray.length; i++) {
-					slotCounts.set(i, countsArray[i]);
-				}
+			slotCounts.clear();
+			for (int count : countsArray) {
+				slotCounts.add(count);
 			}
 		}
 		if (tag.contains(SLOT_FILL_LEVELS_TAG)) {
 			ListTag fillLevelsList = tag.getListOrEmpty(SLOT_FILL_LEVELS_TAG);
-			if (slotFillLevels.size() != fillLevelsList.size()) {
-				slotFillLevels.clear();
-				for (int i = 0; i < fillLevelsList.size(); i++) {
-					slotFillLevels.add(i, fillLevelsList.getFloatOr(i, 0.0F));
-				}
-			} else {
-				for (int i = 0; i < fillLevelsList.size(); i++) {
-					slotFillLevels.set(i, fillLevelsList.getFloatOr(i, 0.0F));
-				}
+			slotFillLevels.clear();
+			for (int i = 0; i < fillLevelsList.size(); i++) {
+				slotFillLevels.add(fillLevelsList.getFloatOr(i, 0.0F));
 			}
 		}
 		showCounts = NBTHelper.getBoolean(tag, "showCounts").orElse(true);
 		showFillLevels = NBTHelper.getBoolean(tag, "showFillLevels").orElse(false);
-		slotColors = NBTHelper.getMap(tag, "slotColors", Integer::valueOf, (tagName, t) -> Optional.of(DyeColor.byId(((IntTag) t).intValue()))).orElseGet(HashMap::new);
+		if (tag.contains("slotColors")) {
+			NBTHelper.getMap(tag, "slotColors", Integer::valueOf, (tagName, t) -> Optional.of(DyeColor.byId(((IntTag) t).intValue())))
+					.ifPresent(colors -> slotColors = colors);
+		}
 	}
 
 	@Override

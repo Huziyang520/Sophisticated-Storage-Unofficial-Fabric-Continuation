@@ -229,6 +229,32 @@ public abstract class StorageWrapper implements IStorageWrapper {
 		}
 	}
 
+	/**
+	 * 只读的客户端加载路径，用于方块实体的更新包。
+	 * <p>
+	 * {@link #load(CompoundTag)} 会 {@code initInventoryHandler()} + {@code refreshUpgradeWrappers()}，
+	 * 也就是每收一个更新包就把 {@code InventoryHandler} 和全部升级包装器换成新实例。打开中的菜单
+	 * （{@code StorageContainerMenu} 的槽位）握着的还是旧实例，于是客户端预测写进旧 handler、服务端在真实
+	 * handler 上执行 —— 界面「能开、偶尔点不动、物品弹回」。菜单还持有旧 wrapper 时读到的 renderInfo /
+	 * 颜色也会慢一拍。更新包本身只带「展示数据」（{@code saveData}），从来不带 contents，所以这里只需要
+	 * 解码数据、不碰任何 handler 实例。
+	 * <p>
+	 * 对照上游 26.3 的 {@code StorageBlockEntity#handleUpdateTag} → {@code loadStorageWrapperClient} →
+	 * {@code storageWrapper.loadClientData(...)}：只读客户端数据，不重建 handler、不 refresh 升级。
+	 */
+	public void loadClientData(CompoundTag tag) {
+		loadData(tag);
+		// 客户端为方块实体建出它自己的 wrapper 可能早于第一份更新包（放置后先进世界再收数据），
+		// 那时 handler 是按 0 个槽建出来的。这里只把已有的 handler 调整到声明的槽数，
+		// 不换实例 —— 换实例正是「菜单握旧 handler、点击落空」的根因。
+		if (inventoryHandler != null) {
+			int expectedSlots = getNumberOfInventorySlots();
+			if (expectedSlots > 0 && inventoryHandler.getSlotCount() != expectedSlots) {
+				inventoryHandler.changeSlots(expectedSlots - inventoryHandler.getSlotCount());
+			}
+		}
+	}
+
 	private void loadData(CompoundTag tag) {
 		settingsNbt = tag.getCompoundOrEmpty(SETTINGS_TAG);
 		settingsHandler.reloadFrom(settingsNbt);

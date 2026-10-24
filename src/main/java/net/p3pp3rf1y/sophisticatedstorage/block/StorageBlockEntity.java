@@ -300,7 +300,16 @@ public abstract class StorageBlockEntity extends BlockEntity implements IControl
 	}
 
 	private void loadStorageWrapper(CompoundTag tag, HolderLookup.Provider registries) {
-		NBTHelper.getCompound(tag, STORAGE_WRAPPER_TAG).ifPresent(storageWrapper::load);
+		NBTHelper.getCompound(tag, STORAGE_WRAPPER_TAG).ifPresent(wrapperTag -> {
+			// 两类输入共用一个入口：区块存档 / 物品自带的整块数据（没有 updateTag 标记）走完整 load；
+			// 方块实体更新包（createClientData 写的 updateTag=true）只解码客户端数据，不换 handler 实例。
+			// 后者是「菜单持旧 handler → 偶发点不动」和「限类木桶取一个就掉色」两条缺陷的共同根因。
+			if (tag.getBooleanOr("updateTag", false)) {
+				storageWrapper.loadClientData(wrapperTag);
+			} else {
+				storageWrapper.load(wrapperTag);
+			}
+		});
 	}
 
 	@Override

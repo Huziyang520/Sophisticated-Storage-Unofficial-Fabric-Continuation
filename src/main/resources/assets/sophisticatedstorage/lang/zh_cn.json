@@ -268,6 +268,9 @@
   "gui.sophisticatedstorage.buttons.upgrade_switch_disabled": "关",
   "gui.sophisticatedstorage.buttons.decoration_inheritance_on": "重复使用材料",
   "gui.sophisticatedstorage.buttons.decoration_inheritance_off": "不重复使用材料",
+  "gui.sophisticatedstorage.decoration_table.preview_title": "预览",
+  "gui.sophisticatedstorage.decoration_table.preview_empty": "放入存储方块后在此预览装饰效果",
+  "gui.sophisticatedstorage.decoration_table.preview_cycle": "点击切换预览结果",
   "gui.sophisticatedstorage.buttons.pick_color": "点击以选择颜色",
   "gui.sophisticatedstorage.settings.buttons.context_storage": "容器",
   "gui.sophisticatedstorage.settings.buttons.context_storage.tooltip": "该容器的设置",
@@ -714,5 +717,9 @@
   "sophisticatedcore.link.feedback": "备用反馈地址",
   "keybind.sophisticatedstorage.cycle_tool_mode": "切换存储工具模式",
   "key.category.sophisticatedstorage.main": "精妙存储",
-  "item.sophisticatedstorage.inaccessible_slot": "不可访问槽位"
+  "item.sophisticatedstorage.inaccessible_slot": "不可访问槽位",
+  "item.sophisticatedstorage.storage_tool.overlay.linked_to_controller": "已连接到 x:%s y:%s z:%s 的控制器",
+  "item.sophisticatedstorage.storage_tool.overlay.link_failed": "无法连接此方块",
+  "item.sophisticatedstorage.storage_tool.overlay.locked": "容器已上锁",
+  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "容器已解锁"
 }

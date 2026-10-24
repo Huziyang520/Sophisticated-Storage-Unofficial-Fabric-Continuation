@@ -221,9 +221,8 @@ public class ShulkerBoxBlock extends StorageBlockBase implements IAdditionalDrop
 			ItemStack shulkerBoxDrop = new ItemStack(this);
 			addShulkerContentsToStack(shulkerBoxDrop, shulkerBoxBlockEntity);
 
-			ItemEntity itementity = new ItemEntity(level, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, shulkerBoxDrop);
-			itementity.setDefaultPickUpDelay();
-			level.addFreshEntity(itementity);
+			// 统一的手工投放：默认拾取延迟 + 不参与同 tick 合并，掉落物不会「还没落地就没了」
+			spawnStorageDrop(level, pos, shulkerBoxDrop);
 		}
 
 		return super.playerWillDestroy(level, pos, state, player);

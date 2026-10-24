@@ -119,6 +119,8 @@ public abstract class WoodStorageBlockEntity extends StorageBlockEntity {
 		this.packed = packed;
 		// 打包状态存在 synchronized data 里，必须标脏才会进存档；否则「打包后挖掉再放下」会读回未打包状态。
 		setChanged();
+		// 打包态只由 block entity 渲染器表现（{@code PackedBarrelRenderer}）：往方块状态里加属性会改变
+		// 后续所有方块的 state id，老存档里的方块会被重映射，代价远大于收益。
 	}
 
 	@Override

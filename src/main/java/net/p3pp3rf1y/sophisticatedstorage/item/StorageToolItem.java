@@ -24,13 +24,23 @@ import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 import net.p3pp3rf1y.sophisticatedstorage.block.*;
 import net.p3pp3rf1y.sophisticatedstorage.client.gui.StorageTranslationHelper;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
+import net.p3pp3rf1y.sophisticatedstorage.init.ModItems;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModDataComponents;
 
+import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
 public class StorageToolItem extends ItemBase {
+	/** 与语言文件里 {@code item.sophisticatedstorage.storage_tool.overlay.*} 的后缀一一对应 */
+	/** 选中控制器：接下来点的容器都会被连到它上面 */
+	private static final String LINKING_OVERLAY = "linking";
+	private static final String LINKED_OVERLAY = "linked_to_controller";
+	private static final String LINK_FAILED_OVERLAY = "link_failed";
+	private static final String UNLINKING_OVERLAY = "unlinking";
+	private static final String LOCKED_OVERLAY = "locked";
+	private static final String UNLOCKED_OVERLAY = "unlocked";
 
 	public StorageToolItem() {
 		super(new Properties().stacksTo(1));
@@ -62,15 +72,16 @@ public class StorageToolItem extends ItemBase {
 		BlockPos pos = context.getClickedPos();
 		Level level = context.getLevel();
 		Block blockClicked = level.getBlockState(pos).getBlock();
+		Player player = context.getPlayer();
 		Mode mode = getMode(tool);
 		switch (mode) {
 			case LINK -> {
-				if (tryLinking(pos, level, blockClicked, tool)) {
+				if (tryLinking(pos, level, blockClicked, tool, player)) {
 					return InteractionResult.SUCCESS;
 				}
 			}
 			case LOCK -> {
-				if (tryToggling(pos, level, ILockable.class, ILockable::toggleLock)) {
+				if (tryTogglingLock(pos, level, player)) {
 					return InteractionResult.SUCCESS;
 				}
 			}
@@ -114,15 +125,66 @@ public class StorageToolItem extends ItemBase {
 		}).orElse(false);
 	}
 
-	private boolean tryLinking(BlockPos pos, Level level, Block blockClicked, ItemStack tool) {
+	/**
+	 * LOCK 模式：切换上锁状态，并在服务端把结果以可翻译组件提示给玩家。
+	 * <p>
+	 * 以前这里走通用的 {@link #tryToggling}，只有方块外观变化，玩家很容易判成「右键没反应」
+	 * （第 5 轮第 15 条：存储工具不可用）。锁是「静默操作」类的功能，必须给一条明确的回执。
+	 */
+	private static boolean tryTogglingLock(BlockPos pos, Level level, @Nullable Player player) {
+		return WorldHelper.getLoadedBlockEntity(level, pos, ILockable.class).map(lockable -> {
+			if (level.isClientSide()) {
+				return true;
+			}
+			lockable.toggleLock();
+			showOverlayMessage(player, lockable.isLocked() ? LOCKED_OVERLAY : UNLOCKED_OVERLAY);
+			return true;
+		}).orElse(false);
+	}
+
+	private static void showOverlayMessage(@Nullable Player player, String overlayMessage, Object... params) {
+		if (player == null) {
+			return;
+		}
+		player.sendOverlayMessage(StorageTranslationHelper.INSTANCE.translItemOverlayMessage(ModItems.STORAGE_TOOL.get(), overlayMessage, params));
+	}
+
+	private boolean tryLinking(BlockPos pos, Level level, Block blockClicked, ItemStack tool, @Nullable Player player) {
 		if (blockClicked == ModBlocks.CONTROLLER.get()) {
 			setControllerLink(tool, pos);
+			if (!level.isClientSide()) {
+				// 选中控制器之后，玩家必须知道「现在再点一个容器就是把它连上来」，否则后面那次点击看起来毫无反应
+				showOverlayMessage(player, LINKING_OVERLAY, pos.getX(), pos.getY(), pos.getZ());
+			}
 			return true;
 		}
 		return WorldHelper.getBlockEntity(level, pos, ILinkable.class).map(linkable -> {
-			getControllerLink(tool).ifPresentOrElse(linkable::linkToController, linkable::unlinkFromController);
+			Optional<BlockPos> controllerPos = getControllerLink(tool);
+			if (controllerPos.isEmpty()) {
+				linkable.unlinkFromController();
+				if (!level.isClientSide()) {
+					showOverlayMessage(player, UNLINKING_OVERLAY);
+				}
+				return true;
+			}
+			linkable.linkToController(controllerPos.get());
+			if (level.isClientSide()) {
+				return true;
+			}
+			// 失败不再静默：要么这个方块本来就不接受链接（如已打包），要么它已经挂在别的控制器上
+			if (linkable instanceof StorageBlockEntity storageBlockEntity && !storageBlockEntity.isLinked()) {
+				showOverlayMessage(player, LINK_FAILED_OVERLAY);
+			} else {
+				BlockPos linkedController = controllerPos.get();
+				showOverlayMessage(player, LINKED_OVERLAY, linkedController.getX(), linkedController.getY(), linkedController.getZ());
+			}
 			return true;
-		}).orElse(false);
+		}).orElseGet(() -> {
+			if (!level.isClientSide()) {
+				showOverlayMessage(player, LINK_FAILED_OVERLAY);
+			}
+			return false;
+		});
 	}
 
 	@Override
@@ -177,6 +239,21 @@ public class StorageToolItem extends ItemBase {
 
 	public static void cycleMode(ItemStack tool, boolean next) {
 		tool.sophisticatedCore_set(ModDataComponents.TOOL_MODE, next ? getMode(tool).next() : getMode(tool).previous());
+	}
+
+	/**
+	 * 服务端回执（{@link net.p3pp3rf1y.sophisticatedstorage.network.ToolModePayload}）落到客户端手持物上。
+	 * <p>
+	 * 客户端这份 stack 是本地副本，写组件只影响本地的 HUD 读取（{@code ToolInfoOverlay}），不会回传服务端；
+	 * 之后物品栏同步到达时两边数值一致。
+	 */
+	@net.fabricmc.api.Environment(net.fabricmc.api.EnvType.CLIENT)
+	public static void setModeFromServer(ItemStack tool, int modeOrdinal) {
+		Mode[] modes = Mode.values();
+		if (tool.getItem() != ModItems.STORAGE_TOOL.get() || modeOrdinal < 0 || modeOrdinal >= modes.length) {
+			return;
+		}
+		tool.sophisticatedCore_set(ModDataComponents.TOOL_MODE, modes[modeOrdinal]);
 	}
 
 	public enum Mode implements StringRepresentable {

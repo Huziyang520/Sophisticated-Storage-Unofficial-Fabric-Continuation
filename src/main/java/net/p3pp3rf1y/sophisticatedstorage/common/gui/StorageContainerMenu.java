@@ -59,8 +59,9 @@ public class StorageContainerMenu extends StorageContainerMenuBase<IStorageWrapp
 	public StorageContainerMenu(MenuType<?> menuType, int containerId, Player player, BlockPos pos, boolean openersAlreadyActive) {
 		super(menuType, containerId, player, getWrapper(player.level(), pos), NoopStorageWrapper.INSTANCE, -1, false);
 		storageBlockEntity = resolveStorageBlockEntity(player.level(), pos).orElseThrow(() -> new IllegalArgumentException("Incorrect block entity at " + pos + " exptected to find StorageBlockEntity"));
-		// breadcrumb for the port: the menu exists on both sides, the screen may still fail to appear
-		net.p3pp3rf1y.sophisticatedstorage.SophisticatedStorage.LOGGER.info("storage menu created at {} (id {}) side={} slots={} upgrades={} be={} state={}",
+		// 诊断面包屑（第 5 轮实机验收后不再需要常驻 info 级）：降为 debug，
+		// 槽位数量这类信息只在排查「界面点不动 / 槽位错位」时才需要
+		net.p3pp3rf1y.sophisticatedstorage.SophisticatedStorage.LOGGER.debug("storage menu created at {} (id {}) side={} slots={} upgrades={} be={} state={}",
 				pos, containerId, player.level().isClientSide(), getNumberOfStorageInventorySlots(), getNumberOfUpgradeSlots(),
 				storageBlockEntity.getClass().getSimpleName(), storageBlockEntity.getBlockState().getBlock());
 		// Opener ownership: the server is what closes the block when the player leaves; the client counts the menu that was

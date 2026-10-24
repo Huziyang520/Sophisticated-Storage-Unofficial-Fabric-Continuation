@@ -21,7 +21,6 @@ public class ClientStorageContentsTooltip extends ClientStorageContentsTooltipBa
 	//parameter needs to be there so that addListener logic would know which event this method listens to
 	public static void onWorldLoad(Minecraft client, ClientLevel world) {
 		refreshContents();
-		lastRequestTime = 0;
 	}
 
 	@Override
