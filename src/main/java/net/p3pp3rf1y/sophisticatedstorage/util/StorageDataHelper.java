@@ -262,8 +262,9 @@ public final class StorageDataHelper {
 		}
 
 		if (blockEntity instanceof WoodStorageBlockEntity woodStorageBlockEntity) {
+			// 打包态只由方块实体自己的数据决定（getStorageContentsTag 写 false），不从物品组件回灌：
+			// 回灌会让打包过的容器放下后仍是打包态，再也打不开。物品上的 PACKED 只是外观。
 			WoodStorageBlockItem.getWoodType(stack).ifPresent(woodStorageBlockEntity::setWoodType);
-			woodStorageBlockEntity.setPacked(WoodStorageBlockItem.isPacked(stack));
 		}
 
 		int inventorySlots = StorageBlockItem.getNumberOfInventorySlots(stack);

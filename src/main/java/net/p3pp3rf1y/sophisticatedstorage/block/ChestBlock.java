@@ -386,19 +386,6 @@ public class ChestBlock extends WoodStorageBlockBase implements SimpleWaterlogge
 	}
 
 	@Override
-	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean isMoving) {
-		if (state.getValue(TYPE) != ChestType.SINGLE) {
-			level.getBlockEntity(pos, ModBlocks.CHEST_BLOCK_ENTITY_TYPE.get()).ifPresent(be -> {
-				if (be.isPacked()) {
-					level.removeBlock(pos.relative(getConnectedDirection(state)), false);
-				}
-			});
-		}
-		super.affectNeighborsAfterRemoval(state, level, pos, isMoving);
-	}
-
-
-	@Override
 	public void addDropData(ItemStack stack, StorageBlockEntity be) {
 		if (be instanceof ChestBlockEntity chestBlockEntity && chestBlockEntity.isPacked() && be.getBlockState().getValue(TYPE) != ChestType.SINGLE) {
 			super.addDropData(stack, be);

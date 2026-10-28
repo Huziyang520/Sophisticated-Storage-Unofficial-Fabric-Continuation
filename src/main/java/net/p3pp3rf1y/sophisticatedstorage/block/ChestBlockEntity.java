@@ -178,6 +178,15 @@ public class ChestBlockEntity extends WoodStorageBlockEntity {
 		}
 	}
 
+	// 已打包的双箱拆一半时另一半必须一起消失；affectNeighborsAfterRemoval 跑在实体摘掉之后，改到这里
+	@Override
+	public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+		if (isPacked() && level != null && !level.isClientSide() && state.getValue(ChestBlock.TYPE) != ChestType.SINGLE) {
+			level.removeBlock(pos.relative(ChestBlock.getConnectedDirection(state)), false);
+		}
+		super.preRemoveSideEffects(pos, state);
+	}
+
 	@Override
 	public void dropContents() {
 		if (isDestroyedByPlayer && getBlockState().getValue(ChestBlock.TYPE) != ChestType.SINGLE) {

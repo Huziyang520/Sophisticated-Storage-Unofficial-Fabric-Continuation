@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.resources.Identifier;
 import net.p3pp3rf1y.sophisticatedstorage.SophisticatedStorage;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedstorage.client.gui.StorageTranslationHelper;
 import net.p3pp3rf1y.sophisticatedstorage.init.ModItems;
 import net.p3pp3rf1y.sophisticatedstorage.network.ScrolledToolPayload;
@@ -27,11 +28,21 @@ public final class ClientKeybinds {
 			InputConstants.KEY_H,
 			CATEGORY);
 
+	/** 整理容器内容（默认中键）：界面里的中键语义由核心按这个键位判定，所以改键后仍然生效 */
+	public static final KeyMapping SORT_KEYBIND = new KeyMapping(
+			StorageTranslationHelper.INSTANCE.translKeybind("sort"),
+			InputConstants.Type.MOUSE,
+			InputConstants.MOUSE_BUTTON_MIDDLE,
+			CATEGORY);
+
 	private ClientKeybinds() {
 	}
 
 	public static void register() {
 		KeyMappingHelper.registerKeyMapping(CYCLE_TOOL_MODE);
+		KeyMappingHelper.registerKeyMapping(SORT_KEYBIND);
+		StorageScreenBase.setSortMouseMatcher(SORT_KEYBIND::matchesMouse);
+		StorageScreenBase.setSortKeyMatcher(SORT_KEYBIND::matches);
 		ClientTickEvents.END_CLIENT_TICK.register(ClientKeybinds::onEndClientTick);
 	}
 

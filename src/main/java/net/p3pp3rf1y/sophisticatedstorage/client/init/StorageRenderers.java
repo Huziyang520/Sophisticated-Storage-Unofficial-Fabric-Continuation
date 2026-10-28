@@ -9,6 +9,7 @@ import net.p3pp3rf1y.sophisticatedstorage.block.ShulkerBoxBlockEntity;
 import net.p3pp3rf1y.sophisticatedstorage.client.render.BarrelItemModel;
 import net.p3pp3rf1y.sophisticatedstorage.client.render.ChestItemRenderer;
 import net.p3pp3rf1y.sophisticatedstorage.client.render.ChestRenderer;
+import net.p3pp3rf1y.sophisticatedstorage.client.render.DecorationTableRenderer;
 import net.p3pp3rf1y.sophisticatedstorage.client.render.LimitedBarrelRenderer;
 import net.p3pp3rf1y.sophisticatedstorage.client.render.PackedBarrelRenderer;
 import net.p3pp3rf1y.sophisticatedstorage.client.render.ShulkerBoxItemRenderer;
@@ -38,6 +39,9 @@ public final class StorageRenderers {
 				(BlockEntityRendererProvider<BarrelBlockEntity, PackedBarrelRenderer.PackedBarrelRenderState>) PackedBarrelRenderer::new);
 		BlockEntityRenderers.register(ModBlocks.LIMITED_BARREL_BLOCK_ENTITY_TYPE.get(),
 				(BlockEntityRendererProvider<LimitedBarrelBlockEntity, LimitedBarrelRenderer.LimitedBarrelRenderState>) LimitedBarrelRenderer::new);
+		// 装饰台台面上方的结果物预览
+		BlockEntityRenderers.register(ModBlocks.DECORATION_TABLE_BLOCK_ENTITY_TYPE.get(),
+				context -> new DecorationTableRenderer());
 
 		// Item model types have no registration API in 26.3 either; both these registers are late bound id mappers that
 		// are only queried while an item definition is decoded, so filling them during client init is enough.

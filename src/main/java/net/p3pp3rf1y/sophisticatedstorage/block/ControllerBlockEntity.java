@@ -63,6 +63,13 @@ public class ControllerBlockEntity extends ControllerBlockEntityBase implements 
 		return hasItem(stack.getItem()) || isMemorizedItem(stack) || isFilterItem(stack.getItem());
 	}
 
+	// 26.3 的 affectNeighborsAfterRemoval 跑在方块实体摘掉之后，解除连接只能在这里做
+	@Override
+	public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+		super.preRemoveSideEffects(pos, state);
+		detachFromStoragesAndUnlinkBlocks();
+	}
+
 	@Override
 	public void toggleLock() {
 		Set<ILockable> unlockedStorages = new HashSet<>();

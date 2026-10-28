@@ -462,9 +462,18 @@ public class DecorationTableBlockEntity extends BlockEntity {
 	}
 
 	public void dropContents() {
+		if (level == null || level.isClientSide()) {
+			return;
+		}
 		InventoryHelper.dropItems(decorativeBlocks, level, worldPosition);
 		InventoryHelper.dropItems(dyes, level, worldPosition);
 		InventoryHelper.dropItems(storageBlock, level, worldPosition);
+	}
+
+	@Override
+	public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+		super.preRemoveSideEffects(pos, state);
+		dropContents();
 	}
 
 	public record TintDecorationResult(ItemStack result, Map<TagKey<Item>, Integer> requiredDyeParts) {
