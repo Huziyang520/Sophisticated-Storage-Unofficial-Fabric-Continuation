@@ -49,15 +49,12 @@
     "modmenu": {
       "badges": [],
       "links": {
-        "sophisticatedcore.link.feedback": "https://issue.mengcai.online/"
+        "sophisticatedstorage.link.feedback": "https://issue.mengcai.online/"
       }
     },
     "loom:injected_interfaces": {
       "net/minecraft/client/gui/screens/inventory/AbstractContainerScreen": [
         "net/p3pp3rf1y/sophisticatedcore/extensions/client/gui/screens/inventory/SophisticatedAbstractContainerScreen"
-      ],
-      "net/minecraft/client/particle/TerrainParticle": [
-        "net/p3pp3rf1y/sophisticatedcore/extensions/client/particle/SophisticatedTerrainParticle"
       ],
       "net/minecraft/world/entity/Entity": [
         "net/p3pp3rf1y/sophisticatedcore/extensions/entity/SophisticatedEntity"

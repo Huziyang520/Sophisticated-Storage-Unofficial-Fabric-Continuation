@@ -288,5 +288,6 @@
   "item.sophisticatedstorage.storage_tool.overlay.linked_to_controller": "Підключено до контролера за координатами x:%s y:%s z:%s",
   "item.sophisticatedstorage.storage_tool.overlay.link_failed": "Цей блок не можна підключити",
   "item.sophisticatedstorage.storage_tool.overlay.locked": "Контейнер замкнено",
-  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "Контейнер розблоковано"
+  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "Контейнер розблоковано",
+  "sophisticatedstorage.link.feedback": "Backup Feedback"
 }

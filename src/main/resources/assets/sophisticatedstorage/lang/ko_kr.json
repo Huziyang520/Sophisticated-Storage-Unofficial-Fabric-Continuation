@@ -288,5 +288,6 @@
   "item.sophisticatedstorage.storage_tool.overlay.linked_to_controller": "x:%s y:%s z:%s 의 컨트롤러에 연결되었습니다",
   "item.sophisticatedstorage.storage_tool.overlay.link_failed": "이 블록은 연결할 수 없습니다",
   "item.sophisticatedstorage.storage_tool.overlay.locked": "컨테이너를 잠갔습니다",
-  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "컨테이너의 잠금을 풀었습니다"
+  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "컨테이너의 잠금을 풀었습니다",
+  "sophisticatedstorage.link.feedback": "Backup Feedback"
 }

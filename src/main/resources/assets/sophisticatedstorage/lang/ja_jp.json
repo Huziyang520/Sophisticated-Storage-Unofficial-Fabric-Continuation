@@ -288,5 +288,6 @@
   "item.sophisticatedstorage.storage_tool.overlay.linked_to_controller": "x:%s y:%s z:%s のコントローラーに接続しました",
   "item.sophisticatedstorage.storage_tool.overlay.link_failed": "このブロックは接続できません",
   "item.sophisticatedstorage.storage_tool.overlay.locked": "コンテナを施錠しました",
-  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "コンテナの鍵を外しました"
+  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "コンテナの鍵を外しました",
+  "sophisticatedstorage.link.feedback": "Backup Feedback"
 }

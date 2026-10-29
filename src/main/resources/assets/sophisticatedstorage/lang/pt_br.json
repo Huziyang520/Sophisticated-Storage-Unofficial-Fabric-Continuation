@@ -378,5 +378,6 @@
   "item.sophisticatedstorage.storage_tool.overlay.linked_to_controller": "Conectado ao controlador em x:%s y:%s z:%s",
   "item.sophisticatedstorage.storage_tool.overlay.link_failed": "Não é possível conectar este bloco",
   "item.sophisticatedstorage.storage_tool.overlay.locked": "Contêiner trancado",
-  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "Contêiner destrancado"
+  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "Contêiner destrancado",
+  "sophisticatedstorage.link.feedback": "Backup Feedback"
 }

@@ -542,5 +542,6 @@
   "item.sophisticatedstorage.storage_tool.overlay.linked_to_controller": "Linked to controller at x:%s y:%s z:%s",
   "item.sophisticatedstorage.storage_tool.overlay.link_failed": "Cannot link this block",
   "item.sophisticatedstorage.storage_tool.overlay.locked": "Container locked",
-  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "Container unlocked"
+  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "Container unlocked",
+  "sophisticatedstorage.link.feedback": "Backup Feedback"
 }

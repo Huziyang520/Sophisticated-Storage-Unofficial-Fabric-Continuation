@@ -376,6 +376,13 @@ public class ChestBlockEntity extends WoodStorageBlockEntity {
 	public CompoundTag getStorageContentsTag() {
 		CompoundTag tag = super.getStorageContentsTag();
 		tag.remove(DOUBLE_CHEST_MAIN_POS_TAG);
+		// doubleMainPos 写在 sophisticatedstorage_data 里，只删根层等于没删：
+		// 放任它跟着物品走，放下后这个箱子会以为自己指向另一个位置的"副箱"
+		CompoundTag nested = tag.getCompoundOrEmpty(StorageBlockEntity.DATA_TAG).copy();
+		if (!nested.isEmpty()) {
+			nested.remove(DOUBLE_CHEST_MAIN_POS_TAG);
+			tag.put(StorageBlockEntity.DATA_TAG, nested);
+		}
 		return tag;
 	}
 

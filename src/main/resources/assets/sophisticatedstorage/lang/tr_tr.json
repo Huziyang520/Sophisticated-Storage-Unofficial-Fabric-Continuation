@@ -288,5 +288,6 @@
   "item.sophisticatedstorage.storage_tool.overlay.linked_to_controller": "x:%s y:%s z:%s konumundaki denetleyiciye bağlandı",
   "item.sophisticatedstorage.storage_tool.overlay.link_failed": "Bu blok bağlanamaz",
   "item.sophisticatedstorage.storage_tool.overlay.locked": "Kap zaten kilitlendi",
-  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "Kabın kilidi açıldı"
+  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "Kabın kilidi açıldı",
+  "sophisticatedstorage.link.feedback": "Backup Feedback"
 }

@@ -38,8 +38,19 @@ public abstract class WoodStorageBlockEntity extends StorageBlockEntity {
 		tag.putBoolean(PACKED_TAG, packed);
 	}
 
+	/**
+	 * 这是「把方块实体变成物品」时用的出口，打包态必须在这里被清掉。
+	 * <p>
+	 * {@code packed} 实际写在 {@code sophisticatedstorage_data} 里（{@code saveSynchronizedData} 写、{@code loadSynchronizedData} 读），
+	 * 只改根层的话物品会把 {@code packed=true} 原样带回来，放下后容器仍是打包态、界面打不开。
+	 */
 	public CompoundTag getStorageContentsTag() {
 		CompoundTag contents = saveWithoutMetadata(level.registryAccess());
+		CompoundTag nested = contents.getCompoundOrEmpty(StorageBlockEntity.DATA_TAG).copy();
+		if (!nested.isEmpty()) {
+			nested.remove(PACKED_TAG);
+			contents.put(StorageBlockEntity.DATA_TAG, nested);
+		}
 		contents.putBoolean(PACKED_TAG, false);
 		return contents;
 	}

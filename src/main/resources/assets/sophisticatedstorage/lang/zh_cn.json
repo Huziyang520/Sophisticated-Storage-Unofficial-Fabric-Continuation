@@ -721,5 +721,6 @@
   "item.sophisticatedstorage.storage_tool.overlay.linked_to_controller": "已连接到 x:%s y:%s z:%s 的控制器",
   "item.sophisticatedstorage.storage_tool.overlay.link_failed": "无法连接此方块",
   "item.sophisticatedstorage.storage_tool.overlay.locked": "容器已上锁",
-  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "容器已解锁"
+  "item.sophisticatedstorage.storage_tool.overlay.unlocked": "容器已解锁",
+  "sophisticatedstorage.link.feedback": "备用反馈地址"
 }
