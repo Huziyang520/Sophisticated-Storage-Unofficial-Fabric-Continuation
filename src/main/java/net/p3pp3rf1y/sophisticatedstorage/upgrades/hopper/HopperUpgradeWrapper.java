@@ -1,0 +1,308 @@
+package net.p3pp3rf1y.sophisticatedstorage.upgrades.hopper;
+
+import net.fabricmc.fabric.api.lookup.v1.block.BlockApiCache;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
+import net.p3pp3rf1y.sophisticatedcore.inventory.IInventoryHandlerHelper;
+import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.ContentsFilterLogic;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
+import net.p3pp3rf1y.sophisticatedcore.util.Capabilities;
+import net.p3pp3rf1y.sophisticatedstorage.block.StorageBlockBase;
+import net.p3pp3rf1y.sophisticatedstorage.block.VerticalFacing;
+import net.p3pp3rf1y.sophisticatedstorage.common.gui.BlockSide;
+import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
+import net.p3pp3rf1y.sophisticatedstorage.init.ModDataComponents;
+import net.p3pp3rf1y.sophisticatedstorage.upgrades.INeighborChangeListenerUpgrade;
+
+import javax.annotation.Nullable;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+
+public class HopperUpgradeWrapper extends UpgradeWrapperBase<HopperUpgradeWrapper, HopperUpgradeItem> implements ITickableUpgrade, INeighborChangeListenerUpgrade {
+
+	private final Set<Direction> pullDirections = new LinkedHashSet<>();
+	private final Set<Direction> pushDirections = new LinkedHashSet<>();
+	private final Map<Direction, ItemHandlerHolder> handlerCache = new EnumMap<>(Direction.class);
+
+	private final ContentsFilterLogic inputFilterLogic;
+	private final TargetContentsFilterLogic outputFilterLogic;
+	private long coolDownTime = 0;
+
+	protected HopperUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
+		super(storageWrapper, upgrade, upgradeSaveHandler);
+		inputFilterLogic = new ContentsFilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getInputFilterSlotCount(), storageWrapper::getInventoryHandler, storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class), ModCoreDataComponents.INPUT_FILTER_ATTRIBUTES);
+		outputFilterLogic = new TargetContentsFilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getOutputFilterSlotCount(), storageWrapper::getInventoryHandler, storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class), ModDataComponents.OUTPUT_FILTER_ATTRIBUTES);
+
+		deserialize();
+	}
+
+	@Override
+	public void tick(@Nullable Entity entity, Level level, BlockPos pos) {
+		initDirections(level, pos);
+
+		if (coolDownTime > level.getGameTime()) {
+			return;
+		}
+
+		for (Direction pushDirection : pushDirections) {
+			if (runOnItemHandlers(level, pos, pushDirection, this::pushItems, entity)) {
+				break;
+			}
+		}
+
+		for (Direction pullDirection : pullDirections) {
+			if (runOnItemHandlers(level, pos, pullDirection, this::pullItems, entity)) {
+				break;
+			}
+		}
+
+		coolDownTime = level.getGameTime() + upgradeItem.getTransferSpeedTicks();
+	}
+
+	private void initDirections(Level level, BlockPos pos) {
+		if (upgrade.sophisticatedCore_has(ModDataComponents.PUSH_DIRECTIONS) || upgrade.sophisticatedCore_has(ModDataComponents.PULL_DIRECTIONS)) {
+			return;
+		}
+		BlockState state = level.getBlockState(pos);
+		if (state.getBlock() instanceof StorageBlockBase storageBlock) {
+			Direction horizontalDirection = storageBlock.getHorizontalDirection(state);
+			VerticalFacing verticalFacing = storageBlock.getVerticalFacing(state);
+			pullDirections.clear();
+			pushDirections.clear();
+			initDirections(BlockSide.BOTTOM.toDirection(horizontalDirection, verticalFacing), BlockSide.TOP.toDirection(horizontalDirection, verticalFacing));
+		} else {
+			initDirections(Direction.DOWN, Direction.UP);
+		}
+	}
+
+	private boolean pullItems(List<Storage<ItemVariant>> fromHandlers) {
+		for (Storage<ItemVariant> fromHandler : fromHandlers) {
+			if (moveItems(fromHandler, storageWrapper.getInventoryForUpgradeProcessing(), inputFilterLogic)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean pushItems(List<Storage<ItemVariant>> toHandlers) {
+		for (Storage<ItemVariant> toHandler : toHandlers) {
+			outputFilterLogic.setInventory(toHandler);
+			if (moveItems(storageWrapper.getInventoryForUpgradeProcessing(), toHandler, outputFilterLogic)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean moveItems(Storage<ItemVariant> fromHandler, Storage<ItemVariant> toHandler, FilterLogic filterLogic) {
+		for (StorageView<ItemVariant> view : fromHandler.nonEmptyViews()) {
+			ItemVariant resource = view.getResource();
+			ItemStack slotStack = resource.toStack((int) view.getAmount());
+			if (!slotStack.isEmpty() && filterLogic.matchesFilter(slotStack)) {
+				long maxExtracted = StorageUtil.simulateExtract(view, resource, upgradeItem.getMaxTransferStackSize(), null);
+
+				try (Transaction transferTransaction = Transaction.openOuter()) {
+					long accepted = toHandler.insert(resource, maxExtracted, transferTransaction);
+					if (fromHandler.extract(resource, accepted, transferTransaction) == accepted) {
+						transferTransaction.commit();
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public void onNeighborChange(Level level, BlockPos pos, Direction direction) {
+		if (!level.isClientSide() && (pushDirections.contains(direction) || pullDirections.contains(direction)) && needsCacheUpdate(level, pos, direction)) {
+			handlerCache.remove(direction);
+		}
+	}
+
+	private boolean needsCacheUpdate(Level level, BlockPos pos, Direction direction) {
+		ItemHandlerHolder holder = handlerCache.get(direction);
+		if (holder == null || holder.handlers().isEmpty()) {
+			return !level.getBlockState(pos).isAir();
+		} else if (holder.refreshOnEveryNeighborChange()) {
+			return true;
+		}
+
+		for (BlockApiCache<Storage<ItemVariant>, Direction> handler : holder.handlers()) {
+			if (handler.find(direction.getOpposite()) == null) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public void updateCacheOnSide(Level level, BlockPos pos, Direction direction) {
+		if (!level.isLoaded(pos) || !level.isLoaded(pos.relative(direction)) || !(level instanceof ServerLevel serverLevel)) {
+			handlerCache.remove(direction);
+			return;
+		}
+
+		ItemHandlerHolder itemHandlers = getItemHandlerHolder(level, pos, direction, serverLevel);
+		handlerCache.put(direction, itemHandlers);
+	}
+
+	private ItemHandlerHolder getItemHandlerHolder(Level level, BlockPos pos, Direction direction, ServerLevel serverLevel) {
+		/*WeakReference<IStorageWrapper> storageWrapperRef = new WeakReference<>(storageWrapper);
+		BooleanSupplier validityCheck = () -> {
+			IStorageWrapper sw = storageWrapperRef.get();
+			if (sw != null) {
+				return sw.getUpgradeHandler().getSlotWrappers().containsValue(this);
+			}
+			return false;
+		};*/
+
+		BlockState storageState = level.getBlockState(pos);
+		List<BlockPos> offsetPositions = storageState.getBlock() instanceof StorageBlockBase storageBlock ? storageBlock.getNeighborPos(storageState, pos, direction) : List.of(pos.relative(direction));
+
+		List<BlockApiCache<Storage<ItemVariant>, Direction>> caches = new ArrayList<>();
+
+		AtomicBoolean refreshOnEveryNeighborChange = new AtomicBoolean(false);
+		offsetPositions.forEach(offsetPos -> {
+			offsetPos = level.getBlockEntity(offsetPos, ModBlocks.STORAGE_INPUT_BLOCK_ENTITY_TYPE.get()).flatMap(storageInputBlockEntity -> {
+				refreshOnEveryNeighborChange.set(true);
+				return storageInputBlockEntity.getControllerPos();
+			}).orElse(offsetPos);
+
+			caches.add(BlockApiCache.create(ItemStorage.SIDED, serverLevel, offsetPos));
+			// caches.add(BlockCapabilityCache.create(Capabilities.ItemHandler.BLOCK, serverLevel, offsetPos, direction.getOpposite(), validityCheck, () -> handlerCache.remove(direction)));
+		});
+		return new ItemHandlerHolder(caches, refreshOnEveryNeighborChange.get());
+	}
+
+	private boolean runOnItemHandlers(Level level, BlockPos pos, Direction direction, Predicate<List<Storage<ItemVariant>>> run, @Nullable Entity entity) {
+		ItemHandlerHolder holder = getItemHandlerHolder(level, pos, direction, entity == null);
+		if (holder == null) {
+			return runOnAutomationEntityItemHandlers(level, pos, direction, run, entity);
+		}
+
+		List<Storage<ItemVariant>> handler = holder.handlers().stream().map(handlerCache -> handlerCache.find(direction.getOpposite())).filter(Objects::nonNull).toList();
+
+		return handler.isEmpty() ? runOnAutomationEntityItemHandlers(level, pos, direction, run, entity) : run.test(handler);
+	}
+
+	private boolean runOnAutomationEntityItemHandlers(Level level, BlockPos pos, Direction direction, Predicate<List<Storage<ItemVariant>>> run, @Nullable Entity entity) {
+		BlockState storageState = level.getBlockState(pos);
+		List<BlockPos> offsetPositions = entity == null && storageState.getBlock() instanceof StorageBlockBase storageBlock ? storageBlock.getNeighborPos(storageState, pos, direction) : List.of(pos.relative(direction));
+
+		List<Entity> entities = new ArrayList<>();
+		for (BlockPos offsetPosition : offsetPositions) {
+			entities.addAll(level.getEntities((Entity) null, new AABB(offsetPosition), e -> e != entity && EntitySelector.ENTITY_STILL_ALIVE.test(e)));
+		}
+		if (!entities.isEmpty()) {
+			Collections.shuffle(entities);
+			for (Entity e : entities) {
+				IInventoryHandlerHelper entityCap = Capabilities.ItemHandler.ENTITY_AUTOMATION.find(e, direction.getOpposite());
+				if (entityCap != null) {
+					return run.test(List.of(entityCap));
+				}
+			}
+		}
+
+		return false;
+	}
+
+	@Nullable
+	private ItemHandlerHolder getItemHandlerHolder(Level level, BlockPos pos, Direction direction, boolean useCache) {
+		if (useCache) {
+			if (!handlerCache.containsKey(direction)) {
+				updateCacheOnSide(level, pos, direction);
+			}
+			return handlerCache.get(direction);
+		}
+
+		return getItemHandlerHolder(level, pos, direction, (ServerLevel) level);
+	}
+
+	public ContentsFilterLogic getInputFilterLogic() {
+		return inputFilterLogic;
+	}
+
+	public ContentsFilterLogic getOutputFilterLogic() {
+		return outputFilterLogic;
+	}
+
+	public boolean isPullingFrom(Direction direction) {
+		return pullDirections.contains(direction);
+	}
+
+	public boolean isPushingTo(Direction direction) {
+		return pushDirections.contains(direction);
+	}
+
+	public void setPullingFrom(Direction direction, boolean shouldPull) {
+		if (shouldPull) {
+			pullDirections.add(direction);
+		} else {
+			pullDirections.remove(direction);
+		}
+		serializePullDirections();
+	}
+
+	public void setPushingTo(Direction direction, boolean isPushing) {
+		if (isPushing) {
+			pushDirections.add(direction);
+		} else {
+			pushDirections.remove(direction);
+		}
+		serializePushDirections();
+	}
+
+	private void serializePullDirections() {
+		upgrade.sophisticatedCore_set(ModDataComponents.PULL_DIRECTIONS, Set.copyOf(pullDirections));
+		save();
+	}
+
+	private void serializePushDirections() {
+		upgrade.sophisticatedCore_set(ModDataComponents.PUSH_DIRECTIONS, Set.copyOf(pushDirections));
+		save();
+	}
+
+	public void deserialize() {
+		pullDirections.clear();
+		pushDirections.clear();
+		Set<Direction> directions = upgrade.sophisticatedCore_get(ModDataComponents.PULL_DIRECTIONS);
+		if (directions != null) {
+			pullDirections.addAll(directions);
+		}
+		directions = upgrade.sophisticatedCore_get(ModDataComponents.PUSH_DIRECTIONS);
+		if (directions != null) {
+			pushDirections.addAll(directions);
+		}
+	}
+
+	public void initDirections(Direction pushDirection, Direction pullDirection) {
+		setPushingTo(pushDirection, true);
+		setPullingFrom(pullDirection, true);
+	}
+
+	private record ItemHandlerHolder(List<BlockApiCache<Storage<ItemVariant>, Direction>> handlers,
+									 boolean refreshOnEveryNeighborChange) {
+	}
+}

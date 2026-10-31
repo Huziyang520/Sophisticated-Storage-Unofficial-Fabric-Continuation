@@ -1,0 +1,26 @@
+package net.p3pp3rf1y.sophisticatedstorage.client.init;
+
+import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
+import net.minecraft.world.item.BlockItem;
+import net.p3pp3rf1y.sophisticatedstorage.init.ModBlocks;
+import net.p3pp3rf1y.sophisticatedstorage.item.StorageBlockItem;
+
+import java.util.function.Supplier;
+
+public class ModItemColors {
+	private ModItemColors() {}
+
+	public static void registerItemColorHandlers() {
+		ColorProviderRegistry.ITEM.register((stack, tintIndex) -> {
+					if (tintIndex < 1000 || tintIndex > 1001) {
+						return -1;
+					}
+					if (tintIndex == 1000) {
+						return StorageBlockItem.getMainColorFromComponentHolder(stack).orElse(-1);
+					} else {
+						return StorageBlockItem.getAccentColorFromComponentHolder(stack).orElse(-1);
+					}
+				},
+				ModBlocks.ALL_BARREL_ITEMS.stream().map(Supplier::get).toArray(BlockItem[]::new));
+	}
+}
